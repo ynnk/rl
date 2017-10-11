@@ -120,6 +120,11 @@ class Parser(object):
     def __init__(self):
         self.errors = 0
         
+    def todo(self, message ):
+        info( "\n\t ### #################" )
+        info( "\t ### %s" % message )
+        info( "\t ### #################" )
+        
     def info(self, message ):
         info( message )
 
@@ -158,6 +163,7 @@ class Parser(object):
 
         lexie_props = {
             'rlfid' : Text(),
+            'id' : Text(),
             'label' : Text(),
             'num' : Text(),
             'vocable' : Text(),
@@ -180,7 +186,6 @@ class Parser(object):
 
         def as_token(nid):
             node = nodes.get(nid, None)
-
             if node:
                 keys =  [ "id","num", "prefix", "subscript", "superscript", "vocable"]
                 values =  [ node[k] for k in keys ]
@@ -194,6 +199,7 @@ class Parser(object):
             node.update(entry)
             node.update({
                 'rlfid' : node['id'],
+                'id' : node['id'],
                 'label' : node['name'],
                 'vocable' : node['name'],
                 'prefix' : node['addtoname'],
@@ -217,6 +223,7 @@ class Parser(object):
             to_delete = ('%', 'entry', 'lexnum', 'addtoname')
             for k in to_delete : del node[k]
 
+        print len( set( [ n['id'] for n in nodes.values() ]) ), len(nodes)
             
 
 
@@ -244,6 +251,8 @@ class Parser(object):
         handler = GramCharacHandler()
         pos = handler.parse("%s/05-lsgramcharac-model.xml" % path)
         rels = readcsv(path, "06-lsgramcharac-rel.csv", type=list)
+
+        
         
         for r in rels:
             id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
@@ -255,6 +264,7 @@ class Parser(object):
             othercharac =  [ pos[e]['name']  for e in re.findall("([0-9]+)", othercharac )]
             
             # GC Caractéristiques grammaticales
+            
             if not len( embededlex ):
                 node['gcs'].append({
                     'locution_tokens' : [],
@@ -271,7 +281,7 @@ class Parser(object):
                 }})
 
         
-        
+        self.todo(  " 06-lsgramcharac-rel.csv : TODO POST LOCUTIONS" )        
         for r in rels:
             id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
             """
@@ -281,8 +291,9 @@ class Parser(object):
         
             """
             pass
-            
-        # DF
+
+        
+        # Nodes DF
 
         # 09-lssemlabel-model.xml 
         # 10-lssemlabel-rel.csv
@@ -315,7 +326,8 @@ class Parser(object):
             else :
                 self.error( " # 17-lsdef # no def for %s" % id )
                 
-        # EXEMPLES
+        # Nodes Exemples
+        
         handler = ExempleSourceHandler()
         sources = handler.parse("%s/14-lsexsource-model.xml" % path)
         exemples = { e['id']: e for e in readcsv(path, "15-lsex.csv") }
@@ -347,7 +359,8 @@ class Parser(object):
 
 
         # POST Nodes vertex
-
+        self.info( "\n * POSTING Lexie nodes : %s" % (len(nodes.values())) )
+        
         def gen(nodes):
             jsons = ( 'df', 'gcs', 'examples', 'locutions' )
             for node in nodes :
@@ -358,9 +371,10 @@ class Parser(object):
                         'nodetype': nodetypes['Lexie']['uuid'],
                         'properties': properties
                       }
-
+        
         for node, uuid in bot.post_nodes( gid, gen(nodes.values()) ):
             idx[ node['properties']['rlfid'] ] = uuid
+        self.info( " * POST    Lexie nodes : %s" % (len(idx)) )
             
         
         
@@ -368,6 +382,7 @@ class Parser(object):
 
         """
         ## Liens de co-polysémie
+        
         03-lscopolysemy-model.xml
         04-lscopolysemy-rel.csv
         """
@@ -427,8 +442,11 @@ class Parser(object):
 
 
 
+        
+
         """
         ## Liens de fonctions lexicales (FL)
+
         12-lslf-model.xml contient le modèle hiérarchique des FL : chaque FL appartient à une
         « famille » et chaque famille est elle-même élément d’un « groupe » de familles ;
         13-lslf-rel.csv contient l’ensemble de liens de FL entre lexies individuelles.
@@ -437,7 +455,8 @@ class Parser(object):
         handler = LexicalFunctionHandler()
         flex = handler.parse("%s/12-lslf-model.xml" % path)
 
-        # edgetypes
+        # POST edgetypes
+        
         self.info( " * POSTING Lexical Function edgetypes : %s" % (len(flex.values())) )
         _name = lambda x: "LexicalFunction:%s" % x['name']
         for fl in flex.values():
@@ -457,6 +476,7 @@ class Parser(object):
             self.debug( " * POST edgetype : %s %s" % (name, edgetypes[name]['uuid']) )
 
         # POST Edges
+
         rels = readcsv(path, "13-lslf-rel.csv", type=list)
         edges = []
         _edges = set()
@@ -484,20 +504,14 @@ class Parser(object):
             name = _name(fl)
             self.debug( "    edges : %s %s" % (len( [ e for e in edges if e['edgetype'] == edgetypes[name]['uuid']  ] ), name, ) )
 
-        count = 0
-        for e in bot.post_edges(gid, iter(edges) ) : 
+        count = 0; uuids = []
+        for e, uuid in bot.post_edges(gid, iter(edges) ) : 
             count +=1
-        self.info(" * POST    Lexical Function edges : %s / %s" % (count, len(_edges)) ) 
-
-                
-
-        
+            uuids.append(uuid)
+            
+        self.info(" * POST    Lexical Function edges : %s / %s %s" % (count, len(_edges), len(uuids)) ) 
 
         print "\n\n == DEBUG == \n\n"
-
-        #pprint( nodes.values()[0:5])
-        #pprint( [ ( n['vocable'], n['locutions']) for n in nodes.values()[:50]])
-        #pprint( [ ( n['vocable'], n['gcs']) for n in nodes.values()[:50]])
         print len(nodes)
 
         graph = bot.get_igraph()
@@ -511,7 +525,6 @@ class Parser(object):
         self.info(" %s " % data.keys() )
         self.info(" %s " % data['meta'] )
         
-        exit( self.errors )
         
 def main():
     parser = Parser()
