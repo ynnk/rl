@@ -6,6 +6,7 @@ import datetime
 import argparse
 
 import csv
+import codecs
 import re
 import json
 
@@ -26,20 +27,25 @@ from rllib import prepare_graph, export_graph
  
 """
 
-DEBUG=True
+DEBUG=False
 
 class RLFHandler(xml.sax.handler.ContentHandler):
     def __init__(self):
         self._result = {}       
 
     def parse(self, f):
+        info( "\n\n ** %s **" % (f))
         xml.sax.parse(f, self)
+        info( "    %s models" % (len(self._result)))
+        
         return self._result
         
 class CopolysemyHandler(RLFHandler):
     def parse(self, f):
+        info( "\n\n ** %s **" % (f))
         self.current = None
         xml.sax.parse(f, self)
+        info( "    %s models" % (len(self._result)))
         return sorted(self._result.values(), key=lambda x: x['order'])
         
     def startElement(self, name, attrs):
@@ -95,7 +101,7 @@ def debug( *args):
 
 def readcsv(path, name, type=dict):
     f = "%s/%s" % (path, name)
-    with open(f, 'r') as csvfile:
+    with codecs.open(f, 'r') as csvfile:
         info( "\n\n ** %s **" % (f))
         if type == list:
             reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
@@ -104,7 +110,7 @@ def readcsv(path, name, type=dict):
             reader = csv.DictReader(csvfile, delimiter='\t', quotechar='"')
             rows = [ row for row in reader]
             
-        info(  '%s rows' % (len(rows) ))
+        info(  '   %s rows' % (len(rows) ))
 
     return rows
 
@@ -129,6 +135,7 @@ class Parser(object):
         # 1 2 3 4 5 6  9 10 11 12 13 14 15 16
 
         WEIGHT_COPO = 1
+        WEIGHT_LF = 1
 
         idx = {} 
         
@@ -137,7 +144,7 @@ class Parser(object):
         nodetypes = {}
         edgetypes = {}
         
-        path = "../exports/RL-fr-export17v17"
+        path = "../exports/fr-ls-spiderlex"
         gid = "rlfr"
         
         bot = BotaIgraph(directed=True)
@@ -236,31 +243,37 @@ class Parser(object):
         
         handler = GramCharacHandler()
         pos = handler.parse("%s/05-lsgramcharac-model.xml" % path)
-        rels = readcsv(path, "06-lsgramcharac-rel.csv") 
+        rels = readcsv(path, "06-lsgramcharac-rel.csv", type=list)
+        
         for r in rels:
-            node = nodes[r['id']]
+            id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
+            if POS == "":
+                error( " # 06-lsgramcharac-rel : missing POS %s for id %s  : %s" % (POS, id,r) )
+                continue
+                
+            node = nodes[id]   
+            othercharac =  [ pos[e]['name']  for e in re.findall("([0-9]+)", othercharac )]
             
-            r['othercharac'] =  [ pos[e]['name']  for e in re.findall("([0-9]+)", r['othercharac'])]
-
             # GC Caractéristiques grammaticales
-            if not len( r['embededlex'] ):
+            if not len( embededlex ):
                 node['gcs'].append({
                     'locution_tokens' : [],
-                    'name' : pos[r['POS']]['name'],
-                    'type' : pos[r['POS']]['type']
+                    'name' : pos[POS]['name'],
+                    'type' : pos[POS]['type']
                 })
             
             # LN Locutions nominales, prepositionnelles, phrases
             else :
                 node['locutions'].append( { 'locution_gc' : {
-                    'locution_tokens' : [ as_token(e) for e in r['embededlex'][1:-1].split(',')  ],
-                    'name' : pos[r['POS']]['name'],
-                    'type' : pos[r['POS']]['type']
+                    'locution_tokens' : [ as_token(e) for e in embededlex[1:-1].split(',')  ],
+                    'name' : pos[POS]['name'],
+                    'type' : pos[POS]['type']
                 }})
 
         
         
         for r in rels:
+            id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
             """
             node = nodes[r['id']]
 
@@ -293,7 +306,8 @@ class Parser(object):
             df['percent'] = percent
             df['actantslist'] = actantslist
             
-        for id,	compliant, def_XML, def_HTML in readcsv(path, "17-lsdef.csv", type=list):
+        for r in readcsv(path, "17-lsdef.csv", type=list):
+            id,	def_XML, def_HTML = r
             if id in nodes:
                 df = nodes[id]['df']
                 df['xml'] = def_XML
@@ -360,40 +374,58 @@ class Parser(object):
 
         handler = CopolysemyHandler()
         copo = handler.parse("%s/03-lscopolysemy-model.xml" % path)
-        _name =  lambda t,s : "%s%s%s" % (t['name'], ":" if s else "", s['name']if s else "" )
-
+        copo = { e['id']: e for e in copo }
+        _name =  lambda t,s : "Co-polysemy:%s%s%s" % (t['name'], ":" if s else "", s['name']if s else "" )
+        
         # edgetypes
-        for cop in copo:
-            print " === ", cop
+        self.info( " * POSTING Co-polysemy edgetypes : %s" % (len(copo.values())) )
+        for cop in copo.values():
             tp = cop['id'] # cop['name']
+            name = _name(cop, None)
             desc = ""
             properties = { "weight": Text(), 'i':Text() }
-            edgetypes[cop['name']] = bot.post_edgetype(gid, cop['name'], desc, properties)
+
+            edgetypes[name] = bot.post_edgetype(gid, name, desc, properties)
+            info( " * POST edgetype : %s %s" % (name, edgetypes[name]['uuid']) )
+
             for k,v in cop['subtypes'].items() :
                 name =  _name(cop, v)
                 edgetypes[name] = bot.post_edgetype(gid, name, desc, properties)
+                info( " * POST edgetype : %s %s" % (name, edgetypes[name]['uuid']) )
 
-        copo = { e['id']: e for e in copo }
-        
         rels = readcsv(path, "04-lscopolysemy-rel.csv", type=list)
 
         edges = []; count = 0
-        for src, tgt, typ, subtype in rels:
+        for r in rels:
+            src, tgt, typ, subtype = r
             t = copo[int(typ)]
             s = copo[int(typ)]['subtypes'].get(int(subtype), None) if len(subtype) else None
             
             if len(subtype) and (copo[int(typ)]['subtypes'].get(int(subtype), None) is None):
-                self.error ( " # 04-lscopolysemy-rel # no subtype %s in type %s \n %s %s %s %s" \
-                        % ( int(subtype) , int(typ), src, tgt, typ, subtype ))
+                self.error ( " # 04-lscopolysemy-rel # no subtype %s in type %s    %s" \
+                        % ( int(subtype) , int(typ), r ))
             
             count +=1
             payload = {
-                        'edgetype': edgetypes[ _name(t,s) ]['uuid'],
+                        'edgetype': edgetypes[_name(t,s) ]['uuid'],
                         'source': idx[src],
                         'target': idx[tgt],
                         'properties': { 'weight' : WEIGHT_COPO, 'i': count } 
                     }
             edges.append(payload)
+
+        self.info("\n *  POSTING Co polysemy edges : %s" % len(edges) ) 
+        for cop in copo.values():
+            name =  _name(cop, None)
+            self.debug( "    edges : %s %s" % (len( [ e for e in edges if e['edgetype'] == edgetypes[name]['uuid']]), name ) )
+            for k,v in cop['subtypes'].items() :
+                name =  _name(cop, v)
+                self.debug( "    edges : %s %s" % (len( [ e for e in edges if e['edgetype'] == edgetypes[name]['uuid']]), name ) )
+        
+        for e in bot.post_edges(gid, iter(edges), extra= lambda e: e['properties']['i'] ) : 
+            pass
+
+
 
         """
         ## Liens de fonctions lexicales (FL)
@@ -404,19 +436,60 @@ class Parser(object):
 
         handler = LexicalFunctionHandler()
         flex = handler.parse("%s/12-lslf-model.xml" % path)
-        rels = readcsv(path, "13-lslf-rel.csv")
 
-        # TODO
+        # edgetypes
+        self.info( " * POSTING Lexical Function edgetypes : %s" % (len(flex.values())) )
+        _name = lambda x: "LexicalFunction:%s" % x['name']
+        for fl in flex.values():
+            tp = fl['id'] # cop['name']
+            name = _name(fl)
+            desc = ""
+            properties = { "weight": Text(),
+                        'form': Text(),
+                        'separator': Text(),
+                        'merged':Text(),
+                        'syntacticframe':Text(),
+                        'constraint': Text(),
+                        'position': Text()
+                        }
 
+            edgetypes[name] = bot.post_edgetype(gid, name, desc, properties)
+            self.debug( " * POST edgetype : %s %s" % (name, edgetypes[name]['uuid']) )
 
-        
         # POST Edges
+        rels = readcsv(path, "13-lslf-rel.csv", type=list)
+        edges = []
+        _edges = set()
+        for source, lf, target, form, separator, merged, syntacticframe, constraint, position in rels:
+            _name(fl)
+            payload = {
+                        'edgetype': edgetypes[_name(flex[lf])]['uuid'],
+                        'source': idx[source],
+                        'target': idx[target],
+                        'properties': { 'weight' : WEIGHT_LF,
+                                'form': form,
+                                'separator': separator,
+                                'merged':merged,
+                                'syntacticframe':syntacticframe,
+                                'constraint': constraint,
+                                'position': position
+                            } 
+                    }
+            edges.append(payload)
+            _edges.add( (source, target, _name(flex[lf])) )
 
-        self.info(" *  POSTING %s edges" % len(edges) ) 
-        for e in bot.post_edges(gid, iter(edges), extra= lambda e: e['properties']['i'] ) : 
-            pass
+        self.info(" * POSTING Lexical Function edges : %s" % len(edges) ) 
 
+        for fl in flex.values():
+            name = _name(fl)
+            self.debug( "    edges : %s %s" % (len( [ e for e in edges if e['edgetype'] == edgetypes[name]['uuid']  ] ), name, ) )
 
+        count = 0
+        for e in bot.post_edges(gid, iter(edges) ) : 
+            count +=1
+        self.info(" * POST    Lexical Function edges : %s / %s" % (count, len(_edges)) ) 
+
+                
 
         
 
@@ -426,7 +499,6 @@ class Parser(object):
         #pprint( [ ( n['vocable'], n['locutions']) for n in nodes.values()[:50]])
         #pprint( [ ( n['vocable'], n['gcs']) for n in nodes.values()[:50]])
         print len(nodes)
-        pprint(copo)
 
         graph = bot.get_igraph()
         graph = prepare_graph(graph)
@@ -439,7 +511,8 @@ class Parser(object):
         self.info(" %s " % data.keys() )
         self.info(" %s " % data['meta'] )
         
-
+        exit( self.errors )
+        
 def main():
     parser = Parser()
     parser.parse()
