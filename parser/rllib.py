@@ -1,5 +1,51 @@
 import igraph
 
+import sqlite3
+   
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    #d['subscript'] = ""
+    #d['superscript'] = ""
+    return d
+
+    
+def complete(search, dbpath='../completedb.sqlite'):
+    db = sqlite3.connect(dbpath)
+
+    db.row_factory = dict_factory
+
+    c = db.cursor()
+
+    c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where name like ? ORDER BY name asc, lexnum asc", ( search+'%',) )
+    rows =  c.fetchall()
+    db.close()
+    return rows
+
+    
+def complete_uuids(item, dbpath):
+    db = sqlite3.connect(dbpath)
+
+    db.row_factory = dict_factory
+
+    c = db.cursor()
+    
+    args = tuple( item.get(e) for e in ['prefix', 'name', 'subscript', 'superscript', 'num'] )
+    c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where prefix = ? and name = ? and subscript = ? and superscript = ? and num = ? ORDER BY name asc, lexnum asc", args )
+    rows = c.fetchall()
+
+    if len(rows) == 0 :
+        c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where name = ? ORDER BY name asc, lexnum asc", ( item.get('name'), ) )
+        rows = c.fetchall() 
+        
+    
+    print item, args , rows
+    
+        
+    db.close()
+    return rows
+    
 
 def igraph2dict(graph, exclude_gattrs=[], exclude_vattrs=[], exclude_eattrs=[], id_attribute=None):
     """ Transform a graph (igraph graph) to a dictionary

@@ -1,0 +1,29 @@
+<!-- Warning: tagName and tagClasses are important for this view -->
+<script id="SortByItem_template" type="text/template">
+    <i class="<%= active ? "icon caret " : "" %><%= active ? (reverse ? "down" : "up" ): ""%>" ></i>
+    <%= label %>
+</script>
+
+<!--
+ special classes :
+ * .search_input: input used for autocompletion
+-->
+<script id="ListSearch_template" type="text/template">
+    <form class="form-inline" role="form">
+        <div class="form-group">
+          <label class="sr-only" for="searchDocListInput"><%= label %></label>
+          <input type='text' id="searchDocListInput" class="form-control input-sm search_input" placeholder="<%= placeholder %>" required="" />
+        </div>
+    </form>
+</script>
+
+<!-- 
+Note strante <% %> to avoid space and line breaks 
+-->
+<script id="Formatted_label_template" type="text/template"><%
+    %><span><% _.each(formatted_label, function(token){
+        %><span class='<%= token.css.substring(1) %>'><%= token.form %></span><% });
+    %></span><%
+%></script>
+
+

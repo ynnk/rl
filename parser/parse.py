@@ -16,14 +16,12 @@ from pprint import pprint
 
 from botapi import Botagraph, BotaIgraph, BotApiError
 from reliure.types import Text
-from rllib import prepare_graph, export_graph
-"""
-??
+from rllib import prepare_graph, export_graph, complete
 
- distinguer les locutions OK 
- parse authors
+import sqlite3
  
 
+"""
  
 """
 
@@ -84,8 +82,7 @@ class GramCharacHandler(RLFHandler):
 class SemLabelHandler(RLFHandler):
         
     def startElement(self, name, attrs):
-        if name == "instance":
-            
+        if name == "instance":            
             self._result[attrs['id']] = dict(attrs.items())
 
 
@@ -117,11 +114,15 @@ def readcsv(path, name, type=dict):
 
 class Parser(object):
 
-    def __init__(self):
+    def __init__(self,gid, path):
+        self.gid = gid
+        self.path = path
         self.errors = 0
+        self.completions = []
         
     def todo(self, message ):
         info( "\n\t ### #################" )
+        info( "\t ### TODO" )
         info( "\t ### %s" % message )
         info( "\t ### #################" )
         
@@ -135,12 +136,16 @@ class Parser(object):
     def debug(self, *args):
         debug(args)
 
-    def parse(self):
+    def parse(self, bot):
         
         # 1 2 3 4 5 6  9 10 11 12 13 14 15 16
+        self.completions = []
+        gid = self.gid
+        path = self.path
 
+        
         WEIGHT_COPO = 1
-        WEIGHT_LF = 1
+        WEIGHT_LOC = 1
 
         idx = {} 
         
@@ -149,17 +154,13 @@ class Parser(object):
         nodetypes = {}
         edgetypes = {}
         
-        path = "../exports/fr-ls-spiderlex"
-        gid = "rlfr"
-        
-        bot = BotaIgraph(directed=True)
+
         bot.create_graph(gid, { 'name': gid,
                             'description': "",
                             'image': "",
                             'tags': [""]
                           }
                     );
-
 
         lexie_props = {
             'rlfid' : Text(),
@@ -168,6 +169,8 @@ class Parser(object):
             'num' : Text(),
             'vocable' : Text(),
             'prefix' : Text(),
+            'subscript' : Text(),
+            'superscript' : Text(),
             
             'df' : Text(), # json
 
@@ -204,6 +207,8 @@ class Parser(object):
                 'vocable' : node['name'],
                 'prefix' : node['addtoname'],
                 'num' : node['lexnum'],
+                'subscript' : node['subscript'],
+                'superscript' : node['superscript'],
 
                 'gcs' : [],
                 'locutions': [],
@@ -252,8 +257,6 @@ class Parser(object):
         pos = handler.parse("%s/05-lsgramcharac-model.xml" % path)
         rels = readcsv(path, "06-lsgramcharac-rel.csv", type=list)
 
-        
-        
         for r in rels:
             id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
             if POS == "":
@@ -325,6 +328,8 @@ class Parser(object):
                 df['html'] = def_HTML
             else :
                 self.error( " # 17-lsdef # no def for %s" % id )
+
+        self.todo( "17-lsdef.csv  Liens d inclusion définitionnelle " )
                 
         # Nodes Exemples
         
@@ -374,6 +379,9 @@ class Parser(object):
         
         for node, uuid in bot.post_nodes( gid, gen(nodes.values()) ):
             idx[ node['properties']['rlfid'] ] = uuid
+            r = list( node['properties'][k].decode('utf8') for k in ['rlfid','vocable','num','prefix','subscript','superscript'])
+            self.completions.append( [uuid] + r )
+
         self.info( " * POST    Lexie nodes : %s" % (len(idx)) )
             
         
@@ -390,7 +398,7 @@ class Parser(object):
         handler = CopolysemyHandler()
         copo = handler.parse("%s/03-lscopolysemy-model.xml" % path)
         copo = { e['id']: e for e in copo }
-        _name =  lambda t,s : "Co-polysemy:%s%s%s" % (t['name'], ":" if s else "", s['name']if s else "" )
+        _name =  lambda t,s : "Co-polysemy/%s%s%s" % (t['name'], "/" if s else "", s['name']if s else "" )
         
         # edgetypes
         self.info( " * POSTING Co-polysemy edgetypes : %s" % (len(copo.values())) )
@@ -441,9 +449,6 @@ class Parser(object):
             pass
 
 
-
-        
-
         """
         ## Liens de fonctions lexicales (FL)
 
@@ -458,7 +463,7 @@ class Parser(object):
         # POST edgetypes
         
         self.info( " * POSTING Lexical Function edgetypes : %s" % (len(flex.values())) )
-        _name = lambda x: "LexicalFunction:%s" % x['name']
+        _name = lambda x: "LexicalFunction/%s" % x['name']
         for fl in flex.values():
             tp = fl['id'] # cop['name']
             name = _name(fl)
@@ -479,14 +484,15 @@ class Parser(object):
 
         rels = readcsv(path, "13-lslf-rel.csv", type=list)
         edges = []
-        _edges = set()
+        skipped_weight = 0
         for source, lf, target, form, separator, merged, syntacticframe, constraint, position in rels:
-            _name(fl)
+
+            weight = int(flex[lf]['semantics'])
             payload = {
                         'edgetype': edgetypes[_name(flex[lf])]['uuid'],
                         'source': idx[source],
                         'target': idx[target],
-                        'properties': { 'weight' : WEIGHT_LF,
+                        'properties': { 'weight' : weight,
                                 'form': form,
                                 'separator': separator,
                                 'merged':merged,
@@ -496,38 +502,108 @@ class Parser(object):
                             } 
                     }
             edges.append(payload)
-            _edges.add( (source, target, _name(flex[lf])) )
 
+        weights = list( len([ e for e in edges if e['properties']['weight'] == i  ]) for i in [0,1,2] )
+        self.info(' !! weights  [ 0 : %s,  1 : %s, 2 : %s ] ' %  tuple(weights))
+        
         self.info(" * POSTING Lexical Function edges : %s" % len(edges) ) 
 
         for fl in flex.values():
             name = _name(fl)
             self.debug( "    edges : %s %s" % (len( [ e for e in edges if e['edgetype'] == edgetypes[name]['uuid']  ] ), name, ) )
-
         count = 0; uuids = []
+
         for e, uuid in bot.post_edges(gid, iter(edges) ) : 
             count +=1
             uuids.append(uuid)
             
-        self.info(" * POST    Lexical Function edges : %s / %s %s" % (count, len(_edges), len(uuids)) ) 
+        self.info(" * POST    Lexical Function edges : %s " % (count) ) 
 
         print "\n\n == DEBUG == \n\n"
         print len(nodes)
 
+
+
+
+def make_complete_db(db, completions):
+    db = sqlite3.connect(db)
+    c = db.cursor()
+
+    # Create table & indexes
+    c.execute('''DROP TABLE  IF EXISTS complete''')
+    
+    c.execute('''CREATE TABLE complete
+                 (uuid text, entry text, name text, lexnum text, prefix text, subscript text, superscript text)''')
+    c.execute('''CREATE UNIQUE INDEX index_uuid on complete (uuid);''')
+    c.execute('''CREATE UNIQUE INDEX index_entry on complete (entry);''')
+    c.execute('''CREATE INDEX index_name on complete (name);''')
+
+    rows = []
+    
+    c.executemany('INSERT INTO complete ( uuid, entry, name , lexnum, prefix, subscript, superscript ) VALUES (?,?,?,?,?,?,?)', completions)
+
+    db.commit()
+    db.close()
+ 
+    
+def main():
+    """
+        gid = "rlfr"
+        path = "../exports/fr-ls-spiderlex"
+        sqldb = "../completedb.sqlite"
+    """
+    
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument("gid", action='store', help="graph id ", default=None)
+    parser.add_argument("path" , action='store', help="export path", default='crop.png')
+    parser.add_argument("sqldb" , action='store', help="path to sqldb to store completions")
+
+    parser.add_argument("-s" , action='store', dest="backend", help="backend 'igraph' or 'padagraph'",  choices=('igraph', 'padagraph'), default='igraph')
+
+    # backend padagraph
+    parser.add_argument("--key" , action='store', dest="key", help="path to key", default="../key.txt")
+    parser.add_argument("--host" , action='store', dest="host", help="padagraph host", default="http://localhost:5000")
+
+    args = parser.parse_args()
+
+    gid, path, sqldb, backend = args.gid, args.path, args.sqldb, args.backend
+
+    key = open(args.key).read() if args.key else None
+
+
+    parse( gid, path, sqldb, backend, args.host, key )
+    
+def parse(gid, path, sqldb, backend, host, key):
+
+    parser = Parser(gid, path)
+
+    # igraph
+    if backend == 'igraph':
+        bot = BotaIgraph(directed=True)
+        parser.parse(bot)
         graph = bot.get_igraph()
         graph = prepare_graph(graph)
+
         print graph.summary()
-        self.info("  %s " % bot.get_schema(gid))
         
         data = export_graph(graph, id_attribute='uuid')
 
-        self.info("data length %s " % len(json.dumps(data)))
-        self.info(" %s " % data.keys() )
-        self.info(" %s " % data['meta'] )
-        
-        
-def main():
-    parser = Parser()
-    parser.parse()
+        parser.info("data length %s " % len(json.dumps(data)))
+        parser.info(" %s " % data.keys() )
+        parser.info(" %s " % data['meta'] )
+
+    if backend == 'padagraph':
+        bot = Botagraph(host=host, key=key)
+        if bot.has_graph(gid): bot.delete_graph(gid)
+        parser.parse(bot)
+    
+    make_complete_db(sqldb, parser.completions)
+    
+
+    parser.info("  %s " % bot.get_schema(gid))
+
+    complete("peur")
+    
 if __name__ == '__main__':
     sys.exit(main())

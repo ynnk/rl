@@ -1,0 +1,15 @@
+<!--
+ special classes :
+ * .sortby_items: will contains the list of Item
+-->
+<script id="sortby_list" type="text/template">
+    <div class="choice btn-group sortby_items"></div>
+</script>
+
+<!-- Note strante <% %> to avoid space and line breaks -->
+<script id="cluster_label_item" type="text/template"><%
+    %><a href='#' class='' style='font-size:<%= size %>px' ><% _.each(formatted_label, function(token){
+        %><span class='<%= token.css.substring(1) %>'><%= token.form %></span><% });
+    %></a><%
+%></script>
+
