@@ -20,22 +20,18 @@ logger = get_basic_logger(logging.DEBUG)
 
 print "debug ", app.debug, os.environ.get('APP_DEBUG', None)
 
-#list of graphs (short name, long name, path) 
-graphs = {
-    "fr" : {"name" : "French Lexical Network", "path" : "./Graphs/ln/ln_fr/lngraph.pickle"},
-#    "en" :  {"name" : "English Lexical Network", "path" : "./Graphs/ln/ln_en/lngraph.pickle"}
-}
-graph_paths = dict( (key, value["path"]) for key, value in graphs.items())
 
-
+# app routes
 app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET"])
-
 
 # index page
 @app.route("/")
 def index():
     return "IndexPage, TODO"
 
+
+
+# completion 
 @app.route('/<string:lang>/complete', methods=['POST'])
 @app.route("/<string:lang>/complete/<string:text>")
 def complete(lang, text=None):
@@ -64,7 +60,9 @@ def complete_uuids(lang, text=None):
                 'complete' : complete
         }}})
 
-## build other entry point of the app
+
+
+# entry point of the app
 @app.route('/<string:lang>' )
 def app_graph_lang(lang):
     return app_graph(lang, path="")
@@ -94,13 +92,13 @@ def app_graph(lang, query=None, path = ""):
         data= "",
         gid = "rlfr",
         
-        #routes= "http://padagraph.io/engines", 
-        #sync= "http://padagraph.io/graphs/g/rlfr",
-        #urlRoot= "http://localhost:5000/graphs/g/",
+        routes= "http://padagraph.io/engines", 
+        sync= "http://padagraph.io/graphs/g/rlfr",
+        urlRoot= "http://localhost:5000/graphs/g/",
         
-        sync= "http://localhost:5002/static/rlfr.json",
-        routes= "http://padagraph.io/engines",
-        urlRoot= "http://padagraph.io/graphs/g/",
+        #sync= "http://localhost:5002/static/rlfr.json",
+        #routes= "http://localhost:5000/engines",
+        #urlRoot= "http://localhost:5000/graphs/g/",
         
         query=query,
         root_url = root_url,
@@ -132,8 +130,6 @@ def app_graph(lang, query=None, path = ""):
         )
 
 def main():
-    ## run the app
-#    app.run("0.0.0.0")
     
     from flask.ext.runner import Runner
     runner = Runner(app)
