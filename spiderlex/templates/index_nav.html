@@ -258,15 +258,7 @@ require.config({
             
             app.create_query_model();
             app.models.query.graph = app.models.graph.id;
-            //app.models.query.export_for_engine = function() {
-                //uuids = app.models.query.models.map(function(e){
-                    //return e.get('query')
-                //});
-                //return {
-                        //graph: app.models.query.graph,
-                        //units: uuids
-                    //};
-            //};
+            
         }
         else {
             app.create_graph_model({});

@@ -18,7 +18,7 @@ def complete(search, dbpath='../completedb.sqlite'):
 
     c = db.cursor()
 
-    c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where name like ? ORDER BY name asc, lexnum asc", ( search+'%',) )
+    c.execute( "select  uuid, entry, name, lexnum as num , prefix, subscript, superscript from complete where name like ? ORDER BY name asc, lexnum asc", ( search+'%',) )
     rows =  c.fetchall()
     db.close()
     return rows
@@ -36,7 +36,7 @@ def complete_uuids(item, dbpath):
     rows = c.fetchall()
 
     if len(rows) == 0 :
-        c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where name = ? ORDER BY name asc, lexnum asc", ( item.get('name'), ) )
+        c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where name = ? ORDER BY name asc, lexnum asc limit 30", ( item.get('name'), ) )
         rows = c.fetchall() 
         
     
