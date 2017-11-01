@@ -569,7 +569,7 @@ def main():
 
     gid, path, sqldb, backend = args.gid, args.path, args.sqldb, args.backend
 
-    key = open(args.key).read() if args.key else None
+    key = open(args.key).read().strip() if args.key else None
 
 
     parse( gid, path, sqldb, backend, args.host, key )
