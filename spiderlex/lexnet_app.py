@@ -20,9 +20,14 @@ logger = get_basic_logger(logging.DEBUG)
 
 print "debug ", app.debug, os.environ.get('APP_DEBUG', None)
 
+from flask_cors import CORS
+CORS(app)
 
 # app routes
 app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET"])
+
+
+LANGS = ('fr',)
 
 # index page
 @app.route("/")
@@ -73,14 +78,9 @@ def app_graph_query(lang, query):
     
         
 def app_graph(lang, query=None, path = ""):
-    root_url = url_for("index")
-    complete_url = "/%s/complete" % lang
     
-    print "root url: %s" % (root_url, )
-    print " complete url : %s" % ( complete_url)
 
-    # if graph doesn't exist: 404
-    if lang not in ('fr',) :
+    if lang not in (LANGS) :
         abort(404)
 
     args = request.args
@@ -91,18 +91,22 @@ def app_graph(lang, query=None, path = ""):
         lang = lang,
         data= "",
         gid = "rlfr",
+
+        root_url = url_for("index"),
         
-        #routes= "http://padagraph.io/engines", 
-        #sync= "http://padagraph.io/graphs/g/rlfr",
-        #urlRoot= "http://padagraph.io/graphs/g/",
+        #complete_url = "/%s/complete" % lang , 
+        complete_url = "http://vps457585.ovh.net:5002/%s/complete" % lang,
         
-        sync= "http://localhost:5002/static/rlfr.json",
-        routes= "http://localhost:5000/engines",
-        urlRoot= "http://localhost:5000/graphs/g/",
+        routes= "http://padagraph.io/engines", 
+        sync= "http://padagraph.io/graphs/g/rlfr",
+        urlRoot= "http://padagraph.io/graphs/g/",
+        
+        #sync= "http://localhost:5002/static/rlfr.json",
+        #routes= "http://localhost:5000/engines",
+        #urlRoot= "http://localhost:5000/graphs/g/",
         
         query=query,
-        root_url = root_url,
-        complete_url=complete_url,
+
         options = json.dumps({
             #
             'wait' : 4,
