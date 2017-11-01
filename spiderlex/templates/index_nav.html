@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> {{ gname }} </title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--  SemUI CSS    -->
+    <link rel="stylesheet" href="{{url_for('static', filename='bower_components/semantic-ui/dist/semantic.min.css')}}" type="text/css" />
+
+    <!--  our CSS    -->
+    <link rel="stylesheet" href="{{url_for('static', filename='css/app_graph.css')}}" type="text/css" />
+    <link rel="stylesheet" href="{{url_for('static', filename='css/engine.css')}}" type="text/css" />
+
+    <!--  require JS    -->
+    <script data-main="{{url_for('static', filename='main')}}" src="{{url_for('static', filename='require.js')}}"></script>
+
+
+    <!-- web components-->
+    <link rel="import" href="/static/bower_components/polymer/polymer.html"/>
+    <script src="/static/bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+
+    <link rel="import" href="{{polymer_path}}/padagraph-collection.html"/>
+    <link rel="import" href="{{polymer_path}}/padagraph-controls.html"/>
+    <link rel="import" href="{{polymer_path}}/padagraph-gviz.html"/>
+    <link rel="import" href="{{polymer_path}}/padagraph-rlf-vertex.html"/>
+
+
+    <!-- templates -->
+    <script type="text/template" id="KebButton">
+        <div class='head'><%=name%></div>
+        <div class='value'>...</div>
+    </script>
+
+    <script type="text/template" id="KebComponentPane">
+            <h3><%=name%></h3>
+    </script>
+
+    <script type="text/template" id="KebOptionable">
+            <h1><%=name%></h1>
+    </script>
+    
+    <script id="ClusterLabel" type="text/template">
+        <a href='#' class='clabel'><%= label %></a>
+    </script>
+    
+    <!--script id="ListLabel" type="text/template">
+            <div class='puce' style='background-color:rgb(<%=color%>);'></div>
+            <a draggable="true"  href="#" class=''><%=rank %>. <%=form %></a>
+    </script-->
+
+    
+    <script id="query_form_tmpl" type="text/template">
+              <input type='text' id="searchQueryInput" class="prompt " placeholder="<%= placeholder %>" required="" />
+              <i class="search icon"></i>
+    </script>
+
+</head>
+<body>
+            
+    <div id='main' class="ui grid">
+        <div class="row" style="padding-bottom:2px">
+        <div class="column center aligned">
+            
+            <nav class="ui menu navbar ">
+                <div class="item left title">{{gname}}</div>
+                <div class="item right" style="margin-top:0px" >
+                    <div id="query_form" class="ui input icon"></div>
+                    <div id="query_complete"></div>
+                </div>
+            </nav>
+    
+            <div id="maintabs" class="ui bottom attached  teal  menu">
+                  <a class="ui item left active" data-tab='tab-graph'>
+                      <i class="cube icon"></i>
+                      <span class='hidden-xs'>Graph</span>
+                  </a>
+            <nav class="ui right menu navbar">
+                  <a id='lexlinks_menu_item' class="ui item" data-tab="tab-lexlinks">
+                      <i class="list layout icon"></i>
+                      Lexical links
+                  </a>
+                  <a id='clusters_menu_item' class="ui item" data-tab="tab-clusters">
+                    <!--i class="sidebar icon"></i-->
+                      <i class="block layout icon"></i>
+                      Clusters
+                  </a>
+                  <a id="dic_menu_item" class="ui item active" data-tab='tab-def'>
+                      <i class="book icon"></i>
+                      Dictionary
+                  </a>
+            </nav>
+            </div>
+            
+
+
+            <div id='vz_graph' class="ui tab itemview active" data-tab="tab-graph">
+            <div  class="ui right sidebar">
+                <div class='vz-tab-content'>
+                    <div class="ui tab subitem" data-tab="tab-lexlinks">
+                        <div id='lexlinks'>
+                            <padagraph-collection-filter id='lexlinksfilter' mode="edge" asitem="asitem"></padagraph-collection-filter>
+                        </div>
+                    </div>
+                    <div class="ui tab subitem" data-tab="tab-clusters">
+                        <div id='clustering_items'>
+                            <ul></ul>
+                        </div>
+                    </div>
+                    <div class="ui tab subitem active" data-tab="tab-def">
+                        <div id='lndic'>
+                            <nav  class="ui menu teal navbar "></nav>
+                            <div class="dic-content">
+                                <rlf-vertex-card></rlf-vertex-card>
+        
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pusher">
+                <div class="ui bottom attached segment">
+                    <div id='vz_button0' class="ui left aligned attached fixed button">
+                        <i class=" angle double right icon" style="display:none"></i>
+                        <i class="angle double left icon" style="display:none"></i>
+                    </div>
+
+<!--
+<padagraph-gviz-json id="{{gid}}" routes="{{routes}}" data="{{data}}" sync="{{sync}}">
+                    </padagraph-gviz-json>
+-->
+                        
+                        
+                          <padagraph-gviz options="{{options}}">
+                            <div id="pdgmenu" class="ui icon vertical borderless menu">
+                              <padagraph-collection-filter mode="node" asitem="asitem"></padagraph-collection-filter>
+                              <padagraph-collection-filter mode="edge" asitem="asitem"></padagraph-collection-filter>
+                              <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
+                              <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
+                            </div>
+                          </padagraph-gviz>
+    
+
+                </div>
+            </div>
+            </div>
+            
+            <div id="footer" class="ui center aligned attached top segment">
+                Données <a href='http://www.atilf.fr/spip.php?article908' class="ui teal">Projet Relief</a> 
+                Réalisation <a href="http://kodexlab.com">Kodex·Lab</a> 2014 
+            </div>
+            
+        </div>
+            
+        </div>
+        </div>
+
+<script>
+
+
+require.config({
+      waitSeconds: 0,
+      paths: {
+
+        //underscore : path + 'underscore/underscore-min',
+        //backbone   : path + 'backbone/backbone-min',
+        //jquery     : path + 'jquery/dist/jquery.min',
+        
+        app_graph     : 'app_graph',
+        cello     : 'cello',
+        gviz      : 'gviz',
+        embed     : 'embed',
+        
+        //cello     : 'cello',
+        cello_core     : 'cello',
+        celloui     : 'cello-ui',
+        //gviz      : 'gviz',
+        //embed     : 'embed',     
+        
+        threejs   : 'three',
+        numeric   : 'numeric-1.2.6',
+        //tween     : 'tween',
+        //materials : 'materials',
+        //pdgconst  : 'pdgconst',
+
+        //mousetrap : 'mousetrap',
+        moment    : 'moment',
+        json2html    : 'json2html',
+
+        autocomplete : 'backbone.autocomplete',
+        bootbox : 'bootbox.min',
+        tagsinput: 'semui-tagsinput',
+        backbone_forms: 'backbone-forms.min',
+      },
+      
+      shim: {
+          // threejs not require compatible...
+          'materials': {deps: ["gviz"]},
+          'celloui': {deps: ["cello"]},
+          'threejs': {
+                exports: 'THREE',
+            },
+          'tagsinput': {deps: ["jquery"]},
+          'autocomplete': {deps: ["backbone"]},
+          
+          'json2html': {
+                exports: 'json2html',
+            },
+          'semantic': {
+              deps: ['jquery']
+          },
+        }
+    });
+
+
+
+
+
+    require(["underscore", "backbone",
+        "app_graph", "cello", "embed",  "gviz", "models"
+    ],  function( _, Backbone, App, Cello, Embed, Gviz, Models){
+        // The "app" dependency is passed in as "App"
+        var path = "../static/bower_components/";
+        
+        var lang = "{{lang}}"
+        var gid = "{{gid}}";
+        
+        var urlRoot = "{{urlRoot}}";
+        var sync = "{{sync}}";
+        
+        var routes = "{{routes}}";
+        var data = "{{data}}";
+        var complete_url = "{{ complete_url }}";
+
+        var app_params = {
+          debug: {{ 'true' if debug else 'false' }},
+          complete_url : complete_url,
+          $el : $(this),
+        }
+
+        var graph;
+        var app = new App(app_params);
+        var parse = {data:false, sync:false};
+        
+        if (sync){
+            //var gid = sync.substring(sync.lastIndexOf('/')+1);
+            //var urlRoot = sync.substring(0, sync.lastIndexOf('/') + 1)
+           
+            app.create_graph_model({urlRoot: urlRoot, url : sync});
+
+            app.models.graph.set('gid' , gid);
+            app.models.graph.on('sync', function(){
+                reset();
+                parse.sync = true;
+            });
+            
+            app.create_query_model();
+            app.models.query.graph = app.models.graph.id;
+        }
+        else {
+            app.create_graph_model({});
+            app.models.graph.attributes['gid'] = "g" + this.id;
+            parse.sync = true;
+        }
+        
+        // tagsinput
+        app.models.userquery = new Models.LexnetQueryUnits( [] , { } )
+        app.models.userquery.url = complete_url + '/uuids/';
+
+        // app, models & engines
+        graph = app.models.graph;
+        
+        var reset = function(){
+            console.log( "reset", !parse.data)
+            if ( !parse.data) return;
+            
+            app.set_auto_compute(false);
+            graph.reset(parse.data, {silent:true})
+            
+            graph.vs.each(function(vtx){
+                vtx.add_flag("form");
+            });
+            
+            app.set_auto_compute(true);
+            app.auto_compute();
+        }
+
+        var isurl = (e)=> _.isString(e);            
+        var complete = function(){
+            
+            if( isurl(data) ){
+              $.ajax({
+                url: data ,
+                success: function(r){
+                    parse.data =  r;
+                    if (sync && parse.sync == true)
+                        reset();
+                }
+              });
+            }
+     
+            graph.fetch({parse: false});
+            graph.vs.on("add"  , function(e){e.properties.set('lfs', "{}")})
+
+            var comp = $("padagraph-engine-control")[0];
+            comp.engine = "layout"
+            comp.blocks = app.engines.layout.blocks.models;
+            
+            comp = $("padagraph-engine-control")[1];
+            comp.engine = "clustering"
+            comp.blocks = app.engines.clustering.blocks.models;
+            
+            var viz = $("padagraph-gviz")[0];
+            viz.graph = graph;
+            viz.app = app;
+            viz.options = Gviz.DEFAULTS;
+            
+            app.gviz = viz.gviz;
+        };
+
+
+        if( isurl(routes) ){
+          $.ajax({
+            url: routes ,
+            success: function(routes){
+                app.routes = routes.routes;              
+                app.create_engines();
+                app.fetch_engines(complete);
+
+                app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
+                    app.engine_play_completed(response, args, state)
+                });
+
+                app.start(graph, app.engines.explore);
+                
+                app.listenTo(app.views.userquery, "submited", function(){
+                    console.log(" === submited", arguments);
+                     if(app.models.userquery.validate()){
+                        var params = app.models.userquery.map( function(e) { return { 'query':  e.get('uuid')}  });
+                        Backbone.trigger('engine:explore', params);
+                    }
+                });
+
+                // dict
+                app.listenTo(app.models.graph.vs, 'addflag:selected', function(model) { $('rlf-vertex-card')[0].model = model } );
+
+
+                app.set_routes();
+               
+            }
+          });
+        }
+
+
+
+        
+        console.log("root: {{ root_url }}, gkey : {{ gkey }}, complete_url: {{ complete_url }}");
+        
+        // panel tabs
+        $('#maintabs .item').tab();
+        
+        // cubes dropdown 
+        $('.dropdown')
+          .dropdown({
+            // you can use any ui transition
+            transition: 'drop'
+          })
+        ;
+        
+        $('#clusters_menu_item').click(function(){
+            $('#clusters_content_item').transition('slide right', '1000ms');
+        });
+        
+        $('#vz_tabs .item').tab({ context: $('.vz-tab-content')});
+        $('#vz_graph .sidebar')
+            .sidebar({
+                context: $('#vz_graph')
+            })
+            .sidebar('setting', 'transition', 'overlay')
+            .sidebar('attach events', '#vz_button0')
+            .sidebar('setting', 'dimPage', false)
+            .sidebar('setting', 'closable', false)
+            .sidebar('setting', 'scrollLock', true)
+            .sidebar('setting', 'onShow', function(){ 
+                $('#vz_button0').addClass('teal')
+                $('#vz_button0>.right').show();
+                $('#vz_button0>.left').hide();
+                _canvas_resized(true);
+                _window_resized();
+            })
+            .sidebar('setting', 'onHide', function(){
+                $('#vz_button0').removeClass('teal')
+                $('#vz_button0>.right').hide();
+                $('#vz_button0>.left').show();
+                _canvas_resized(false);
+                _window_resized();
+            })
+            .sidebar('show')
+            
+            ;
+            
+        $('#maintabs>nav .item').click(function(){
+//            if ($(this).hasClass('active')){
+//                $('#vz_graph .sidebar').sidebar('toggle');
+//            }else{
+                $('#vz_graph .sidebar').sidebar('show');
+//            }
+        });
+            
+        $('#vz_mouse_position')
+            .popup({
+//                popup: '#edge_tooltip',
+//                preserve: true,
+                movePopup : true,
+//                inline : true
+                position : 'top left'
+            })
+            .popup('hide')
+        ;
+        
+
+        
+        // resize window event 
+        var min_height = 250;
+        
+        var _window_resized = function(){
+            var win = $(this); //this = window
+            size =  $(window).height()-$("nav").height() - $(".footer").height() - 88;
+            size = size < min_height ? min_height : size;
+            $(".itemview").height(size);
+//            $("#lndef .dic-content").height(size - $("#lndef nav").height() -30 - 35);
+//            $("#clustering_items").height(size - 30);
+            $("#vz_graph .bottom.segment").height(size -2);
+            //app.views.gviz.resize_rendering();
+            $("#vz-tab-content").height($('#lexlinks').height());
+             if ( app.gviz ) app.gviz.resize_rendering();
+        };
+        
+        var _canvas_resized = function(sb_visible){
+            var segment_size = $("#vz_graph").width();
+            if (sb_visible){
+                sidebar_size = $('#vz_graph .sidebar').width();
+                segment_size = segment_size - sidebar_size;
+            }
+            //app.views.gviz.resize_rendering();
+            $("#vz_graph .bottom.segment").width(segment_size);
+        };
+        
+        var _canvas_resized_moins = function(){
+            var segment_size = $("#vz_graph .bottom.segment").width();
+            var sidebar_size = $('#vz_graph .sidebar').width();
+            $("#vz_graph .bottom.segment").width(segment_size+sidebar_size);
+        };
+
+        $('#maintabs .item').click(_window_resized);
+
+        $(window).on('resize', function(){
+            _window_resized();
+            if ($('#vz_graph .sidebar').hasClass('visible'))
+                _canvas_resized(true);
+        });
+
+        _window_resized();
+
+
+    }, function(){console.log( "ERROR",  arguments)})();
+</script>
+
+<div class="ui dimmer modals page " style="">
+
+    <div class="ui modal ">
+            <i class="close icon"></i>
+
+            <div class="header">{{gname}}</div>
+
+            <div class="content">        
+                <p>
+                    Données <a href='http://www.atilf.fr/spip.php?article908' class="ui teal">Projet Relief</a> 
+                    Réalisation <a href="http://kodexlab.com">Kodex·Lab</a> 2014 
+                </p>
+                <p>
+                    remarques et cmt : <a href="https://proxteam.eu/pad/p/cello_tmuse">https://proxteam.eu/pad/p/cello_tmuse</a>
+                </p>
+            </div>
+    </div>
+
+</div>
+
+
+</body>
+</html>
