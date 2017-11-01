@@ -299,7 +299,7 @@ require.config({
         var isurl = (e)=> _.isString(e);            
         var complete = function(){
             
-            if( isurl(data) ){
+            if( data.length && isurl(data) ){
               $.ajax({
                 url: data ,
                 success: function(r){

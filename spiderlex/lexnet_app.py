@@ -92,13 +92,13 @@ def app_graph(lang, query=None, path = ""):
         data= "",
         gid = "rlfr",
         
-        routes= "http://padagraph.io/engines", 
-        sync= "http://padagraph.io/graphs/g/rlfr",
-        urlRoot= "http://padagraph.io/graphs/g/",
+        #routes= "http://padagraph.io/engines", 
+        #sync= "http://padagraph.io/graphs/g/rlfr",
+        #urlRoot= "http://padagraph.io/graphs/g/",
         
-        #sync= "http://localhost:5002/static/rlfr.json",
-        #routes= "http://localhost:5000/engines",
-        #urlRoot= "http://localhost:5000/graphs/g/",
+        sync= "http://localhost:5002/static/rlfr.json",
+        routes= "http://localhost:5000/engines",
+        urlRoot= "http://localhost:5000/graphs/g/",
         
         query=query,
         root_url = root_url,
