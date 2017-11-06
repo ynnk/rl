@@ -1,8 +1,62 @@
 /* Models */
 
-define(['underscore','backbone', 'cello'],    function(_,Backbone, Cello) {
+define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cello, App) {
   
     var Models = {};
+
+    Models.Vertex = App.Models.Vertex.extend(
+            {
+            
+                initialize : function(attrs, options){
+                    App.Models.Vertex.__super__.initialize.apply(this, arguments);
+                    
+                    
+//                    Cello.get(this, "formatted_definiens");
+                    //var lfs = new Backbone.Collection();
+                    //lfs.comparator = 'position';
+                    //lfs.reset(_(attrs.lfs).toArray());
+                    //this.set('lfs', lfs);
+
+                    this.add_flag('form');
+                    
+                    this.on('addflag:pzero', function(){
+                        this.remove_flag('form');
+                    });
+                },
+                
+                _format_label : function(){
+            
+                    var formatted_label = [];
+                    var num = this.properties.get('num');
+                    var prefix = this.properties.get('prefix');
+                    var vocable = this.properties.get('vocable');
+                    var subscript = this.properties.get('subscript');
+                    var superscript = this.properties.get('superscript');
+                    
+                    //prefix
+                    if( prefix && prefix.length ){
+                        formatted_label.push( {form : prefix, css : ".normal-font"});
+                    }
+                    //name
+                    if( vocable && vocable.length ){
+                        formatted_label.push( {form : vocable, css : ".normal-font"});
+                    }
+                    //subscript
+                    if( subscript && subscript.length ){
+                        formatted_label.push( {form : subscript, css : ".subscript-font"});
+                    }
+                    //superscript
+                    if( superscript && superscript.length ){
+                        formatted_label.push( {form : superscript, css : ".superscript-font"});
+                    }
+                    //number
+                    if( num && num.length ){
+                        formatted_label.push( {form : num, css : ".num-font"});
+                    }
+                    
+                    return formatted_label;
+                }
+            }) ;
 
     /* Query */
     Models.LexnetQueryUnit = Backbone.Model.extend({
@@ -12,6 +66,7 @@ define(['underscore','backbone', 'cello'],    function(_,Backbone, Cello) {
             subscript: null,
             superscript: null,
             num: null,
+            entry: null,
             boost: 1,
             // surface attr
             valid: false,
@@ -19,7 +74,7 @@ define(['underscore','backbone', 'cello'],    function(_,Backbone, Cello) {
 
         initialize: function(){
             // validate on each change
-            this.on("change:prefix change:superscript change:subscript change:num", this.validate);
+            this.on("change:id change:prefix change:superscript change:subscript change:num", this.validate);
         },
 
         /* Set the Query unit from a raw string, 
@@ -41,6 +96,7 @@ define(['underscore','backbone', 'cello'],    function(_,Backbone, Cello) {
             this.set(data);
         },
 
+        
 
         to_string: function(){
             var str = [];
@@ -84,6 +140,17 @@ define(['underscore','backbone', 'cello'],    function(_,Backbone, Cello) {
             
         },
 
+        reset_ids_from_str: function(query_str){
+            var data = [];
+            var qsplit = query_str.split(";");
+            _.each(qsplit, function(qstr){
+                var el = new Models.LexnetQueryUnit();
+                el.set('entry', qstr);
+                data.push(el);
+            });
+            this.reset(data);
+
+        },
         /* Reset the QueryUnit collection from a raw string, ex "se*casser*v*1*II;*apporter***II"
         */
         reset_from_str: function(query_str){
@@ -99,7 +166,7 @@ define(['underscore','backbone', 'cello'],    function(_,Backbone, Cello) {
         },
 
         to_string: function(){
-            return this.models.map(function(qunit){ return qunit.to_string() }).join("; ");
+            return this.models.map(function(qunit){ return qunit.to_string() }).join(";");
         },
 
         validate: function(){
@@ -111,24 +178,36 @@ define(['underscore','backbone', 'cello'],    function(_,Backbone, Cello) {
         },
 
         request_uuids: function(){
-             var _this = this;
-             params = _.map( this.models ,
+            var _this = this
+             
+            var uuidsrequired = _.any( this.models ,
+                function(e){
+                    return !(e.get('entry') && e.get('entry').length > 0); 
+                }
+            );
+                
+            if (uuidsrequired) {
+                url = this.url + "/uuids/" + this.to_string();
+            }
+            else {
+                var params = _.map( this.models ,
                     function(e){
                          console.log(e)
-                        var k = ['prefix', 'name', 'subscript', 'superscript', 'num']
+                        var k = ['prefix', 'name', 'subscript', 'superscript', 'num', 'entry']
                         var v = _.map(k, function(ke){ return e.get(ke) });
                         return _.object(k,v);
                     }
                 );
-             if (params.length) {
-                 $.ajax({
-                    url: this.url + this.to_string(),
-                    success: function(r){
-                        _this.reset_from_models( r.results.response.complete );
-                      }
-                        
-                  });
+                var ids = _.map(params, function(v){ return v['entry'] });
+                url = this.url + "/id/" + ids.join(';');
             }
+            
+            $.ajax({
+                url: url,
+                success: function(r){
+                    _this.reset_from_models( r.results.response.complete );
+                  }
+            });
         },
 
         export_for_engine: function(){

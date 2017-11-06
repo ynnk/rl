@@ -10,40 +10,40 @@ def dict_factory(cursor, row):
     #d['superscript'] = ""
     return d
 
-    
-def complete(search, dbpath='../completedb.sqlite'):
-    db = sqlite3.connect(dbpath)
 
-    db.row_factory = dict_factory
+    
+def complete(search, db, limit=20):
 
     c = db.cursor()
 
-    c.execute( "select  uuid, entry, name, lexnum as num , prefix, subscript, superscript from complete where name like ? ORDER BY name asc, lexnum asc", ( search+'%',) )
+    c.execute( "select  uuid, entry, name, lexnum as num , prefix, subscript, superscript from complete where name like ? ORDER BY name asc, lexnum asc limit ?", ( search+'%',limit) )
     rows =  c.fetchall()
-    db.close()
     return rows
 
     
-def complete_uuids(item, dbpath):
-    db = sqlite3.connect(dbpath)
-
-    db.row_factory = dict_factory
+def complete_id(search, db):
 
     c = db.cursor()
+    print search
+    c.execute( "select  uuid, entry, name, lexnum as num , prefix, subscript, superscript from complete where entry=? ORDER BY name asc, lexnum asc", ( search, ) )
+    rows =  c.fetchall()
+    return rows
+
     
-    args = tuple( item.get(e) for e in ['prefix', 'name', 'subscript', 'superscript', 'num'] )
-    c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where prefix = ? and name = ? and subscript = ? and superscript = ? and num = ? ORDER BY name asc, lexnum asc", args )
+def complete_uuids(item, db, limit=20):
+
+    db.row_factory = dict_factory
+    c = db.cursor()
+    
+    args = [ item.get(e) for e in ['prefix', 'name', 'subscript', 'superscript', 'num'] ]
+    args += [limit]
+    c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where prefix = ? and name = ? and subscript = ? and superscript = ? and num = ? ORDER BY name asc, lexnum asc limit ?", tuple(args) )
     rows = c.fetchall()
 
     if len(rows) == 0 :
-        c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where name = ? ORDER BY name asc, lexnum asc limit 30", ( item.get('name'), ) )
+        c.execute( "select  uuid, entry, name , lexnum as num , prefix, subscript, superscript from complete where name = ? ORDER BY name asc, lexnum asc limit ?", ( item.get('name'), limit) )
         rows = c.fetchall() 
         
-    
-    print item, args , rows
-    
-        
-    db.close()
     return rows
     
 
@@ -57,7 +57,7 @@ def igraph2dict(graph, exclude_gattrs=[], exclude_vattrs=[], exclude_eattrs=[], 
     :param exclude_vattrs: vertex attributes to exclude (TODO)
     :param exclude_eattrs: edges attributes to exclude (TODO)
     """
-    
+        
     # some check
     assert isinstance(graph, igraph.Graph)
     if 'id' in graph.vs.attributes():

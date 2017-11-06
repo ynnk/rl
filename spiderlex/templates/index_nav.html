@@ -134,6 +134,9 @@
                         
                         
                           <padagraph-gviz options="{{options}}">
+<!--
+                            <padagraph-model-popup id="gvizpopup"></padagraph-model-popup>
+-->
                             <div id="pdgmenu" class="ui icon vertical borderless menu">
                               <padagraph-collection-filter mode="node" asitem="asitem"></padagraph-collection-filter>
                               <padagraph-collection-filter mode="edge" asitem="asitem"></padagraph-collection-filter>
@@ -240,17 +243,18 @@ require.config({
           $el : $(this),
         }
 
-        var graph;
         var app = new App(app_params);
+        app.lang = lang;
+        
         var parse = {data:false, sync:false};
         
         if (sync){
             //var gid = sync.substring(sync.lastIndexOf('/')+1);
             //var urlRoot = sync.substring(0, sync.lastIndexOf('/') + 1)
            
-            app.create_graph_model({urlRoot: urlRoot, url : sync});
-
-            app.models.graph.set('gid' , gid);
+            app.create_graph_model({'urlRoot': urlRoot, 'url' : sync, 'gid': gid,
+                    vertex_model: Models.Vertex,
+                });
             app.models.graph.on('sync', function(){
                 reset();
                 parse.sync = true;
@@ -268,10 +272,10 @@ require.config({
         
         // tagsinput
         app.models.userquery = new Models.LexnetQueryUnits( [] , { } )
-        app.models.userquery.url = complete_url + '/uuids/';
+        app.models.userquery.url = complete_url ;
 
         // app, models & engines
-        graph = app.models.graph;
+        var graph = app.models.graph;
         
         var reset = function(){
             console.log( "reset", !parse.data)
@@ -280,15 +284,11 @@ require.config({
             app.set_auto_compute(false);
             graph.reset(parse.data, {silent:true})
             
-            graph.vs.each(function(vtx){
-                vtx.add_flag("form");
-            });
-            
             app.set_auto_compute(true);
             app.auto_compute();
         }
 
-        var isurl = (e)=> _.isString(e);            
+        var isurl = (e)=> _.isString(e) && e.length;            
         var complete = function(){
             
             if( isurl(data) ){
@@ -302,8 +302,15 @@ require.config({
               });
             }
      
-            graph.fetch({parse: false});
-            graph.vs.on("add"  , function(e){e.properties.set('lfs', "{}")})
+            graph.fetch({parse: true});
+
+            // !!!!! to be removed !!!!!
+            graph.vs.on("add"  , function(e){
+
+                    e.properties.set('lfs', "{}")
+
+                });
+
 
             var comp = $("padagraph-engine-control")[0];
             comp.engine = "layout"
@@ -319,6 +326,11 @@ require.config({
             viz.options = Gviz.DEFAULTS;
             
             app.gviz = viz.gviz;
+            
+            var comp = $("padagraph-collection-filter", "#lexlinks")[0];
+            comp.app = app;
+            comp.graph = graph;
+            
         };
 
 
@@ -333,12 +345,15 @@ require.config({
                 app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
                     app.engine_play_completed(response, args, state)
                 });
+                app.listenTo(app.engines.explore, 'play:loading', function() {
+                    app.search_loading()
+                });
 
                 app.start(graph, app.engines.explore);
                 
                 app.listenTo(app.views.userquery, "submited", function(){
                     console.log(" === submited", arguments);
-                     if(app.models.userquery.validate()){
+                    if(app.models.userquery.validate()){
                         var params = app.models.userquery.map( function(e) { return { 'query':  e.get('uuid')}  });
                         Backbone.trigger('engine:explore', params);
                     }
@@ -347,9 +362,8 @@ require.config({
                 // dict
                 app.listenTo(app.models.graph.vs, 'addflag:selected', function(model) { $('rlf-vertex-card')[0].model = model } );
 
-
                 app.set_routes();
-               
+
             }
           });
         }
@@ -431,12 +445,9 @@ require.config({
             size =  $(window).height()-$("nav").height() - $(".footer").height() - 88;
             size = size < min_height ? min_height : size;
             $(".itemview").height(size);
-//            $("#lndef .dic-content").height(size - $("#lndef nav").height() -30 - 35);
-//            $("#clustering_items").height(size - 30);
             $("#vz_graph .bottom.segment").height(size -2);
-            //app.views.gviz.resize_rendering();
             $("#vz-tab-content").height($('#lexlinks').height());
-             if ( app.gviz ) app.gviz.resize_rendering();
+            if ( app.gviz ) app.gviz.resize_rendering();
         };
         
         var _canvas_resized = function(sb_visible){

@@ -102,7 +102,7 @@
         {
         "font" : "normal 10px sans",
         "fontFillStyle" : "#333",  
-        "paddingRelY" : 10,
+        "paddingRelY" : 4,
         "paddingRelX" : 2,
         "fontStrokeWidth": 0.2
         }
@@ -112,8 +112,8 @@
         {
         "font" : "normal 6px sans",
         "fontFillStyle" : "#333", 
-        "paddingRelY" : 6,
-        "paddingRelX" : 0,
+        //"paddingRelY" : 6,
+        "paddingRelX" : 4,
         "fontStrokeWidth": 0.2
         }
     },
@@ -122,8 +122,8 @@
         {
         "font" : "normal 6px sans",
         "fontFillStyle" : "#333", 
-        "paddingRelY" : -4,
-        "paddingRelX" : 0,
+        //"paddingRelY" : -4,
+        "paddingRelX" : 3,
         "fontStrokeWidth": 0.2
         }
     },
@@ -132,8 +132,8 @@
         {
         "font" : "normal 8px sans",
         "fontFillStyle" : "#333", 
-         "paddingRelY" : 0,
-        "paddingRelX" : 2,
+        //"paddingRelY" : 0,
+        "paddingRelX" : 6,
         "fontStrokeWidth": 0.2
         }
     },
@@ -190,7 +190,8 @@
     { ".form": {
         "shape": "circle",
         "textAlign": "left",
-        "textVerticaAlign" : 'center',
+        "textVerticalAlign" : 'center',
+        
         "scale": 1,
         "strokeStyle": "#EEEEEE",
         "fillStyle" : "get:color",
@@ -201,8 +202,8 @@
         //'fontStrokeStyle'  : 'black',
         //'fontStrokeWidth' : 0.6,
 
-        'textPaddingY'  : -5,
-        'textPaddingX'  : 1.5,
+        'textPaddingY'  : 3,
+        'textPaddingX'  : 0.5,
     }},
 
     
@@ -256,12 +257,13 @@
     
     { ".pzero": {
         "shape": "triangle",
-        "scale":1.5,
+        "scale":1.3,
         "strokeStyle": "#EEEEEE",
-        "fontScale"  :  0.15,
-        "textPaddingY" : 15, 
+        "fontScale"  :  0.12,
+        //"textPaddingY" : 15, 
         "fillStyle" : "get:color",
-        "textAlign": "center"
+        "textAlign": "center",
+        "textVerticalAlign": "bottom"
     }},
 
     { ".pzero.intersected": {

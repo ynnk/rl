@@ -525,8 +525,8 @@ define([
         search_loading: function(kwargs, state){
             var app = this;
             // placeholder
-            app.views.query.$input.attr('placeholder', "          ... Loading ...");
-            app.views.query.$el.addClass('loading');
+            app.views.userquery.$input.attr('placeholder', "          ... Loading ...");
+            app.views.userquery.$el.addClass('loading');
         },
 
 
@@ -550,7 +550,12 @@ define([
             }
 
             app.update_models(response);
-
+            //$("padagraph-collection-filter")[0].set_type_filter(null)
+            $("padagraph-collection-filter").each(
+                function(i,e) {
+                    if (e.graph) e.set_type_filter(null);
+                });
+                
             // auto scroll on request 
             $(window).scrollTop($(".two.column.row").parent().height());
 
@@ -560,24 +565,32 @@ define([
             //if(config){
                 //config = "?" + config;
             //}
-            //app.router.navigate(app.gkey+"/q/" + query + config);
+            var query = app.models.userquery.to_string();
+            // todo config
+            app.router.navigate( "/" + app.lang+"/q/" + query );
         },
 
 
         /* callback when new data arrived */
         update_models: function(response){
            
-            // materials & images
-            _(response.results.request.units.units).each( function(unit){
+            var ln = $("#lndic .ui.menu")
+            ln.children().remove();
+
+            _(response.results.request.units).each( function(unit){
                 //filter : only for form search at the init
                 var filter = {
                     prefix : unit.prefix,
                     vocable : unit.name,
                 };
 
-                console.log('FILTER: '  , filter)
-                app.models.graph.vs.get(unit).add_flag('pzero');             
-            
+                var  model = app.models.graph.vs.get(unit);
+                model.add_flag("pzero");
+
+                var card = document.createElement("padagraph-vertex-card-xs");
+                card.model = model;
+                
+                ln[0].appendChild(card);
             });
             
             /*  dictionary */
@@ -631,6 +644,18 @@ define([
                 app.models.query.reset_from_models(model) ;
         },
 
+        /** Navigate (=play engine) to a vertex by giving it exact label
+        */
+        navigate_to_id: function(model){
+            var app = this;
+            if (_.isString(model) ){
+                app.models.userquery.reset_ids_from_str(model, true) ;
+                app.views.userquery.submit()
+            }
+            else
+                app.models.query.reset_from_models(model) ;
+        },
+
         // main function
         start: function(graph, explore){
             var app = this;
@@ -656,6 +681,7 @@ define([
                 routes: {
                     ':gkey': 'index',
                     ':gkey/q/:query': 'search',
+                    ':gkey/id/:query': 'search_by_id',
                     ':gkey/q/:query(?:config)': 'search',
 
                 },
@@ -679,9 +705,21 @@ define([
                     console.log("navigate_to_label", query);
                     app.navigate_to_label(query);
                 },
+                search_by_id: function(gkey, query, config){
+                    console.log("<router> search by id start");
+                    console.log("navigate_to_id", query);
+                    app.navigate_to_id(query);
+                },
             });
             
-            /* keyboard shortcuts */
+            // create the rooter
+            app.router = new AppRouter();
+            // Everything is now in place...
+            Backbone.history.start({pushState: true, root: app.root_url});
+
+        },
+        set_ui:function(){
+                    /* keyboard shortcuts */
 
             Mousetrap.bind(['?'], function(){
                 $("#query_form input").focus().select();
@@ -705,13 +743,7 @@ define([
                     $("#myCarousel").carousel(v)
                 });
             });
-
-            // create the rooter
-            app.router = new AppRouter();
-            // Everything is now in place...
-            Backbone.history.start({pushState: true, root: app.root_url});
-
-        },
+        }
     });
     
     return App;
