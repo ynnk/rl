@@ -23,6 +23,7 @@
     <script src="/static/bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 
     <link rel="import" href="{{polymer_path}}/padagraph-collection.html"/>
+    <link rel="import" href="{{polymer_path}}/padagraph-vertex-card-xs.html"/>
     <link rel="import" href="{{polymer_path}}/padagraph-controls.html"/>
     <link rel="import" href="{{polymer_path}}/padagraph-gviz.html"/>
     <link rel="import" href="{{polymer_path}}/padagraph-rlf-vertex.html"/>
@@ -305,11 +306,7 @@ require.config({
             graph.fetch({parse: true});
 
             // !!!!! to be removed !!!!!
-            graph.vs.on("add"  , function(e){
-
-                    e.properties.set('lfs', "{}")
-
-                });
+            graph.vs.on("add"  , function(e){e.properties.set('lfs', "{}")});
 
 
             var comp = $("padagraph-engine-control")[0];
