@@ -256,6 +256,7 @@ require.config({
             app.create_graph_model({'urlRoot': urlRoot, 'url' : sync, 'gid': gid,
                     vertex_model: Models.Vertex,
                 });
+                
             app.models.graph.on('sync', function(){
                 reset();
                 parse.sync = true;
@@ -439,7 +440,7 @@ require.config({
         
         var _window_resized = function(){
             var win = $(this); //this = window
-            size =  $(window).height()-$("nav").height() - $(".footer").height() - 88;
+            size =  $(window).height()-$("nav").height() - $("#footer").height() - 88;
             size = size < min_height ? min_height : size;
             $(".itemview").height(size);
             $("#vz_graph .bottom.segment").height(size -2);

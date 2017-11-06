@@ -585,12 +585,14 @@ define([
                 };
 
                 var  model = app.models.graph.vs.get(unit);
-                model.add_flag("pzero");
+                if (model){
+                    model.add_flag("pzero");
 
-                var card = document.createElement("padagraph-vertex-card-xs");
-                card.model = model;
-                
-                ln[0].appendChild(card);
+                    var card = document.createElement("padagraph-vertex-card-xs");
+                    card.model = model;
+                    
+                    ln[0].appendChild(card);
+                }
             });
             
             /*  dictionary */
