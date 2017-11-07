@@ -151,15 +151,15 @@ def app_graph(lang, query=None, path = ""):
         root_url = url_for("index"),
         
         
-        #complete_url = "/%s/complete" % lang,
-        #routes= "http://padagraph.io/engines", 
-        #sync= "http://padagraph.io/graphs/g/rlfr",
-        #urlRoot= "http://padagraph.io/graphs/g/",
+        complete_url = "/%s/complete" % lang,
+        routes= "http://padagraph.io/engines", 
+        sync= "http://padagraph.io/graphs/g/rlfr",
+        urlRoot= "http://padagraph.io/graphs/g/",
         
-        complete_url = "/%s/complete" % lang , 
-        sync= "http://localhost:5002/static/rlfr.json",
-        routes= "http://localhost:5000/engines",
-        urlRoot= "http://localhost:5000/graphs/g/",
+        #complete_url = "/%s/complete" % lang , 
+        #sync= "http://localhost:5002/static/rlfr.json",
+        #routes= "http://localhost:5000/engines",
+        #urlRoot= "http://localhost:5000/graphs/g/",
         
         query=query,
 
