@@ -640,7 +640,6 @@ define([
             var app = this;
             if (_.isString(model) ){
                 app.models.userquery.reset_from_str(model) ;
-                app.views.userquery.submit()
             }
             else
                 app.models.query.reset_from_models(model) ;
