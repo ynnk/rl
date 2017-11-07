@@ -290,7 +290,8 @@ require.config({
             app.auto_compute();
         }
 
-        var isurl = (e)=> _.isString(e) && e.length;            
+        var isurl = (e)=> _.isString(e) && e.length;
+               
         var complete = function(){
             
             if( isurl(data) ){
