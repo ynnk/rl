@@ -1,0 +1,68 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-node-property.html"/><dom-module id="padagraph-node-properties-list"><template><style>#main {
+  height: 200px;
+  max-height: 200px;
+  overflow-y: scroll;
+ }
+</style><template is="dom-repeat" items="[[model_props]]"><padagraph-node-property model="{{item.model}}" name="{{item.name}}" value="{{item.value}}" on-value-changed="handleUpdate"></padagraph-node-property></template></template><script>"use strict";
+
+require(['backbone'], function (Backbone) {
+  Polymer({
+    is: "padagraph-node-properties-list",
+    properties: {
+      model: {
+        type: Object,
+        observer: "setProperties",
+        value: null
+      },
+      // - not necessary but for create node
+      uuid: {
+        type: String,
+        notify: true,
+        observer: "setProperties"
+      },
+
+      model_props: {
+        type: Array,
+        notify: true,
+        value: []
+      }
+    },
+
+    setProperties: function setProperties() {
+
+      var model = this.model;
+      var types = null;
+
+      if (model && model.nodetype) types = model.nodetype.attributes;else if (model && model.edgetype) types = model.edgetype.attributes;
+
+      var props = [];
+
+      if (model && types && types.properties) {
+        props = types.properties.map(function (k) {
+
+          var value = "";
+
+          if (model.attributes.properties) value = model.properties.get(k.name);
+
+          return { 'name': k.name, 'value': value, 'model': model };
+        });
+      }
+
+      this.model_props = props;
+    },
+
+    handleUpdate: function handleUpdate(ev, details) {
+
+      var model = ev.model.item.model;
+      var key = ev.model.item.name;
+      var value = ev.model.item.value;
+
+      model.properties.set(key, value);
+    },
+
+    handleAdd: function handleAdd() {
+      return alert('should popup missing props?');
+    }
+
+  });
+});</script></dom-module>

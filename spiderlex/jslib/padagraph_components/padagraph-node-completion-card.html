@@ -1,0 +1,82 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-node-completion-card"><template><style>:host {
+    width: 100%;
+}
+
+.content .actions {
+    margin-top: 3px;
+    cursor: link;
+}
+span.nodetype{
+    color: #333;
+    font-size:24px;
+}
+
+.metadata .nodetype{
+    font-size: 16px !important;
+    margin-left: 24px !important;
+}
+
+    </style><div class="content"><template is="dom-if" if="{{ actionmap.select }}"><i class="circle thin icon"></i><a on-click="handleSelect" class="author">{{model.label}}</a><div class="metadata"><div class="rating">{{model.nodetype}}</div></div></template><template is="dom-if" if="{{ !actionmap.select }}"><i class="circle thin icon nodetype"></i><span class="nodetype">{{model.label}}</span><template is="dom-if" if="{{ notext }}"><div class="text"></div></template><div class="metadata"><div class="nodetype">{{model.nodetype}}</div></div></template><template is="dom-if" if="{{actions}}"><div class="actions"><template is="dom-if" if="{{actionmap.add}}"><a on-click="handleAdd"><i class="plus icon"></i> Add to view</a></template><template is="dom-if" if="{{actionmap.explore}}"><a on-click="handleExplore"><i class="bullseye icon"></i> Explore</a></template><template is="dom-if" if="{{actionmap.remove}}"><a on-click="handleRemove"><i class="remove icon"></i> Remove</a></template></div></template></div></template><script>'use strict';
+
+require(['backbone', 'underscore'], function (Backbone, _) {
+  Polymer({
+    is: "padagraph-node-completion-card",
+    properties: {
+      model: Object,
+
+      actions: {
+        type: Object,
+        observer: '_updateActions'
+      },
+
+      actionmap: Object,
+      options: String,
+
+      notext: {
+        type: Number,
+        computed: "has_hext(options)"
+      }
+    },
+
+    _updateActions: function _updateActions() {
+
+      var actions = _.isNull(this.actions) ? [] : this.actions;
+      actions = _.isString(actions) ? actions.split(',') : actions;
+      actions = _.isArray(actions) ? actions : [actions];
+
+      this.actionmap = {
+        'add': _.indexOf(actions, "add") > -1,
+        'explore': _.indexOf(actions, "explore") > -1,
+        'select': _.indexOf(actions, "select") > -1,
+        'remove': _.indexOf(actions, "remove") > -1
+      };
+
+      this.notifyPath('actionmap', this.actionmap);
+    },
+
+    has_text: function has_text() {
+      return options != "notext";
+    },
+
+    handleSelect: function handleSelect() {
+      this.fire('completion-select', this.model);
+      this.fire('completion-close');
+    },
+
+    handleRemove: function handleRemove() {
+      this.fire('completion-remove', this.model);
+      this.fire('completion-close');
+    },
+
+    handleAdd: function handleAdd() {
+      Backbone.trigger('engine:additive_nodes', [this.model.uuid]);
+      this.fire('completion-close');
+    },
+
+    handleExplore: function handleExplore() {
+      var params = { graph: this.graph, query: this.model.uuid };
+      Backbone.trigger('engine:explore', params);
+      this.fire('completion-close');
+    }
+  });
+});</script></dom-module>

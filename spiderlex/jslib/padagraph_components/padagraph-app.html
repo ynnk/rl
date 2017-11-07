@@ -1,0 +1,113 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="padagraph-graph-button.html"/><link rel="import" href="padagraph-node-search.html"/><link rel="import" href="padagraph-notifications.html"/><link rel="import" href="padagraph-login-btn.html"/><link rel="import" href="padagraph-loading.html"/><link rel="import" href="padagraph-messages.html"/><link rel="import" href="padagraph-controls.html"/><link rel="import" href="padagraph-graph-infos.html"/><link rel="import" href="padagraph-gviz.html"/><link rel="import" href="padagraph-edits.html"/><link rel="import" href="padagraph-create.html"/><link rel="import" href="padagraph-app-menu.html"/><link rel="import" href="padagraph-nodes-panel.html"/><link rel="import" href="padagraph-collection.html"/><dom-module id="padagraph-app"><style>#padagraph-viz {
+    height : calc(100% - 40px);
+}
+</style><template><div id="main" class="ui internally celled grid"><div class="row">  <div id="padagraph-left" style="padding:0px" class="twelve wide column"><div class="ui internally celled grid"><div id="padagraph-top" class="row"><div class="four wide column center aligned"><div class="ui vertically fitted secondary menu"><div class="item left title"><a href="/"><i class="big dore icons"><i class="comment outline icon"></i><i style="left:13px" class="tiny share alternate icon"></i></i>Padagraph</a></div><div class="item left title"><a href="{{report_bug_url}}" target="_blank"><i class="circular bug icon"></i></a><!--a
+    i.circular.heart.icon
+--></div></div></div><div class="twelve wide column"><div class="ui vertically fitted secondary compact menu"><div class="ui item"><padagraph-graph-button graph="{{graph}}"></padagraph-graph-button></div><div class="ui item"><padagraph-node-search actions="add,explore" placeholder="Find node"></padagraph-node-search></div><div class="ui item"><padagraph-notifications socket_url="{{socketio_host}}" username="{{username}}"></padagraph-notifications></div><div class="ui item"><padagraph-login-btn username="{{username}}" csrf_token="{{ csrf_token }}"></padagraph-login-btn></div></div></div></div><div class="row"><div class="ui divider"></div><div id="padagraph-viz"><padagraph-loading></padagraph-loading><padagraph-messages></padagraph-messages><padagraph-gviz app="{{app}}" graph="{{graph}}" options="{{options}}"><!--padagraph-vertex-popup(graph="{{graph}}" height="{{height}}")--><!--padagraph-mouse-popup(graph="{{graph}}" height="{{height}}")--></padagraph-gviz><padagraph-controls on-toggle-fullscreen="toggle_fullscreen"></padagraph-controls><padagraph-graph-infos graph="{{graph}}" style="display:none"></padagraph-graph-infos><padagraph-edits style="display:none"></padagraph-edits><padagraph-create style="display:none"></padagraph-create></div></div></div></div><div id="padagraph-right" class="four wide column center aligned"><div style="margin-bottom:0px" class="ui secondary fitted pointing menu"><a data-tab="tab-actions" class="item active"><i class="large info circle icon"></i></a><a data-tab="tab-nodes" class="item">Nodes</a><a data-tab="tab-links" class="item">Links</a><div on-click="toggle_fullscreen" class="link right item"><i class="icon close"></i></div></div><div data-tab="tab-actions" class="ui tab active tab-actions"><div class="ui scrollable"><padagraph-app-menu graph="{{graph}}" on-toggle-fullscreen="toggle_fullscreen"></padagraph-app-menu></div></div><div data-tab="tab-nodes" class="ui tab basic segment"><padagraph-collection app="{{app}}" mode="node" graph="{{graph}}"></padagraph-collection></div><div data-tab="tab-links" class="ui tab basic segment"><padagraph-collection app="{{app}}" mode="edge" graph="{{graph}}"></padagraph-collection></div></div></div></div></template><script>"use strict";
+
+require(["jquery", "padagrapp"], function ($, App) {
+
+    Polymer({
+        is: "padagraph-app",
+
+        properties: {
+            username: String,
+            socketio_host: String,
+            report_bug_url: String,
+            current_graph: String,
+            routes: Object,
+            graph: Object,
+
+            options: { type: Object, value: {
+                    el: "#vz_threejs_main",
+
+                    background_color: 0xFFFFFF,
+
+                    user_vtx_size: -1,
+                    initial_size: 6,
+
+                    materials: Materials,
+                    use_material_transitions: true,
+                    //node_material_transition_delay: 200,
+                    //edge_material_transition_delay: 300,
+                    node_material_transition_delay: 0,
+                    edge_material_transition_delay: 0,
+                    AUTO_FOCUS: true,
+                    show_text: true,
+
+                    adaptive_zoom: true,
+                    force_position_no_delay: false,
+                    height: $(window).height() - 52
+                } }
+        },
+
+        observers: ["startapp(routes, current_graph)"],
+
+        ready: function ready() {
+
+            console.log(this.username, this.current_graph, this.socketio_host);
+
+            var _this = this;
+
+            var csrf = $('meta[name=csrf-token]').attr('content');
+
+            $.ajaxSetup({
+                beforeSend: function beforeSend(xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrf);
+                    }
+                }
+            });
+        },
+
+        startapp: function startapp(routes, current_graph) {
+            var app = this;
+            if (_.isString(routes)) {
+                $.ajax({
+                    url: routes,
+                    success: function success(routes) {
+                        app.set('routes', routes.routes);
+                    }
+                });
+                return;
+            }
+
+            var app = new App.Simple({
+                routes: routes
+            });
+
+            app.create_graph_model({ urlRoot: "../graphs/g/" });
+            app.create_clustering_model();
+            app.create_query_model();
+            app.create_user_model();
+            app.create_engines();
+
+            app.fetch_engines(function () {
+                app.engines.starred.play();
+            });
+
+            var graph = app.models.graph;
+            app.listenTo(graph, "change:gid", function () {
+                app.models.query.graph = graph.get('gid');
+                graph.fetch();
+            });
+            graph.set('gid', current_graph);
+
+            this.app = app;
+            this.graph = app.models.graph;
+
+            this.async((function () {
+                app.start();
+                app.setTheme("camouflage");
+                Backbone.trigger('engine:starred', { graph: current_graph
+                });
+            }).bind(this));
+        },
+
+        toggle_fullscreen: function toggle_fullscreen() {
+            this.app.setFullscreen(!this.app.fullscreen);
+            this.notifyPath("app.fullscreen", this.app.fullscreen);
+        }
+
+    });
+});</script></dom-module>

@@ -1,0 +1,432 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-notification-vertex-card.html"/><link rel="import" href="./padagraph-notification-edge-card.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><dom-module id="padagraph-notification-nodetype-card"><style>a.ui.label {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+</style><template><a on-click="handleClick" class="ui label"><i class="ui square thin icon"></i>{{name}}</a></template><script>"use strict";
+
+require(['backbone'], function (Backbone) {
+  Polymer({
+    is: "padagraph-notification-nodetype-card",
+    properties: {
+      name: String
+    }
+  });
+});</script></dom-module><dom-module id="padagraph-notification-edgetype-card"><style>a.ui.label {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+</style><template><a on-click="handleClick" class="ui label"><i class="ui horizontal ellipsis icon"></i>{{name}}</a></template><script>"use strict";
+
+require(['backbone'], function (Backbone) {
+  Polymer({
+    is: "padagraph-notification-edgetype-card",
+    properties: {
+      name: String
+    }
+  });
+});</script></dom-module><dom-module id="padagraph-notification-card"><style>#text {
+    margin-right: 4px;
+    margin-left: 18px;
+    font-size: 0.9rem;
+    line-height: 1;
+    color: rgb(51, 51, 51);
+}
+
+#text > span {
+    margin-right: 4px;
+}
+
+.ui.divider {
+    margin:0px;
+}
+</style><template><div class="ui divider"> </div><div class="comment"><div class="content"><i class="user icon"></i><span class="author">{{username}}</span><div class="metadata"><div class="date">{{time}}</div></div><div id="text" class="text"><span>{{msgtext}}</span><content></content></div><div class="actions"><a on-click="rm" class="icon"><i class="remove icon"></i></a></div></div></div></template></dom-module><script>"use strict";
+
+Polymer({
+    is: "padagraph-notification-card",
+    properties: {
+        username: String,
+        time: String,
+        msgtext: String
+    },
+
+    rm: function rm() {}
+});</script><dom-module id="padagraph-notifications"><style>:host .menu {
+    width : 400px;
+    color:#333;
+}
+.scrollable {
+    max-height:500px;
+    overflow:auto;
+}
+</style><template><div class="ui top left pointing dropdown"><i class="announcement icon"></i>notifications<template is="dom-if" if="{{count}}"><div class="floating ui red circular mini label">{{count}}</div></template></div><div style="min-width:400px !important; " class="ui fluid popup bottom left transition"><div class="ui left aligned column"><div class="items"><div style="margin-bottom:12px" class="item"><div class="content"><h5 style="color:#333 !important">community actions</h5></div><div style="margin-left:42px" class="actions"><div on-click="handleErase" class="mini ui basic right floated button">clear</div></div></div><div class="ui hidden divider"></div></div><div class="scrollable"><div class="ui minimal comments"><div class="comment"><div class="content"><content></content></div></div></div></div></div></div></template></dom-module><script>'use strict';
+
+require(['socketio', 'backbone', 'underscore', 'moment'], function (io, Backbone, _, moment) {
+    Polymer({
+
+        is: "padagraph-notifications",
+
+        properties: {
+            socket_url: String,
+            username: String
+        },
+
+        ready: function ready() {
+            this.count = 0;
+            this.notif_idx = {};
+
+            this.socket = io(this.socket_url);
+
+            this.socket.on('chat message', function (id, msg) {
+                console.log(msg);
+            });
+
+            var actions = ['new nodetype', 'edit nodetype', 'new node', 'edit node', 'delete node', 'new edgetype', 'edit edgetype', 'new edge', 'new edge from', 'new edge to', 'edit edge', 'delete edge'];
+
+            var _this = this;
+            actions.forEach(function (action) {
+                _this.socket.on(action, function (data) {
+                    console.log('notification:event', action, data);
+                    if (data.username == _this.username) {
+                        _this.my_notifications(action, data);
+                    } else {
+                        _this.others_notifications(action, data);
+                        _this.append(action, data);
+                    }
+                });
+            });
+        },
+
+        attached: function attached() {
+            $(".ui.dropdown", Polymer.dom(this).node).popup({
+                on: 'click',
+                inline: true,
+                hoverable: true,
+                closable: false,
+                position: 'bottom left',
+                delay: {
+                    show: 100,
+                    hide: 500
+                }
+            });
+        },
+
+        track: function track(gid, active) {
+
+            console.log("== Tracking is now ", active, " on ", gid, this.graph);
+
+            if (!active) {
+
+                this.stopListeningTo(gid);
+            }
+
+            if (active) {
+
+                this.listenTo(gid);
+            }
+        },
+
+        setGraphModel: function setGraphModel(graph) {
+            var _this2 = this;
+
+            this.graph = graph;
+
+            if (graph != null) {
+
+                Backbone.listenTo(graph, "change:gid", function () {
+
+                    console.log(graph);
+                    _this2.stopListening();
+                    _this2.listenTo(graph.id + "_schema");
+                });
+
+                Backbone.listenTo(graph.vs, 'add', this.listenTo.bind(this));
+                Backbone.listenTo(graph.es, 'add', this.listenTo.bind(this));
+                Backbone.listenTo(graph.vs, 'remove', this.stopListeningTo.bind(this));
+                Backbone.listenTo(graph.es, 'remove', this.stopListeningTo.bind(this));
+            }
+        },
+
+        handleResetGraph: function handleResetGraph() {
+            var _this3 = this;
+
+            console.log('reset!');
+            this.stopListening();
+            this.graph.vs.each(function (vtx) {
+                _this3.listenTo(vtx.id);
+            });
+            this.graph.es.each(function (e) {
+                _this3.listenTo(e.id);
+            });
+        },
+
+        handleErase: function handleErase() {
+            this.count = 0;
+            this.notif_idx = {};
+
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = Polymer.dom(this).childNodes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var child = _step.value;
+
+                    console.log(child);
+                    child.remove();
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator['return']) {
+                        _iterator['return']();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+        },
+
+        warn: function warn(uuid) {
+            console.log('WARNING, event for ' + uuid + ' from SocketIO not in Graph Model');
+        },
+
+        others_notifications: function others_notifications(action, data) {
+            var graph = this.graph;
+
+            if (action == "new node") {
+
+                Backbone.trigger('engine:additive_nodes', [data.uuid]);
+            } else if (action == "edit node") {
+
+                var node = graph.vs.get(data.uuid);
+                if (node) node.fetch();
+            } else if (action == "delete node") {
+
+                var node = graph.vs.get(data.uuid);
+                if (node) graph.vs.remove(node);
+            } else if (action == "new edge") {
+                var nodes = _.filter([data.source, data.target], function (uuid) {
+                    return graph.vs.get(uuid) == null;
+                });
+
+                Backbone.trigger('engine:additive_nodes', nodes);
+            } else if (action == "edit edge") {
+
+                var edge = graph.es.get(data.uuid);
+                if (edge) edge.fetch();
+            }
+            if (action == "delete edge") {
+
+                var edge = graph.es.get(data.uuid);
+                if (edge) graph.es.remove(edge);
+            }
+        },
+
+        my_notifications: function my_notifications(action, data) {
+
+            var graph = this.graph;
+
+            if (action == "new nodetype" || action == "edit nodetype") graph.nodetypes.fetch();else if (action == "new edgetype" || action == "edit edgetype") graph.edgetypes.fetch();
+
+            return;
+        },
+
+        /**
+         * X. appends card to the notification panel
+         * X. fetch nodetype / edge types when receive new node/edgetype 
+         * */
+
+        append: function append(action, data) {
+            var _this4 = this;
+
+            //- TODO
+            //- fetch data from messages instead of http ajax
+
+            var text = "",
+                obj = null,
+                child = null;
+
+            //- prevent for doublons
+            var notif_hash = this.hashCode(data.username + data.uuid + data.time);
+
+            if (notif_hash in this.notif_idx) return;
+
+            //- filter messages/actions from me
+            if (data.username == this.username) {
+
+                return;
+            }
+
+            if (action == "edit nodetype") {
+                text = "edited node type";
+                this.graph.nodetypes.fetch();
+
+                child = document.createElement('padagraph-notification-nodetype-card');
+                child.name = data.name;
+                child.handleClick = (function (e) {
+                    return Backbone.trigger('edit:nodetype', _this4.graph.nodetypes.get(data.uuid));
+                }).bind(this);
+            } else if (action == "new nodetype") {
+
+                text = "created a node type";
+                var child = document.createElement('padagraph-notification-nodetype-card');
+                child.name = data.name;
+                child.handleClick = (function (e) {
+                    return Backbone.trigger('edit:nodetype', _this4.graph.nodetypes.get(data.uuid));
+                }).bind(this);
+            } else if (action == "edit edgetype") {
+
+                text = "edited edge type";
+                child = document.createElement('padagraph-notification-edgetype-card');
+                child.name = data.name;
+                child.handleClick = (function (e) {
+                    return Backbone.trigger('edit:edgetype', _this4.graph.edgetypes.get(data.uuid));
+                }).bind(this);
+            } else if (action == "new edgetype") {
+
+                text = "created edge type";
+
+                this.graph.edgetypes.fetch();
+
+                child = document.createElement('padagraph-notification-edgetype-card');
+                child.name = data.name;
+                child.handleClick = (function (e) {
+                    return Backbone.trigger('edit:edgetype', _this4.graph.edgetypes.get(data.uuid));
+                }).bind(this);
+            } else if (action == "new node") {
+
+                text = "created node";
+                child = document.createElement('padagraph-vertex-card-xs');
+                obj = data;
+            } else if (action == "edit node") {
+
+                text = "edited node";
+
+                obj = this.graph.vs.get(data.uuid);
+                obj.fetch();
+
+                child = document.createElement('padagraph-vertex-card-xs');
+                if (obj) child.handleClick = function (e) {
+                    return Backbone.trigger('vertex:click', obj, e);
+                };
+            } else if (action == "delete node") {
+
+                text = "deleted node";
+                obj = this.graph.vs.get(data.uuid);
+                child = document.createElement('padagraph-vertex-card-xs');
+                child.handleClick = function (e) {
+                    return Backbone.trigger('vertex:click', obj, e);
+                };
+            } else if (action == "edit edge") {
+
+                text = "edited edge ";
+
+                obj = this.graph.es.get(data.uuid);
+
+                if (!obj) return;
+
+                child = document.createElement('padagraph-edge-card-xs');
+                child.handleClick = function (e) {
+                    return Backbone.trigger('edge:click', obj, e);
+                };
+            } else if (action == "delete edge") {
+
+                text = "deleted edge";
+
+                obj = this.graph.es.get(data.uuid);
+
+                if (!obj) return;
+
+                child = document.createElement('padagraph-notification-edge-card');
+                child.handleClick = function (e) {
+                    return Backbone.trigger('edge:click', obj, e);
+                };
+            } else if (action == "new edge from") {
+
+                text = "created new edge from";
+
+                obj = this.graph.vs.get(data.source);
+
+                child = document.createElement('padagraph-vertex-card-xs');
+                child.handleClick = function (e) {
+                    return Backbone.trigger('edge:click', obj, e);
+                };
+            } else if (action == "new edge to") {
+
+                text = "created new edge to ";
+
+                obj = this.graph.vs.get(data.target);
+
+                child = document.createElement('padagraph-vertex-card-xs');
+                child.handleClick = function (e) {
+                    return Backbone.trigger('edge:click', obj, e);
+                };
+            }
+
+            if (child) {
+
+                this.notif_idx[notif_hash] = true;
+
+                child.model = obj != null ? obj : data;
+
+                /* TODO  l10N */
+                var notif = document.createElement('padagraph-notification-card');
+
+                notif.username = data.username;
+                notif.time = moment(data.time).format("dddd, MMM D, H:mm:ss");
+                notif.msgtext = text;
+                notif.rm = (function (event) {
+                    notif.remove();
+                    delete notif_idx[notif_hash];
+                    _this4.count -= 1;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                }).bind(this);
+
+                notif.$.text.appendChild(child);
+
+                Polymer.dom(this).appendChild(notif);
+
+                this.count += 1;
+            }
+        },
+
+        hashCode: function hashCode(str) {
+            // Source: http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/ 
+            var hash = 0,
+                i,
+                chr,
+                len;
+            if (str.length === 0) return hash;
+            for (i = 0, len = str.length; i < len; i++) {
+                chr = str.charCodeAt(i);
+                hash = (hash << 5) - hash + chr;
+                hash |= 0; // Convert to 32bit integer
+            }
+            return hash;
+        },
+
+        listenTo: function listenTo(model) {
+
+            if (_.isObject(model)) {
+                this.socket.emit('listenTo', model.id);
+            } else if (_.isString(model)) this.socket.emit('listenTo', model);
+        },
+
+        stopListeningTo: function stopListeningTo(model) {
+            if (_.isObject(model)) {
+                this.socket.emit('stopListeningTo', model.id);
+            } else if (_.isString(model)) this.socket.emit('stopListeningTo', model);
+        },
+
+        stopListening: function stopListening() {
+
+            this.socket.emit('stopListening');
+        }
+    });
+});</script>

@@ -1,0 +1,178 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-node-properties-list.html"/><dom-module id="padagraph-vertex-card-m"><style>.ui.items { margin: 0px; cursor: hand; }
+.ui.items .item { margin-bottom:2px }
+.ui.items .item .content { padding-left: 0.5em; }
+.ui.items .item .content .header { margin-top: 0.1em; }
+.ui.items .item .content .meta { margin: 0.1em .4em; }
+
+.ui.accordion { padding-top: 0.2em;}
+.ui.accordion .title { padding: 0em; font-size: 0.9em;}
+
+.ui.comments { margin: 0px; }
+.ui.comments .comment {  padding: 0em; }
+.ui.comments .comment .author { font-size: 0.9em; font-weight: initial; }
+.ui.comments.vertex-actions { padding-top: 0.3em; }
+</style><template><div on-mouseover="intersect" on-mouseout="desintersect" class="ui items"><div class="item"><div on-click="select" class="ui mini image"><template is="dom-if" if="{{is_selected}}"><svg width="36px" height="36px"><circle cx="18" cy="18" r="15" fill$="{{rgb_color}}" stroke="white" stroke-width="3"></circle><text x="50%" y="55%" alignment-baseline="middle" text-anchor="middle" fill="black">{{letter}}</text></svg></template><template is="dom-if" if="{{!is_selected}}"><svg width="36px" height="36px"><circle cx="18" cy="18" r="15" fill$="{{rgb_color}}"></circle><text x="50%" y="55%" alignment-baseline="middle" text-anchor="middle" fill="black">{{letter}}</text></svg></template></div><div on-click="select" class="content"><div class="header">{{model.label}}</div><div class="meta"><div class="date">{{ model.nodetype.label }}</div></div></div><div style="height:12px" data-rating="1" on-click="toggle_star" class="ui star rating"><i class="icon"></i></div></div><!--.ui.accordion.vertex-actions
+  .title
+    b Node attributes
+    i.dropdown.icon
+  .content
+    .ui.comments
+    
+      template(is="dom-repeat",items="[[model_attributes]]" )  
+        .comment
+          .content
+            span.author {{item.name}}
+            span.metadata
+                .rating {{item.value}}
+  
+--><template is="dom-if" if="{{actions}}"><div class="ui comments vertex-actions"><div class="comment"><div class="content"><div class="actions"><a on-click="edit"><i class="edit icon"></i> Edit</a><a on-click="add_link"><i class="linkify icon"></i> Link</a><a on-click="expand"><i class="share alternate icon"></i> Expand</a><a on-click="explore"><i class="eye icon"></i> Explore</a><a on-click="remove"><i class="remove icon"></i> Hide</a></div></div></div></div></template></div></template><script>'use strict';
+
+require(['backbone', 'jquery', 'pdgconst'], function (Backbone, $, Const) {
+  Polymer({
+    is: "padagraph-vertex-card-m",
+    properties: {
+      graph: String,
+      model: {
+        type: Object,
+        notify: true,
+        observer: 'computeProperties'
+      },
+
+      // computed properties
+
+      label: String,
+      letter: String,
+      rgb_color: String,
+      style_color: String,
+      color: Array,
+      model_attributes: Array,
+
+      is_selected: Boolean,
+      has_actions: Boolean,
+
+      actions: {
+        type: Boolean,
+        value: false
+      },
+
+      intersects: {
+        type: Boolean,
+        value: true
+      }
+
+    },
+
+    created: function created() {
+      if (!this._listener) {
+        this._listener = {};
+        _.extend(this._listener, Backbone.Events);
+      }
+    },
+
+    attached: function attached() {
+      this.async(function () {
+        //$('.accordion' , this).accordion()
+      });
+
+      this.computeProperties();
+    },
+
+    handleSave: function handleSave() {
+      console.log('saving', this.model);
+      this.model.save();
+    },
+
+    handleSelected: function handleSelected() {
+      console.log("select", this.label);
+    },
+
+    handleEditType: function handleEditType() {
+
+      Backbone.trigger(Const.ui_edit_nodetype, this.model.nodetype);
+      console.log('trigger Const.ui_edit_nodetype', this.model.nodetype);
+    },
+    //- computed properties
+
+    computeProperties: function computeProperties(vertex) {
+
+      if (vertex == null || !vertex.nodetype) return;
+
+      this._listener.stopListening();
+
+      this._listener.listenTo(vertex, 'addflag:selected', this.computeProperties.bind(this));
+      this._listener.listenTo(vertex, 'rmflag:selected', this.computeProperties.bind(this));
+      this._listener.listenTo(vertex, 'change', this.computeProperties.bind(this));
+
+      this.degree = vertex.degree();
+      this.color = vertex.get('color');
+
+      this.is_selected = vertex.has_flag('selected');
+      this.has_actions = vertex.has_flag('selected') | vertex.has_flag('intersected');
+      this.rgb_color = "rgb(" + vertex.get('color') + ")";
+      this.style_color = "background-color: rgb(" + vertex.get('color') + ")";
+
+      this.model_attributes = Object.keys(vertex.attributes).map(function (k) {
+        return { "name": k, "value": vertex.attributes[k] };
+      });
+
+      if (vertex.get('starred')) $(".rating i.icon", this).addClass('active');else $(".rating i.icon", this).removeClass('active');
+    },
+
+    //- actions
+
+    toggle_star: function toggle_star() {
+      if (this.model.get('starred')) this.model.unstar();else this.model.star();
+      this.model.fetch();
+    },
+
+    desintersect: function desintersect(event) {
+      if (this.intersects) Backbone.trigger('vertex:mouseout', this.model, event);
+      //this.has_actions = this.model.has_flag('selected') | this.model.has_flag('intersected');
+    },
+
+    intersect: function intersect(event) {
+      if (this.intersects) Backbone.trigger('vertex:mouseover', this.model, event);
+      //this.has_actions = this.model.has_flag('selected') | this.model.has_flag('intersected');
+    },
+
+    select: function select(event) {
+      Backbone.trigger(Const.select_node, this.model);
+      this.computeProperties();
+    },
+
+    explore: function explore() {
+      var params = { graph: this.graph, query: this.model.id };
+      Backbone.trigger('engine:explore', params);
+    },
+
+    edit: function edit() {
+      Backbone.trigger(Const.ui_edit_node, this.model);
+    },
+
+    add_link: function add_link() {
+      Backbone.trigger(Const.ui_create_edge, { source: this.model });
+    },
+
+    expand: function expand() {
+      var params = { graph: this.graph, nodes: [this.model.id], weights: [] };
+      Backbone.trigger('engine:expand_prox', params);
+    },
+
+    remove: function remove() {
+      Backbone.trigger(Const.remove_node, this.model);
+    },
+
+    _setHeaderStyle: function _setHeaderStyle() {
+      return "background-color:" + this.rgb_color;
+    },
+
+    model_attributes: function model_attributes(model) {
+      return;
+    },
+
+    model_properties: function model_properties(model) {
+      return;
+    }
+
+  });
+});</script></dom-module>

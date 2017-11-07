@@ -1,0 +1,36 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-graph-list-item.html"/><dom-module id="padagraph-graph-list"><template><style>.scrollable {
+  max-height:400px;
+  overflow:auto;
+}
+</style><template is="dom-repeat" items="{{graphs}}"><div class="ui items"> <padagraph-graph-list-item infos="{{item}}" button="button" header="header" class="ui item"></padagraph-graph-list-item><div class="ui section divider"></div></div></template></template><script>"use strict";
+
+require(['jquery'], function ($) {
+  Polymer({
+    is: "padagraph-graph-list",
+
+    properties: {
+      graphs: Object
+    },
+
+    ready: function ready() {
+      this.graphs = [];
+      this.search();
+    },
+
+    search: function search() {
+      var self = this;
+
+      $.ajax({
+        url: "graphs/list",
+        type: "GET",
+        data: "",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function success(data) {
+          self.graphs = data.graphs;
+        }
+      }).error(function () {});
+    }
+
+  });
+});</script></dom-module>

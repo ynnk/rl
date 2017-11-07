@@ -1,0 +1,341 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-card-property.html"/><!--link(rel="import",href="./padagraph-rlf-vertex.html")--><dom-module id="padagraph-vertex-card-xl-vtx"><template><a on-click="add_vertex" class="ui label"><i class="circle thin icon"></i>{{ edge.node.label}}</a></template><script>'use strict';
+
+require(['backbone'], function (Backbone) {
+  Polymer({
+    is: "padagraph-vertex-card-xl-vtx",
+    properties: {
+      edge: Object
+    },
+    add_vertex: function add_vertex() {
+      Backbone.trigger('engine:additive_nodes', [this.edge.node.uuid]);
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-vertex-card-xl-edge"><template><a on-click="select" on-mouseover="intersect" on-mouseout="intersectOff" title="{{edge.model.label}}" class="ui label"><i class$="{{edge.icon}}"></i>{{ edge.edgetype}}</a></template><script>'use strict';
+
+require(['backbone', 'pdgconst'], function (Backbone, Const) {
+  Polymer({
+    is: "padagraph-vertex-card-xl-edge",
+    properties: {
+      edge: Object
+    },
+
+    intersect: function intersect(event) {
+      if (this.edge.model.id) Backbone.trigger('edge:mouseover', this.edge.model, event);
+    },
+    intersectOff: function intersectOff(event) {
+      if (this.edge.model.id) Backbone.trigger('edge:mouseout', this.edge.model, event);
+    },
+
+    select: function select(event) {
+      if (this.edge.model.id) Backbone.trigger(Const.select_edge, this.edge.model, event);else Backbone.trigger('engine:additive_nodes', [this.edge.node.uuid]);
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-vertex-card-xl"><style>.ui.items { margin: 0px; }
+.ui.items .item .content { margin-left: 4px; text-align: left !important;  }
+.ui.items .item h3 { padding-top: 30px; }
+
+.ui.comments { margin: 0px; }
+.ui.comments .comment {  padding: 0em; }
+
+
+#title { cursor: hand;  }
+#title img { width:100%;  }
+#title .header { margin-top: 0.1em; }
+#title .meta { margin: 0.1em .4em; }
+#title .star.rating {
+    position: absolute;
+    //top: 0px;
+    padding-top: 4px;
+    left: calc(100% - 12px);
+    
+}
+
+.avatar svg { margin-left:4px; }
+.avatar svg rect  { stroke-width:1;stroke:rgb(0,0,0);}
+.avatar svg circle  { stroke-width:1;stroke:rgb(0,0,0);}
+.avatar svg text { font-size:20px;}
+
+#properties .name {
+    display: inline-block;
+    color: #333;
+    font-weight: bold;
+    font-size: 1em;
+    margin-right: 6px;
+}
+#properties .value { display:inline }
+
+#neighbourhood .content /deep/ a.label { background-color:#FFF; }
+
+
+#vertex-menu .menu {
+    margin: auto;
+    border: 0px;
+    box-shadow: none;
+    margin-left: 4px;
+    padding-top: 12px
+}
+
+#vertex-menu .item {
+    text-align: left;
+}
+
+</style><template><div class="ui items"><div id="title" on-mouseover="intersect" class="item"><template is="dom-if" if="{{model.properties.attributes.image}}"><img src="{{model.properties.attributes.image}}" class="ui small centered image"/></template><template is="dom-if" if="{{!model.properties.attributes.image}}"><div class="ui image"><svg width="36px" height="36px"><rect width="36px" height="36px" fill$="{{rgb_color}}"></rect><text x="50%" y="55%" alignment-baseline="middle" text-anchor="middle" fill="black">{{letter}}</text></svg></div></template><div data-rating="1" on-click="toggle_star" class="ui star rating"><i class="icon"></i></div><div class="content"><div class="header">{{label}}</div><div class="type">{{ nodetype_label }}</div></div></div><!--#rlf.item//h3 RLF
+//rlf-vertex-card(model="{{model}}")
+
+--><div id="properties" class="item"><h3>Properties</h3><div class="ui comments"><template is="dom-repeat" items="[[model_attributes]]"> <div class="comment"><div class="content"><span class="name">{{item.name}}</span><padagraph-card-property prop="{{item}}" class="value"></padagraph-card-property></div></div></template></div></div><div id="neighbourhood" class="item"><h3>Neighbourhood {{neighbors.length}}</h3><template is="dom-repeat" items="[[by_nodetypes]]" as="item"><h4><i class="ui square outline icon"></i>{{item.neighbors.length}} {{item.nodetype.name}}</h4><div class="content"><template is="dom-repeat" items="[[item.neighbors]]" as="edge"><div class="truc"><padagraph-vertex-card-xl-edge edge="{{edge}}"></padagraph-vertex-card-xl-edge><template is="dom-if" if="{{edge.node.id}}"><div style="display:inline;" class="card"><padagraph-vertex-card-xs model="{{edge.node}}" actions="select"></padagraph-vertex-card-xs></div></template><template is="dom-if" if="{{!edge.node.id}}"><padagraph-vertex-card-xl-vtx edge="{{edge}}"></padagraph-vertex-card-xl-vtx></template></div></template></div></template></div><div id="vertex-menu" class="item"><div class="ui vertical menu"><a on-click="edit" data-content="Edit" class="item"><i class="large icons"> <i class="edit icon"></i></i>Edit node              </a><a on-click="add_link" data-content="Link" class="item"><i class="large icons"> <i class="linkify icon"></i></i>Link</a><a on-click="expand" data-content="Expand" class="item"><i class="large icons"> <i class="share alternate icon"></i></i>Expand  </a><a on-click="explore" data-content="Explore" class="item"><i class="large icons"> <i class="bullseye icon"></i></i>Explore  </a><a on-click="remove_node" data-content="Remove" class="item"><i class="large icons"> <i class="hide icon"></i></i>Remove  </a></div></div></div></template><script>'use strict';
+
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+  Polymer({
+    is: "padagraph-vertex-card-xl",
+    properties: {
+      model: {
+        type: Object,
+        observer: 'observeModel'
+      },
+
+      //- neighbors
+      by_nodetypes: Array,
+      neighbors: Array,
+
+      // computed properties
+
+      label: String,
+      letter: String,
+      color: Array,
+      rgb_color: String,
+      style_color: String,
+
+      model_attributes: Array,
+
+      is_selected: Boolean,
+      actions: Boolean
+
+    },
+
+    attached: function attached() {
+      var _this = this;
+
+      // properties accordions using async with act like domReady Event
+      this.async(function () {
+        $('.accordion', _this).accordion();
+      });
+    },
+
+    handleSave: function handleSave() {
+      console.log('saving', this.model);
+      this.model.save();
+    },
+
+    handleEditType: function handleEditType() {
+
+      Backbone.trigger(Const.ui_edit_nodetype, this.model.nodetype);
+      console.debug('trigger', Const.ui_edit_nodetype, this.model.nodetype);
+    },
+    //- computed properties
+    _isMulti: function _isMulti(name) {
+      if (this.model && name) {
+        var props = this.model.nodetype.properties;
+        var prop = props.get(name);
+        return prop.is_multi();
+      }
+      return false;
+    },
+
+    observeModel: function observeModel() {
+      var _this2 = this;
+
+      if (!this._listener) {
+
+        this._listener = {};
+        _.extend(this._listener, Backbone.Events);
+      }
+
+      this._listener.stopListening();
+
+      if (this.model) {
+        this._computeProperties();
+        this.fetch();
+        this._listener.listenTo(this.model, 'change', function () {
+          return _this2._computeProperties();
+        });
+        this._listener.listenTo(this.model.graph.vs, 'change', function () {
+          return _this2._update_neighbors();
+        });
+      }
+    },
+
+    _computeProperties: function _computeProperties() {
+      var model = this.model;
+      if (!model) return;
+
+      this.nodetype_label = model && model.nodetype ? model.nodetype.name : "-";
+      this.label = model.label;
+      this.degree = model.degree();
+      this.color = model.get('color');
+
+      this.is_selected = model.has_flag('selected');
+      this.rgb_color = "rgb(" + model.get('color') + ")";
+      this.style_color = "background-color: rgb(" + model.get('color') + ")";
+
+      var _type = function _type(key) {
+        return model.type.properties.get(key).otype.type.toLowerCase();
+      };
+
+      this.model_attributes = model.type.properties.models.map(function (e) {
+        return {
+          "type": _type(e.name),
+          "name": e.name,
+          "value": model.properties.get(e.name)
+        };
+      });
+
+      if (model.get('starred')) $(".rating i.icon", this).addClass('active');else $(".rating i.icon", this).removeClass('active');
+    },
+
+    _update_neighbors: function _update_neighbors() {
+      var _this3 = this;
+
+      if (this.model == null || this.model.graph == null) return;
+
+      var nodetypes = _.chain(this.neighbors).map(function (d) {
+        return d[2].nodetype;
+      }).uniq().map(function (d) {
+        return [d, []];
+      }).object().value();
+
+      var graph = this.model.graph;
+      var vs = this.model.graph.vs;
+      var es = this.model.graph.es;
+
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = this.neighbors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var _step$value = _slicedToArray(_step.value, 3);
+
+          var edge = _step$value[0];
+          var relation = _step$value[1];
+          var node = _step$value[2];
+
+          node = vs.get(node.uuid) ? vs.get(node.uuid) : node;
+          edge = es.get(edge.uuid) ? es.get(edge.uuid) : edge;
+          var direction_icon = relation == "IN" ? 'long arrow left icon' : 'long arrow right icon'; //or 'resize horizontal icon' the day we have undirected links
+
+          var nodetype = node.id ? node.get('nodetype') : node.nodetype;
+          var edgetype = graph.edgetypes.get(edge.edgetype).name;
+
+          nodetypes[nodetype].push({ 'edgetype': edgetype, //name
+            'model': edge, // bb model or dict
+            'relation': relation, // str
+            'node': node, //- bb model or dict
+            'icon': direction_icon
+          });
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator['return']) {
+            _iterator['return']();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      this.by_nodetypes = _.chain(nodetypes).pairs().sortBy(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2);
+
+        var k = _ref2[0];
+        var e = _ref2[1];
+        return e.length;
+      }).map(function (_ref3) {
+        var _ref32 = _slicedToArray(_ref3, 2);
+
+        var k = _ref32[0];
+        var e = _ref32[1];
+        return {
+          nodetype: graph.nodetypes.get(k),
+          neighbors: e
+        };
+      }).value();
+
+      this.async(function () {
+        $('.accordion', _this3).accordion();
+      });
+    },
+
+    // update
+
+    fetch: function fetch() {
+
+      var self = this;
+      var url_root = this.model.url();
+
+      $.ajax({
+        url: url_root + '/neighbors',
+        type: "POST",
+        data: JSON.stringify({
+          start: 0
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function success(data) {
+          self.neighbors = data.neighbors;
+          self._update_neighbors();
+        }
+      });
+    },
+
+    //- actions
+
+    toggle_star: function toggle_star() {
+      if (this.model.get('starred')) this.model.unstar();else this.model.star();
+      this.model.fetch();
+    },
+
+    intersect: function intersect(event) {
+      Backbone.trigger('vertex:mouseover', this.model, event);
+    },
+
+    select: function select(event) {
+      Backbone.trigger(Const.select_node, this.model, event);
+    },
+
+    explore: function explore() {
+      var params = { graph: this.model.graph.id, query: this.model.id };
+      Backbone.trigger('engine:explore', params);
+    },
+
+    edit: function edit() {
+      Backbone.trigger(Const.ui_edit_node, this.model);
+    },
+
+    add_link: function add_link() {
+      Backbone.trigger(Const.ui_create_edge, { source: this.model });
+    },
+
+    expand: function expand() {
+      var params = { graph: this.graph, nodes: [this.model.id], weights: [] };
+      Backbone.trigger('engine:expand_prox', params);
+    },
+
+    remove_node: function remove_node() {
+      Backbone.trigger(Const.remove_node, this.model);
+    },
+
+    _setHeaderStyle: function _setHeaderStyle() {
+      return "background-color:" + this.rgb_color;
+    }
+
+  });
+});</script></dom-module>

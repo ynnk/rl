@@ -1,0 +1,111 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-node-completion-card.html"/><dom-module id="padagraph-node-search"><template><style>.scrollable {
+  min-width:400px !important;
+  max-height:400px;
+  overflow:auto;
+  text-align:left !important;
+}
+
+</style><div class="ui icon input"><input id="search" name="search" type="text" autocomplete="off" value="{{value::input}}" placeholder="{{placeholder}}" on-keyup="keyHandler"/><i class="search icon"></i></div><div class="ui fluid popup bottom left transition"><div class="ui left aligned column"><div class="ui scrollable comments"><template is="dom-repeat" items="[[completions]]"><padagraph-node-completion-card option="notext" actions="{{actions}}" model="{{item}}" on-completion-close="handleClose" class="comment"></padagraph-node-completion-card><div class="ui divider"></div></template></div></div></div></template><script>'use strict';
+
+require(['jquery', 'backbone', 'semantic'], function ($, Backbone) {
+  Polymer({
+
+    is: "padagraph-node-search",
+
+    properties: {
+      placeholder: String,
+      graph: Object,
+      actions: String,
+      value: String
+    },
+
+    attached: function attached() {
+      var _this = this;
+
+      this.completions = [];
+
+      this.async(function () {
+        var $popup = $('.input', Polymer.dom(_this).node);
+        $popup.popup({
+          on: 'click',
+          onShow: (function () {
+            return _this.completions.length > 0;
+          }).bind(_this),
+          inline: true,
+          hoverable: true,
+          position: 'bottom left',
+          delay: {
+            show: 0,
+            hide: 100
+          }
+        });
+        var oldSearchValue = "";
+        window.setInterval(function () {
+          var currentSearchValue = _this.value;
+          if (oldSearchValue != currentSearchValue) {
+            if (currentSearchValue && currentSearchValue.length > 0) _this.complete();
+            oldSearchValue = currentSearchValue;
+          }
+        }, 1000);
+      });
+    },
+
+    hide: function hide() {
+      $('.input', Polymer.dom(this).node).popup('hide');
+    },
+
+    show: function show() {
+
+      $('.input', Polymer.dom(this).node).popup('show');
+    },
+
+    handleClose: function handleClose() {
+      this.completions = [];
+      this.value = "";
+      this.hide();
+    },
+
+    keyHandler: function keyHandler(e) {
+
+      if (!this.value || !this.value.length) return;
+
+      if (e.keyCode == 13) {
+
+        // add first node to the view
+        if (this.completions.length) {
+          var model = this.completions[0];
+          Backbone.trigger('engine:additive_nodes', [model.uuid]);
+          this.handleClose();
+        }
+      }
+      //else
+      //    this.complete();
+    },
+
+    complete: function complete() {
+
+      var self = this;
+      var url_root = this.graph.url();
+
+      $.ajax({
+        url: url_root + '/complete',
+        type: "POST",
+        data: JSON.stringify({
+          obj_type: "node",
+          prefix: this.value,
+          start: 0
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function success(data) {
+          self.completions = data.complete;
+          self.show();
+        },
+        error: function error() {
+          Backbone.trigger('complete:error'); // our custom event
+        }
+      });
+    }
+
+  });
+});</script></dom-module>

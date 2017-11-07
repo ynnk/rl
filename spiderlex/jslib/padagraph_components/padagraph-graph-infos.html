@@ -1,0 +1,47 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-graph-list-item.html"/><dom-module id="padagraph-graph-infos"><template><style>#pginfos.message {
+    height: calc(100%);
+}
+
+#pginfos .content {
+    height: calc(100% - 111px);
+}
+</style><div class="padagraph-box"><div id="pginfos" class="ui message"><div class="ui form"><div class="header">{{infos.name}}</div><div class="content"> <div class="ui items"> <padagraph-graph-list-item infos="{{infos}}" class="ui item"></padagraph-graph-list-item></div><h5><i class="user icon"></i>{{infos.owner}}</h5></div><div class="padagraph-edit-buttons inline field"><div on-click="hide" class="button ui icon right floated button"><i class="ui cancel icon"> </i>close</div></div></div></div></div></template><script>'use strict';
+
+require(['backbone', 'jquery'], function (Backbone, $) {
+  Polymer({
+    is: "padagraph-graph-infos",
+
+    properties: {
+      graph: Object,
+      infos: Object
+    },
+
+    ready: function ready() {
+      var _this2 = this;
+
+      var _this = this;
+
+      console.log('listen request-graph-infos');
+      Backbone.listenTo(Backbone, 'request-graph-infos', function () {
+        _this2.graph.fetch();
+        _this2.infos = {
+          meta: _this2.graph.meta.attributes,
+          properties: _this2.graph.properties.attributes,
+          edgetypes: _this2.graph.edgetypes.models,
+          nodetypes: _this2.graph.nodetypes.models
+        };
+        _.extend({}, _this2.graph.attributes[_this2.graph.id]);
+
+        _this2.show();
+      });
+    },
+
+    hide: function hide() {
+      $(this).hide();
+    },
+
+    show: function show() {
+      $(this).show();
+    }
+  });
+});</script></dom-module>

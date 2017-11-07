@@ -1,0 +1,322 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-labels-control"><template><style></style><template is="dom-if" if="{{props.name}}"><div style="display:none" class="markdown description"><a name="desc">       </a>{{props.description}}</div><div id="labelsAndButtons" class="ui grid"> <div on-click="desc" class="ui basic label"> 
+{{props.name}}</div><template is="dom-if" if="{{meta.node_count}}"><div class="ui label"> <i class="circle thin icon"></i>{{meta.node_count}}</div></template><template is="dom-if" if="{{meta.edge_count}}"><div class="ui label"> <i class="minus icon"></i>{{meta.edge_count}}</div></template><template is="dom-if" if="{{meta.star_count}}"><div class="ui label"> <i class="star thin icon"></i>{{meta.star_count}}</div></template><template is="dom-if" if="{{meta.owner}}"><div class="ui label">  <i class="user icon"></i>{{meta.owner}}</div></template><content></content></div></template></template><script>'use strict';
+
+require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
+  Polymer({
+    is: "padagraph-labels-control",
+
+    properties: {
+      // engine for parameters ?  
+      app: Object,
+      graph: Object,
+
+      meta: { type: Object },
+      props: { type: Object }
+    },
+
+    observers: ["setupUI(app, graph)"],
+
+    setupUI: function setupUI(app, graph) {
+      var _this = this;
+
+      if (!app || !graph) return;
+      graph.on('reset', function () {
+        _this.meta = _this.graph.meta.attributes;
+        _this.props = _this.graph.properties.attributes;
+      });
+    },
+
+    desc: function desc() {
+      var $el = $(".markdown", this)[0];
+      $el.style.display = $el.style.display == "block" ? "none" : "block";
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-engine-control"><template><style></style><div data-content="blocks" class$="{{button_class('blocks ui dropdown', asitem, aslabel)}}" class="blocks ui dropdown"><i class$="{{ icon(engine)}}"></i><div class="menu"><div class="header">{{engine}}</div><div class="divider"></div><template is="dom-repeat" items="[[blocks]]"><div data-value$="{{item.value}}" class="item">{{item.name}}</div></template></div></div></template><script>'use strict';
+
+require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
+  Polymer({
+    is: "padagraph-engine-control",
+
+    properties: {
+
+      app: Object,
+      blocks: Object,
+      engine: String,
+
+      asitem: { type: Boolean, value: false },
+      aslabel: { type: Boolean, value: false }
+
+    },
+
+    observers: ["setupUI(app, blocks)"],
+
+    button_class: function button_class(css, asitem, aslabel) {
+      return css + " " + (this.asitem ? "item" : this.aslabel ? "label" : "");
+    },
+
+    icon: function icon(engine) {
+      var icons = {
+        'layout': 'cube icon',
+        'clustering': 'block layout icon'
+      };
+      return icons[engine];
+    },
+    setupUI: function setupUI(app, blocks) {
+      if (!app || !blocks) return;
+      var app = this.app;
+      var engine = this.engine;
+
+      $('.blocks', this).dropdown({
+        onChange: function onChange(value, text, $selectedItem) {
+          app.trigger('engine:' + engine, value);
+        }
+      });
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-controls"><template><style>.vizmenus {
+    position: absolute;
+    left: calc( 100% - 65px );
+    top: 7px;
+    z-index: 10;
+}
+.vizmenus .left.menu {
+    margin-right:53px!important
+}
+#vertex-menu.menu {
+    border-left: var(--border-color-left, rgba(0,0,0,0) );
+}
+
+</style><div class="vizmenus"><div class="ui icon vertical borderless menu"><a on-click="toggle_fullscreen" data-content="fullscreen" class="item"><template is="dom-if" if="{{!app.fullscreen}}"><i class="expand icon"></i></template><template is="dom-if" if="{{app.fullscreen}}"><i class="compress icon"></i></template></a><div id="themes" data-content="Themes" class="ui right pointing dropdown item"><i class="leaf icon"></i><div class="left menu"><div class="header">Themes</div><div class="divider"></div><template is="dom-repeat" items="[[themes]]"><div data-value$="{{item}}" class="item">{{item}}</div></template></div></div><!--template( is="dom-if", if="{{!track}}")//a.item(on-click='toggle_track', data-content="activate live editing")
+    //i.heartbeat.grey.icon--><!--template( is="dom-if", if="{{track}}")//a.item(on-click='toggle_track', data-content="Live editing is active")
+    //i.heartbeat.red.icon
+    --></div><!-- viz menu layouts , clustering, zoom --><div class="ui icon vertical borderless menu"><padagraph-layout-control app="{{app}}" layouts="{{layouts}}"></padagraph-layout-control><padagraph-clustering-control app="{{app}}" clusterings="{{clusterings}}"></padagraph-clustering-control><!--a.item#nodes//i.large.circle.thin.icon--><!--a.item//i.large.ellipsis.horizontal.icon
+--></div><template is="dom-if" if="{{menu_new}}"><div class="ui icon vertical borderless menu"><a on-click="create_node" data-content="New node" class="item"><i class="icons"> <i class="circle thin icon"></i><i class="corner inverted add icon"></i></i></a><a on-click="create_edge" data-content="New link" class="item"><i class="icons"> <i class="minus thin icon"></i><i class="corner inverted add icon"></i></i></a></div></template><!-- viz menu layouts , clustering, zoom--><div id="vertex-menu" class="ui icon vertical borderless menu"><template is="dom-if" if="{{vertex}}"><a on-click="edit_node" data-content="Edit node" class="item"><i class="edit icon"></i></a><a on-click="add_link" data-content="Link" class="item"><i class="linkify icon"></i></a><a on-click="expand" data-content="Expand" class="item"><i class="share alternate icon"></i></a><a on-click="explore" data-content="Explore" class="item"><i class="bullseye icon"></i></a><a on-click="remove_node" data-content="Hide" class="item"><i class="hide icon"></i></a></template><template is="dom-if" if="{{edge}}"><a on-click="edit_edge" data-content="Edit" class="item"><i class="edit icon"></i></a><a on-click="remove_edge" data-content="Hide" class="item"><i class="hide icon"></i></a></template></div></div></template><script>'use strict';
+
+require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
+    Polymer({
+        is: "padagraph-controls",
+
+        properties: {
+            app: Object,
+            themes: Object,
+
+            clusterings: Object,
+            layouts: Object,
+
+            graph: Object,
+            vertex: {
+                type: Object,
+                observer: 'updateVertex'
+            },
+            edge: {
+                type: Object,
+                observer: 'updateEdge'
+            },
+
+            track: Boolean,
+
+            debug: Boolean,
+            menu_new: {
+                type: Boolean,
+                computed: "has_menu_new(vertex,edge)"
+            }
+        },
+
+        attached: function attached() {
+            this.app = null;
+            this.layouts = [];
+            this.clusterings = [];
+            this.graph = null;
+
+            this.vertex = null;
+            this.edge = null;
+
+            this.track = this.track === undefined ? false : this.track;
+        },
+
+        popup: function popup() {
+            var _this2 = this;
+
+            this.async(function () {
+                $(".item", Polymer.dom(_this2).node).popup({ position: "left center",
+                    variation: "small"
+                });
+            });
+        },
+
+        toggle_fullscreen: function toggle_fullscreen(e, detail) {
+            this.fire('toggle-fullscreen', {});
+        },
+
+        has_menu_new: function has_menu_new() {
+
+            if (!arguments) return true;
+
+            var _arguments = [];
+            for (var i = 0, j = arguments.length; i < j; i++) {
+                _arguments.push(arguments[i]);
+            }
+            return _arguments.filter(function (x) {
+                return x != null;
+            }).length == 0;
+        },
+
+        setupUI: function setupUI() {
+            var _this3 = this;
+
+            var _this = this;
+
+            this.popup();
+
+            $(this.$.layouts).dropdown({
+                onChange: function onChange(value, text, $selectedItem) {
+                    Backbone.trigger('engine:layout', value);
+                }
+            });
+
+            $(this.$.clusterings).dropdown({
+                onChange: function onChange(value, text, $selectedItem) {
+                    Backbone.trigger('engine:clustering', value);
+                }
+            });
+
+            $(this.$.themes).dropdown({
+                onChange: (function (value, text, $selectedItem) {
+                    _this3.app.setTheme(value);
+                }).bind(this)
+            });
+
+            Backbone.listenTo(Backbone, Const.unselect_nodes, function (vtx) {
+                _this.vertex = null;
+            });
+
+            Backbone.listenTo(Backbone, Const.unselect_edges, function (vtx) {
+                _this.edge = null;
+            });
+
+            Backbone.listenTo(this.graph.vs, 'addflag:selected', function (vertex) {
+                _this.vertex = vertex;
+            });
+            Backbone.listenTo(this.graph.vs, 'rmflag:selected', function (vertex) {
+                _this.vertex = null;
+            });
+
+            Backbone.listenTo(this.graph.es, 'addflag:selected', function (edge) {
+                _this.edge = edge;
+            });
+            Backbone.listenTo(this.graph.es, 'rmflag:selected', function (edge) {
+                _this.edge = null;
+            });
+
+            Backbone.listenTo(this.graph.vs, 'remove', function (vtx) {
+                if (_this.vertex && vtx.id == _this.vertex.id) _this.vertex = null;
+            });
+
+            Backbone.listenTo(this.graph.es, 'remove', function (edge) {
+                if (_this.edge && edge.id == _this.edge.id) _this.edge = null;
+            });
+        },
+
+        toggle_track: function toggle_track() {
+            this.track = !this.track;
+            var notifications = $('padagraph-notifications')[0];
+            notifications.track(this.app.models.graph.id, this.track);
+        },
+
+        //- Graph
+        clear_graph: function clear_graph() {
+            Backbone.trigger('request-graph-clear');
+        },
+
+        graph_infos: function graph_infos() {
+            Backbone.trigger('request-graph-infos');
+        },
+
+        create_nodetype: function create_nodetype() {
+            console.log("padagraph-controls", "CREATE NODETYPE");
+            Backbone.trigger(Const.ui_create_nodetype);
+        },
+
+        create_edgetype: function create_edgetype() {
+            console.log("padagraph-controls", "CREATE EDGETYPE");
+            Backbone.trigger(Const.ui_create_edgetype);
+        },
+
+        //- Vertex  
+
+        create_node: function create_node() {
+            console.log("padagraph-controls", "CREATE NODE");
+            Backbone.trigger(Const.ui_create_node);
+        },
+
+        edit_node: function edit_node() {
+            console.debug("padagraph-controls", Const.ui_edit_node, this.vertex);
+            Backbone.trigger(Const.ui_edit_node, this.vertex);
+        },
+
+        explore: function explore() {
+            var params = { graph: this.graph, query: this.vertex.id };
+            console.log("padagraph-controls", "engine:explore", params);
+            Backbone.trigger('engine:explore', params);
+        },
+
+        expand: function expand() {
+            var params = { graph: this.graph, nodes: [this.vertex.id], weights: [] };
+            console.log("padagraph-controls", "engine:expand_prox", params);
+            Backbone.trigger('engine:expand_prox', params);
+        },
+
+        add_link: function add_link() {
+            var params = { source: this.vertex };
+            console.log("padagraph-controls", Const.ui_create_edge, params);
+            Backbone.trigger(Const.ui_create_edge, params);
+        },
+
+        remove_node: function remove_node() {
+            if (this.vertex) {
+                Backbone.trigger(Const.remove_node, this.vertex);
+                this.vertex = null;
+            }
+        },
+
+        //- == edges == 
+
+        create_edge: function create_edge() {
+            console.log("padagraph-controls", "create:edge");
+            Backbone.trigger(Const.ui_create_edge);
+        },
+
+        edit_edge: function edit_edge() {
+            console.log("padagraph-controls", "edit:edge", this.edge);
+            Backbone.trigger(Const.ui_edit_edge, this.edge);
+        },
+
+        remove_edge: function remove_edge() {
+            Backbone.trigger(Const.remove_edge, this.edge);
+            this.edge = null;
+        },
+
+        //- == Observers ==
+
+        updateVertex: function updateVertex(vertex) {
+            var color = vertex != null ? vertex.get('color') : null;
+            this.setBorderColor(color);
+        },
+
+        updateEdge: function updateEdge(edge) {
+            var color = edge != null ? edge.get('color') : null;
+            this.setBorderColor(color);
+        },
+
+        //- == Computed properties ==
+
+        setBorderColor: function setBorderColor(color) {
+            var value = color ? 'rgb(' + color + ')' : "rgba(0,0,0,0)";
+            this.customStyle['--border-color-left'] = "3px solid " + value;
+            this.updateStyles();
+        }
+
+    });
+});</script></dom-module>

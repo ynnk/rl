@@ -8,8 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!--  SemUI CSS    -->
-    <link rel="stylesheet" href="{{url_for('static', filename='bower_components/semantic-ui/dist/semantic.min.css')}}" type="text/css" />
-
+    <link rel="stylesheet" href="{{url_for('static', filename='semantic.min.css')}}" type="text/css" />
+    
     <!--  our CSS    -->
     <link rel="stylesheet" href="{{url_for('static', filename='css/app_graph.css')}}" type="text/css" />
     <link rel="stylesheet" href="{{url_for('static', filename='css/engine.css')}}" type="text/css" />
@@ -19,8 +19,8 @@
 
 
     <!-- web components-->
-    <link rel="import" href="/static/bower_components/polymer/polymer.html"/>
-    <script src="/static/bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="/static/polymer.html"/>
+    <script src="/static/webcomponents-lite.min.js"></script>
 
     <link rel="import" href="{{polymer_path}}/padagraph-collection.html"/>
     <link rel="import" href="{{polymer_path}}/padagraph-vertex-card-xs.html"/>
@@ -225,6 +225,73 @@ require.config({
     require(["underscore", "backbone",
         "app_graph", "cello", "embed",  "gviz", "models"
     ],  function( _, Backbone, App, Cello, Embed, Gviz, Models){
+
+
+        // UI
+        // panel tabs
+        $('#maintabs .item').tab();
+        
+        //// cubes dropdown 
+        //$('.dropdown')
+          //.dropdown({
+            //// you can use any ui transition
+            //transition: 'drop'
+          //})
+        //;
+        
+        $('#clusters_menu_item').click(function(){
+            $('#clusters_content_item').transition('slide right', '1000ms');
+        });
+        
+        $('#vz_tabs .item').tab({ context: $('.vz-tab-content')});
+        $('#vz_graph .sidebar')
+            .sidebar({
+                context: $('#vz_graph')
+            })
+            .sidebar('setting', 'transition', 'overlay')
+            .sidebar('attach events', '#vz_button0')
+            .sidebar('setting', 'dimPage', false)
+            .sidebar('setting', 'closable', false)
+            .sidebar('setting', 'scrollLock', true)
+            .sidebar('setting', 'onShow', function(){ 
+                $('#vz_button0').addClass('teal')
+                $('#vz_button0>.right').show();
+                $('#vz_button0>.left').hide();
+                _canvas_resized(true);
+                _window_resized();
+            })
+            .sidebar('setting', 'onHide', function(){
+                $('#vz_button0').removeClass('teal')
+                $('#vz_button0>.right').hide();
+                $('#vz_button0>.left').show();
+                _canvas_resized(false);
+                _window_resized();
+            })
+            .sidebar('show')
+            
+            ;
+            
+        $('#maintabs>nav .item').click(function(){
+                $('#vz_graph .sidebar').sidebar('show');
+        });
+            
+        $('#vz_mouse_position')
+            .popup({
+//                popup: '#edge_tooltip',
+//                preserve: true,
+                movePopup : true,
+//                inline : true
+                position : 'top left'
+            })
+            .popup('hide')
+        ;
+
+        
+
+
+
+
+
         // The "app" dependency is passed in as "App"
         var path = "../static/bower_components/";
         
@@ -371,69 +438,7 @@ require.config({
 
         
         console.log("root: {{ root_url }}, gkey : {{ gkey }}, complete_url: {{ complete_url }}");
-        
-        // panel tabs
-        $('#maintabs .item').tab();
-        
-        // cubes dropdown 
-        $('.dropdown')
-          .dropdown({
-            // you can use any ui transition
-            transition: 'drop'
-          })
-        ;
-        
-        $('#clusters_menu_item').click(function(){
-            $('#clusters_content_item').transition('slide right', '1000ms');
-        });
-        
-        $('#vz_tabs .item').tab({ context: $('.vz-tab-content')});
-        $('#vz_graph .sidebar')
-            .sidebar({
-                context: $('#vz_graph')
-            })
-            .sidebar('setting', 'transition', 'overlay')
-            .sidebar('attach events', '#vz_button0')
-            .sidebar('setting', 'dimPage', false)
-            .sidebar('setting', 'closable', false)
-            .sidebar('setting', 'scrollLock', true)
-            .sidebar('setting', 'onShow', function(){ 
-                $('#vz_button0').addClass('teal')
-                $('#vz_button0>.right').show();
-                $('#vz_button0>.left').hide();
-                _canvas_resized(true);
-                _window_resized();
-            })
-            .sidebar('setting', 'onHide', function(){
-                $('#vz_button0').removeClass('teal')
-                $('#vz_button0>.right').hide();
-                $('#vz_button0>.left').show();
-                _canvas_resized(false);
-                _window_resized();
-            })
-            .sidebar('show')
-            
-            ;
-            
-        $('#maintabs>nav .item').click(function(){
-//            if ($(this).hasClass('active')){
-//                $('#vz_graph .sidebar').sidebar('toggle');
-//            }else{
-                $('#vz_graph .sidebar').sidebar('show');
-//            }
-        });
-            
-        $('#vz_mouse_position')
-            .popup({
-//                popup: '#edge_tooltip',
-//                preserve: true,
-                movePopup : true,
-//                inline : true
-                position : 'top left'
-            })
-            .popup('hide')
-        ;
-        
+      
 
         
         // resize window event 

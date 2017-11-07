@@ -1,0 +1,287 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="rlf-vertex-gc"><style>.gc{
+    font-weight: normal;
+    //margin-left: 15pt;
+    margin-bottom: 1pt;
+    text-align: left;
+    color: black;
+}
+
+.gc.grey {
+    color: grey;
+}
+
+span:after { content: " "; }
+</style><template><h4>[GC]</h4><template is="dom-repeat" items="[[gcs]]" as="gc"><div class$="{{gc.css}}">{{gc.name}}</div><template is="dom-repeat" items="[[gc.locution_tokens]]" as="tk"><template is="dom-if" if="{{tk.vocable}}"><a href="#__TODO__EXPLORE__"><!--{{tk.prefix}} * {{tk.vocable}} * {{tk.subscript}} * {{tk.superscript}} * {{tk.num}}--><template is="dom-if" if="{{tk.prefix.length}}"><span class="normal-font">{{tk.prefix}} {{tk.form}}</span></template><template is="dom-if" if="{{!tk.prefix.length}}"><span class="normal-font">{{tk.vocable}}</span></template><template is="dom-if" if="{{tk.subscript}}"><span class="subscript-font">{{tk.subscript}}</span></template><template is="dom-if" if="{{tk.superscript}}"><span class="superscript-font">{{tk.superscript}}</span></template><template is="dom-if" if="{{tk.num}}"><span class="num-font">{{tk.num}}</span></template></a></template><template is="dom-if" if="{{!tk.vocable}}"><span class="num-font">{{tk.form}}</span></template></template></template></template><script>'use strict';
+
+require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+  Polymer({
+    is: "rlf-vertex-gc",
+    properties: {
+      model: {
+        type: Object,
+        observer: 'observe'
+      },
+      names: Object
+    },
+
+    observe: function observe(model) {
+      //var gcs = model ? model.properties.get('gcs') : [];
+      var gcs = model ? Object.values(JSON.parse(model.properties.get('gcs'))) : [];
+      this.gcs = gcs.map(function (e) {
+        var locutions = e.locution_tokens ? e.locution_tokens : [];
+        locutions = locutions.filter(function (e) {
+          return Object.keys(e).length > 0;
+        });
+        return {
+          name: e.name,
+          css: e.type == 0 && e.name.search('locution') > -1 ? "gc grey" : "gc",
+          locution_tokens: locutions
+        };
+      });
+    }
+  });
+});</script></dom-module><dom-module id="rlf-vertex-ex"><style>/*example*/
+div.example_quotation
+{
+/*	font-size: 12px;*/
+    margin-left: 15pt;
+    /*font-family: helvetica, verdana, arial, sans-serif;*/
+}
+
+div.example_quotation_disabled
+{
+    color: gray;
+    font-size: 12px;
+    margin-left: 15pt;
+    /*font-family: helvetica, verdana, arial, sans-serif;*/
+}
+
+div.example_referencing
+{
+    font-size: 10px;
+    margin-left: 15pt;
+    margin-bottom: 5pt;
+    font-family: 'Century Old Style Std', serif;
+}
+
+div.example_referencing_disabled
+{
+    color: gray;
+    font-size: 10px;
+    margin-left: 15pt;
+    margin-bottom: 5pt;
+    font-family: 'Century Old Style Std', serif;
+}
+
+span.example_source
+{
+    font-weight: bold;
+}
+span.example_source:after
+{
+    content : " ";
+}
+
+span.example_last_name
+{
+    text-transform: uppercase;
+    /*font-variant: small-caps;*/
+}
+span.example_last_name:after
+{
+    content: " ";
+}
+
+span.example_first_name {}
+span.example_first_name:after
+{
+    content: ", ";
+}
+
+span.example_title {
+    font-style: italic;
+}
+span.example_title:after
+{
+    content: ", ";
+}
+
+span.example_date_day {}
+span.example_date_day:after
+{
+    content: " ";
+}
+
+span.example_date_month {}
+
+span.example_date_month:after { content: " ";}
+
+span.example_date_year {}
+span.example_date_year:after { content: ", "; }
+span.example_date_location {}
+span.example_date_location:after { content: " "; }
+
+span.occurrence
+{
+    color: green;
+    font-weight: bold;
+}
+</style><template><h4>[EX]</h4><template is="dom-repeat" items="[[examples]]" as="example"><div class="example_quotation"><template is="dom-repeat" items="[[example.splitted]]" as="item"><template is="dom-if" if="{{ ! item.occurrence }}">{{item.text}}</template><template is="dom-if" if="{{item.occurrence}}"><span class="occurrence">{{item.text}}</span></template></template></div><div class="example_referencing"><span class="example_source">{{ example.source }}</span><template is="dom-repeat" items="[[example.authors]]"><template is="dom-if" if="{{item.first_name}}"><span class="example_last_name">{{item.first_name}}</span></template><template is="dom-if" if="{{item.last_name}}"><span class="example_first_name">{{item.last_name}}</span></template></template><template is="dom-if" if="{{example.title}}"><span class="example_title">{{example.title}}</span></template><template is="dom-if" if="{{example.date_day}}"><span class="example_date_day">{{example.date_day}}</span></template><template is="dom-if" if="{{example.date_month}}"><span class="example_date_month">{{example.date_month}}</span></template><template is="dom-if" if="{{example.date_year}}"><span class="example_date_year">{{example.date_year}}</span></template><span class="example_location">{{ example.location }}</span></div></template></template><script>'use strict';
+
+require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+    Polymer({
+        is: "rlf-vertex-ex",
+        properties: {
+            model: {
+                type: Object,
+                observer: 'observe'
+            },
+            examples: Object
+        },
+
+        observe: function observe(model) {
+            if (!model) return;
+            var months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+            var examples = JSON.parse(model.properties.get('examples'));
+
+            examples.forEach(function (e) {
+                var text = e.text;
+                var date = months[e['date_month'] - 1];
+                var pos = 0;
+                var occurrences = [];
+                e['occurrences'].forEach(function (oc) {
+                    occurrences.push({ text: text.slice(pos, oc.first - 1), occurrence: false });
+                    occurrences.push({ text: text.slice(oc.first - 1, oc.last), occurrence: true });
+                    pos = oc.last;
+                });
+                occurrences.push({ text: text.slice(pos), occurrence: false });
+                if (occurrences.length) {
+                    var n = occurrences.length - 1;
+                    occurrences[0].text = occurrences[0].text.substring(15);
+                    occurrences[n].text = occurrences[n].text.substring(0, occurrences[n].text.length - 18);
+                }
+                e['splitted'] = occurrences;
+            });
+
+            this.examples = examples;
+        }
+
+    });
+});</script></dom-module><dom-module id="rlf-vertex-lf"><style>span.stdslf:after {
+    content: ': ';
+}
+</style><template><h4>[LF]</h4><template is="dom-repeat" items="{{lfs}}"><div class="pop">{{item.pop_name}}</div><div class="lexical_function"></div><template is="dom-if" if="{{item.prefix}}"><div class="nstdlfc">{{item.prefix}}</div><div class="stdslf"></div></template></template></template><script>'use strict';
+
+require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+  Polymer({
+    is: "rlf-vertex-lf",
+    properties: {
+      model: {
+        type: Object,
+        observer: 'observe'
+      },
+      lfs: Object
+    },
+
+    observe: function observe(model) {
+      this.lfs = model ? Object.values(JSON.parse(model.properties.get('lfs'))) : [];
+    }
+
+  });
+});</script></dom-module><dom-module id="rlf-vertex-df"><style>.definiendum {
+    margin-left: 15pt; */
+    font-weight: normal;
+    margin-left: 15pt;
+    margin-bottom: 1pt;
+    text-align: left;
+    color: black;
+}
+
+.vocable {
+    color: black;
+    font-weight: bold;
+}
+</style><template><h4>[DF]</h4><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
+
+require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+  Polymer({
+    is: "rlf-vertex-df",
+    properties: {
+      model: {
+        type: Object,
+        observer: 'observe'
+      },
+      df: Object,
+      right_pf_form: String,
+      left_pf_form: String,
+      tildevalue: String
+    },
+
+    observe: function observe(model) {
+      var df = null;
+      if (model) {
+        df = JSON.parse(model.properties.get('df'));
+        if (df.label_form == '') df.label_form = null;
+      }
+
+      var actants = df.actantslist ? df.actantslist : "()";
+      actants = actants.substring(1, actants.length - 1).split(',');
+      actants = actants.map(function (e) {
+        return e.substring(e.indexOf('=') + 1);
+      });
+
+      var left_pf_form = "",
+          right_pf_form = "";
+
+      if (df.propform) {
+        left_pf_form = df.propform.substring(0, df.propform.indexOf('~'));
+        actants.forEach(function (e, i) {
+          left_pf_form = left_pf_form.replace('$' + (i + 1), e);
+        });
+        var right_pf_form = df.propform.substring(df.propform.indexOf('~') + 1);
+        actants.forEach(function (e, i) {
+          right_pf_form = right_pf_form.replace('$' + (i + 1), e);
+        });
+        this.tildevalue = df.tildevalue == "" ? df.form : df.tildevalue;
+      }
+
+      this.df = df;
+      this.left_pf_form = left_pf_form;
+      this.right_pf_form = right_pf_form;
+    }
+
+  });
+});</script></dom-module><dom-module id="rlf-vertex-loc"><style></style><template><h4>[PH]</h4></template><script>'use strict';
+
+require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+  Polymer({
+    is: "rlf-vertex-loc",
+    properties: {
+      model: {
+        type: Object,
+        observer: 'observe'
+      }
+    },
+
+    observe: function observe(model) {}
+
+  });
+});</script></dom-module><dom-module id="rlf-vertex-card"><style>.rlf {
+    text-align:left;
+    padding:2px;
+}
+</style><template><div class="rlf"><h4>entry {{ model.properties.attributes.rlfid }}</h4><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex></div></template><script>   'use strict';
+
+require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+  Polymer({
+    is: "rlf-vertex-card",
+    properties: {
+      lang: String,
+      model: {
+        type: Object
+      }
+    }
+  });
+});
+//observer: 'observeModel'</script></dom-module>

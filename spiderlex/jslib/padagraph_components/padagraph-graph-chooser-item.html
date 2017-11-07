@@ -1,0 +1,15 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-graph-chooser-item"><template><div on-click="set_graph" class="comment"><div class="content"><a class="author">{{name}}</a><div class="metadata"><div class="rating">  <i class="fork icon"></i> 21</div><div class="date"> <i class="calendar outline icon"></i> last edit</div></div><div class="text">{{description}}</div></div></div></template><script>"use strict";
+
+Polymer({
+  is: "padagraph-graph-chooser-item",
+  properties: {
+    name: String,
+    description: String
+  },
+  ready: function ready() {},
+
+  set_graph: function set_graph() {
+    Backbone.trigger("source:change", this.name);
+  }
+
+});</script></dom-module>

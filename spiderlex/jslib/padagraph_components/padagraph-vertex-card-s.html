@@ -1,0 +1,123 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-node-properties-list.html"/><dom-module id="padagraph-vertex-card-s"><style>.avatar svg { margin-left:4px; }
+.avatar svg rect  { stroke-width:1;stroke:rgb(0,0,0);}
+.avatar svg circle  { stroke-width:1;stroke:rgb(0,0,0);}
+.avatar svg text { font-size:20px;}
+table { margin-bottom: -6px; }
+</style><template><div class="comment"><a class="avatar"><svg width="36px" height="36px"><circle cx="18" cy="18" r="15" fill$="{{rgb_color}}"></circle><text x="50%" y="55%" alignment-baseline="middle" text-anchor="middle" fill="black">{{letter}}</text></svg></a><div class="content"><br/><a on-click="select" on-mouseover="intersect" class="author">{{model.label}}</a><div class="metadata"><div class="rating">{{degree}}<i class="fork icon"></i></div><a on-click="handleEditType" class="date">{{ nodetype_label }}</a><div class="rating"><i class="calendar outline icon"></i> last edit</div></div></div></div><div class="ui accordion"><div class="title"><i class="dropdown icon"></i><b>Editable properties</b></div><div class="content"><padagraph-node-properties-list model="{{model}}" on-properties-save="handleSave"></padagraph-node-properties-list><!--table.ui.very.compact.fixed.single.line.celled.tablethead
+ tr
+   th name
+   th value
+thead
+tbody
+  template(is="dom-repeat",items="{{model_properties(model) }}" )  
+    tr
+      td {{item.name}}
+      td {{item.value}}
+
+--></div></div><div class="ui accordion"><div class="title"><i class="dropdown icon"></i><b>Node attributes</b></div><div class="content"><table class="ui very compact fixed single line celled table"><thead><tr><th>name</th><th>value</th></tr></thead><thead></thead><tbody><template is="dom-repeat" items="{{model_attributes(model) }}"> <tr><td>{{item.name}}</td><td>{{item.value}}</td></tr></template></tbody></table></div></div><div class="comment"><div class="content"><template is="dom-if" if="{{actions}}"><div class="actions"><a on-click="edit"><i class="edit icon"></i> Edit</a><a on-click="add_link"><i class="linkify icon"></i> Link</a><a on-click="search"><i class="eye icon"></i> Explore</a><a on-click="remove"><i class="remove icon"></i> Remove</a></div></template></div></div></template><script>'use strict';
+
+require(['backbone', 'jquery', 'pdgconst'], function (Backbone, $, Const) {
+  Polymer({
+    is: "padagraph-vertex-card-s",
+    properties: {
+      graph: String,
+      model: {
+        type: Object,
+        observer: 'computeProperties'
+      },
+
+      // computed properties
+
+      letter: String,
+      color: Array,
+      rgb_color: String,
+      style_color: String,
+      attributes: Array,
+
+      actions: Boolean
+
+    },
+
+    //listeners: {
+    //  'onmouseover': 'intersect',
+    //  'onclick': 'select',
+    //  },
+    attached: function attached() {
+      var _this = this;
+
+      this.computeProperties();
+      Backbone.listenTo(this.model, 'change', function () {
+        return _this.computeProperties();
+      });
+      //Backbone.listenTo(this.model, 'change:selected', () => this.computeProperties());
+      Backbone.listenTo(this.model.nodetype, 'change', function () {
+        return _this.computeProperties();
+      });
+
+      // properties accordions using async with act like domReady Event
+      this.async(function () {
+        $('.accordion', _this).accordion();
+      });
+    },
+
+    handleSave: function handleSave() {
+      console.log('saving', this.model);
+      this.model.save();
+    },
+
+    handleSelected: function handleSelected() {
+      console.log("select", this.label);
+    },
+
+    handleEditType: function handleEditType() {
+      Backbone.trigger(Const.ui_edit_nodetype, this.model.nodetype);
+    },
+    //- computed properties
+
+    computeProperties: function computeProperties() {
+      var e = this.model;
+      this.nodetype_label = this.model.nodetype.get('name');
+      this.label = e.label;
+      this.color = e.get('color');
+      this.degree = e.degree();
+      this.rgb_color = "rgb(" + e.get('color') + ")";
+      this.style_color = "background-color: rgb(" + e.get('color') + ")";
+      this.letter = this.label.length ? this.label.substring(0, 1).toUpperCase() : "";
+    },
+
+    //- actions
+
+    intersect: function intersect(event) {
+      Backbone.trigger('vertex:mouseover', this.model, event);
+    },
+
+    select: function select(event) {
+      Backbone.trigger('vertex:click', this.model, event);
+    },
+
+    search: function search() {
+      var params = { graph: this.graph, query: this.id };
+      Backbone.trigger('engine:explore', params);
+    },
+
+    //edit () { console.log("padagraph-vertex-card-s", "EDIT", 'not implemented' )},
+
+    //add_link () { console.log( "padagraph-vertex-card-s","add_link", 'not implemented' )},
+
+    remove: function remove() {
+      Backbone.trigger(Const.remove_node, this.model);
+    },
+
+    model_attributes: function model_attributes(model) {
+      return Object.keys(model.attributes).map(function (k) {
+        return { "name": k, "value": model.attributes[k] };
+      });
+    },
+    model_properties: function model_properties(model) {
+      return model.nodetype.properties.models.map(function (k) {
+        return { "name": k.get('name'), "value": model.get(k.get('name')) };
+      });
+    }
+
+  });
+});</script></dom-module>

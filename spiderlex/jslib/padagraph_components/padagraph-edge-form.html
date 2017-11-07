@@ -1,0 +1,125 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-node-search.html"/><link rel="import" href="./padagraph-node-completion-card.html"/><link rel="import" href="./padagraph-node-properties-list.html"/><dom-module id="padagraph-edge-form"><template><style>.step {
+  padding: 0 10% !important;
+  background-color: #E0E1E2 !important;
+}
+.step:after {
+    background-color: #E0E1E2 !important;
+}
+
+.step .content {
+  width: 100%;
+}
+
+.step .content .field {
+    width: 100%;
+}
+.step .content .field div.dropdown {
+    margin-bottom:12px;
+}
+
+</style><div class="content"><template is="dom-if" if="{{isnew}}"><div class="ui fluid vertical steps"><template is="dom-if" if="{{source}}"><padagraph-node-completion-card model="{{source}}" actions="remove" on-completion-remove="rmSource" class="step"></padagraph-node-completion-card></template><template is="dom-if" if="{{!source}}"><div class="step"><div class="content"><div class="field"><label>source</label><padagraph-node-search graph="{{graph}}" actions="select" placehoder="Edge source" on-completion-select="setSource"></padagraph-node-search></div></div></div></template><div class="step"><div class="content"><div class="field"><label>type</label><select id="edgetype" name="edgetype" class="ui compact selection dropdown"><option value="0">Select edge type</option><template is="dom-repeat" items="[[graph.edgetypes.models]]"><option value="{{item.id}}">{{item.name}}</option></template></select></div></div></div><div class="step"><div class="content"><template is="dom-if" if="{{target}}"><padagraph-node-completion-card model="{{target}}" actions="remove" on-completion-remove="rmTarget" class="ui item comments"></padagraph-node-completion-card></template><template is="dom-if" if="{{!target}}"><div class="field"><label>target</label><padagraph-node-search graph="{{graph}}" actions="select" placehoder="Edge target" on-completion-select="setTarget"></padagraph-node-search></div></template></div></div></div></template><template is="dom-if" if="{{!isnew}}"><div class="ui fluid steps"><div class="step"><div class="content"><padagraph-node-completion-card model="{{source}}" actions="" class="ui item comments"></padagraph-node-completion-card></div></div><div class="step"><div class="content"><a on-click="edit_edgetype">{{model.edgetype.name}}</a></div></div><div class="step"><div class="content"><padagraph-node-completion-card model="{{target}}" actions="" class="ui item comments"></padagraph-node-completion-card></div></div></div></template><template is="dom-if" if="{{ type_uuid }}"><div class="ui hidden divider"></div><h4 class="ui dividing header">Properties</h4><div class="ui segment"><div class="scrollable"><padagraph-node-properties-list model="{{model}}" uuid="{{type_uuid}}"></padagraph-node-properties-list></div></div></template></div></template><script>'use strict';
+
+require(['backbone', 'semantic'], function (Backbone) {
+  Polymer({
+
+    is: "padagraph-edge-form",
+
+    properties: {
+      graph: {
+        type: Object,
+        observer: '_setGraph'
+      },
+
+      model: {
+        type: Object,
+        observer: '_setModel'
+      },
+
+      isnew: Boolean,
+
+      target: Object,
+      source: Object
+    },
+
+    attached: function attached() {
+
+      this.type_uuid = null;
+      this.source = null;
+      this.target = null;
+      this.isnew = true;
+
+      this.once = false;
+    },
+
+    _setGraph: function _setGraph(graph) {
+      var _this = this;
+
+      if (graph) {
+        if (!this.once) {
+          $('.dropdown', Polymer.dom(this).node).dropdown();
+          this.once = true;
+        }
+
+        this.type_uuid = graph.edgetypes.length ? graph.edgetypes.at(0).id : null;
+
+        Backbone.listenTo(graph.edgetypes, 'sync', function () {
+          _this.notifyPath('graph.edgetypes.models', _this.graph.edgetypes.models.slice());
+        });
+      }
+    },
+
+    _setModel: function _setModel() {
+      $('#edgetype', Polymer.dom(this).node).off('change');
+      $('#edgetype', Polymer.dom(this).node).on('change', this.handleChangeType.bind(this));
+      $('#edgetype', this).dropdown('set selected', "0");
+      this.isnew = this.model != null && this.model.id == null;
+
+      if (this.model != null) {
+
+        this.source = this.model.source ? this.model.source.toCard() : null;
+        this.target = this.model.target ? this.model.target.toCard() : null;
+        this.type_uuid = this.model.edgetype ? this.model.edgetype.id : null;
+      }
+    },
+
+    handleChangeType: function handleChangeType() {
+      var value = $('#edgetype', this)[0].value;
+
+      if (value != "0") {
+        this.model.set("edgetype", value);
+        this.model.set('properties', new Backbone.Model());
+        this.type_uuid = value;
+      } else this.type_uuid = null;
+
+      this.notifyPath("model", this.model);
+    },
+
+    rmSource: function rmSource() {
+      this.source = null;
+    },
+
+    rmTarget: function rmTarget() {
+      this.target = null;
+    },
+
+    setSource: function setSource(event, complete) {
+      if (complete) {
+        this.source = complete;
+        this.model.set('source', complete.uuid);
+      }
+    },
+
+    setTarget: function setTarget(event, complete) {
+      if (complete) {
+        this.target = complete;
+        this.model.set('target', complete.uuid);
+      }
+    },
+
+    edit_edgetype: function edit_edgetype() {
+      console.log("padagraph-edge-form", "EDIT EDGETYPE");
+      Backbone.trigger('edit:edgetype', this.model.edgetype);
+    }
+
+  });
+});</script></dom-module>

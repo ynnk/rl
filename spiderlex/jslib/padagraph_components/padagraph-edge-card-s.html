@@ -1,0 +1,36 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><dom-module id="padagraph-edge-card-s"><template><style>.comment .content .text a.edge {
+    margin:6px;
+    color: #013A59;
+}
+</style><template is="dom-if" if="{{model}}"> <div class="comment"><div class="content"><div class="metadata"><div class="date"> {{model.edgetype.name}} </div><!--.rating//|<i class="calendar outline icon"></i> last edit
+ --></div><div class="text"><padagraph-vertex-card-xs id="source" model="[[model.source]]"></padagraph-vertex-card-xs><a on-click="select" on-mouseover="intersect" on-mouseout="intersectOff" class="edge"><i class="big ellipsis horizontal icon"></i></a><padagraph-vertex-card-xs id="target" model="[[model.target]]"></padagraph-vertex-card-xs></div><template is="dom-if" if="{{actions}}"><div class="actions"><a on-click="edit"><i class="edit icon"></i> edit</a><a on-click="hide"><i class="unhide icon"></i> hide</a></div></template></div></div></template></template><script>'use strict';
+
+require(['backbone', 'pdgconst'], function (Backbone, Const) {
+  Polymer({
+    is: "padagraph-edge-card-s",
+    properties: {
+      model: Object,
+      actions: Boolean
+    },
+
+    intersect: function intersect() {
+      Backbone.trigger('edge:mouseover', this.model);
+    },
+    intersectOff: function intersectOff() {
+      Backbone.trigger('edge:mouseout', this.model);
+    },
+
+    select: function select(e) {
+      Backbone.trigger(Const.select_edge, this.model);
+    },
+
+    edit: function edit() {
+      Backbone.trigger(Const.edit_edge, this.model);
+    },
+
+    hide: function hide() {
+      Backbone.trigger(Const.remove_edge, this.model);
+    }
+
+  });
+});</script></dom-module>

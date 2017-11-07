@@ -1,0 +1,28 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-type-property.html"/><dom-module id="padagraph-type-properties-list"><template><style>#main {
+  max-height: 400px;
+  height: 200px;
+  overflow-y: scroll;
+ }
+
+ a {
+      cursor: hand;
+ }
+  </style><!--h4.ui.dividing Properties--><div class="ui segment"><div id="main" class="scrollable"><template is="dom-repeat" items="{{props.models}}" as="property"><template is="dom-if" if="{{isNewProp(property)}}"> <padagraph-type-property model="{{property}}"></padagraph-type-property></template><template is="dom-if" if="{{!isNewProp(property)}}"><div class="inline field"><div class="ui horizontal label"><i class="square outline thin icon"></i>{{property.name}}</div>{{property.attributes.otype.type}}</div></template></template></div><a on-click="handleNewProp"><i class="add icon"></i>add a property </a></div></template><script>'use strict';
+
+require(['backbone'], function (Backbone) {
+  Polymer({
+    is: "padagraph-type-properties-list",
+    properties: {
+      props: Object
+    },
+
+    isNewProp: function isNewProp(prop) {
+      return prop.get('unsaved') == true;
+    },
+
+    handleNewProp: function handleNewProp() {
+      this.props.add({ name: '', otype: { type: 'Text' }, unsaved: true });
+      this.notifyPath('props.models', this.props.models.slice());
+    }
+  });
+});</script></dom-module>

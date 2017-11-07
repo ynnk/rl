@@ -1,0 +1,167 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-s.html"/><link rel="import" href="./padagraph-vertex-card-m.html"/><link rel="import" href="./padagraph-vertex-card-xl.html"/><dom-module id="padagraph-nodes-edges-panel"><template><style>.menu .form {
+    padding-left: 12px;
+    padding-top: 6px;
+}
+</style><div style="margin:0px" class="ui fluid secondary menu"><div class="item"><i class="circle thin icon"></i>{{nodes.length}} nodes</div><div class="ui dropdown item"><i class="filter icon"></i>{{ filtered_nodes_count }} <div class="menu"><div on-click="set_nodetype_filter" class="item">All</div><div class="divider"></div><div class="ui small icon input"><i class="search icon"></i><input type="text" placeholder="Label filter" value="{{filter_label::input}}"/></div><div class="divider"></div><div class="ui form"> <template is="dom-repeat" items="[[filter_nodetypes]]"><div class="field"><div class="ui checkbox"><input id="{{item.name}}" on-click="set_nodetype_filter" type="checkbox" checked="{{item.selected}}"/><label for="{{item.name}}">{{item.name}} ({{item.count}})</label></div></div></template></div></div></div><div class="ui right dropdown item"><i class="sort icon"></i>{{orderBy}}<div class="menu"><template is="dom-repeat" items="[[sorters]]"><div on-click="set_sort" class="item">{{item}}</div></template></div></div></div><div id="contentpan" style="max-height: calc(100% - 22px); margin-top:0px; overflow-x: hidden;" class="ui scrollable"><template is="dom-repeat" items="[[nodes]]" as="vtx" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(filter_nodetypes, filter_label)}}" observe="selected"><padagraph-edge-card-xs model="{{vtx}}" class="ui item comments"></padagraph-edge-card-xs><br/><div class="ui divider"></div></template></div></template><script>'use strict';
+
+require(['backbone', 'jquery'], function (Backbone, $) {
+
+    var sort = function sort(collection, keyf, reverse) {
+
+        var models = collection.models.slice();
+        if (keyf) nodes = _.sortBy(models, keyf);
+        if (reverse) models.reverse();
+
+        return nodes;
+    };
+
+    Polymer({
+        is: "padagraph-nodes-edges-panel",
+
+        properties: {
+            graph: {
+                type: Object, value: null },
+            nodes: {
+                type: Array, value: [] },
+            sorters: {
+                type: Array, value: ['labels', 'types', 'clusters'] },
+            orderBy: {
+                type: String, value: 'sort' },
+            reverse: {
+                type: Boolean, value: false },
+            filter_nodetypes: {
+                type: Array, value: null },
+            filter_label: {
+                type: String, value: "" },
+            filtered_nodes_count: {
+                type: String
+            }
+        },
+
+        observers: ['get_filtered_nodes_count(nodes, filter_nodetypes, filter_label)'],
+
+        ready: function ready() {
+            this.graph = null;
+        },
+
+        attached: function attached() {
+            var _this = this;
+
+            this.async(function () {
+                $('.dropdown.item', _this).dropdown();
+            });
+        },
+
+        setGraphModel: function setGraphModel(graph) {
+            this.graph = graph;
+            Backbone.listenTo(this.graph.es, 'add', this.push_node.bind(this));
+            Backbone.listenTo(this.graph.es, 'remove', this.pop_node.bind(this));
+            Backbone.listenTo(this.graph.es, 'reset', this.remove_all.bind(this));
+            Backbone.listenTo(this.graph.edgetypes, 'add', this.set_filters.bind(this));
+        },
+
+        set_filters: function set_filters() {
+            this.filter_nodetypes = _.map(this.graph.edgetypes.models, function (e) {
+                return { name: e.label, selected: true, count: 0 };
+            });
+        },
+
+        set_nodetype_filter: function set_nodetype_filter(filter) {
+            if (filter.model) filter.model.item.selected = !filter.model.item.selected;else {
+                _.each(this.filter_nodetypes, function (e) {
+                    e.selected = true;
+                });
+                $('.checkbox input', this).each(function (e, x) {
+                    x.checked = true;
+                });
+                this.filter_label = "";
+            }
+            var array = this.filter_nodetypes;
+            this.filter_nodetypes = [];
+            this.filter_nodetypes = array;
+        },
+
+        get_filtered_nodes_count: function get_filtered_nodes_count(nodes, nodetypes, label) {
+            var _this2 = this;
+
+            if (!nodetypes) return;
+
+            _.each(nodetypes, function (e, i) {
+                var filter = _this2.filtered([{ name: e.name, selected: true }], label);
+                e.count = nodes.filter(filter).length;
+                _this2.notifyPath('filter_nodetypes.' + i + '.count');
+            });
+
+            var filter = this.filtered(nodetypes, label);
+            this.filtered_nodes_count = nodes.filter(filter).length;
+        },
+
+        filtered: function filtered(nodetypes, pattern) {
+
+            var selected = _.filter(nodetypes, function (e) {
+                return e.selected;
+            });
+            return function (item) {
+
+                var matchpattern = true;
+                var matchnodetype = true;
+
+                if (pattern && pattern != "") matchpattern = item.label.match(pattern);
+
+                matchnodetype = matchnodetype & _.filter(selected, function (e) {
+                    return item.edgetype.label == e.name;
+                }).length;
+
+                return matchnodetype && matchpattern;
+            };
+        },
+
+        set_sort: function set_sort(sorter) {
+
+            if (sorter.model) {
+                var f = sorter.model.item;
+                this.reverse = !this.reverse && this.orderBy == f;
+                this.orderBy = f;
+            }
+        },
+
+        sorted: function sorted(orderBy, reverse) {
+
+            var getkey = function getkey(node) {
+                return 1;
+            };
+
+            if (orderBy == "labels") getkey = function (node) {
+                return node.label;
+            };else if (orderBy == "clusters") getkey = function (node) {
+                return node.get('_sort_by_cluster');
+            };else if (orderBy == "nodetypes") getkey = function (node) {
+                return node.edgetype.label + "/" + node.label;
+            };
+
+            return function (a, b) {
+                var r = getkey(a) > getkey(b) ? 1 : -1;
+                if (reverse) return -1. * r;
+                return r;
+            };
+        },
+
+        push_node: function push_node(node) {
+            this.push("nodes", node);
+            this.set_filters();
+        },
+
+        pop_node: function pop_node(node) {
+            this.arrayDelete("nodes", node);
+            this.filter_nodetypes = _.map(this.filter_nodetypes, function (e) {
+                return { name: e.name, selected: e.selected, count: 0 };
+            });
+        },
+
+        remove_all: function remove_all() {
+            this.splice("nodes", 0, this.nodes.length);
+            this.set_filters();
+        }
+
+    });
+});</script></dom-module>

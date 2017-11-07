@@ -1,0 +1,69 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-login-btn"><template><div class="ui top right pointing dropdown login"><i class="sign in icon"></i>Log in  <div class="ui vertically fitted secondary menu"><div class="header">Log in</div><div class="ui form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"/><div class="ui input"><input placeholder="email address" name="email" type="text" value=""/></div><div class="ui input"><input placeholder="password" name="password" type="password" value=""/></div></div><div class="ui right item"><button on-click="login" class="ui labelled icon button"><i class="sign in icon"></i>login</button></div></div></div><div class="ui top right pointing dropdown logout"><i class="user icon"></i>{{username}}<div class="ui vertically fitted secondary menu"><a on-click="logout" class="item"><i class="sign out icon"></i>logout</a></div></div></template><script>'use strict';
+
+require(['jquery', 'backbone', 'semantic'], function ($, Backbone) {
+
+  Polymer({
+    is: "padagraph-login-btn",
+
+    properties: {
+      username: {
+        type: String,
+        observer: 'set_username'
+      }
+    },
+
+    ready: function ready() {
+
+      Backbone.listenTo(Backbone, 'user:logged_in', this.logged_in.bind(this));
+      Backbone.listenTo(Backbone, 'user:logged_out', this.logged_out.bind(this));
+    },
+
+    attached: function attached() {
+      console.log('init graph dropdown', this.graph);
+      // properties accordions using async with act like domReady Event
+      $(".ui.dropdown", Polymer.dom(this).node).dropdown({
+        on: 'click',
+        inline: true,
+        hoverable: true,
+        position: 'bottom left'
+      });
+    },
+
+    set_username: function set_username(username) {
+      this.logged = username != null && username != "";
+      console.log("username", username, this.logged);
+      this.toggle();
+    },
+
+    toggle: function toggle() {
+      $('.login', this).toggle(!this.logged);
+      $('.logout', this).toggle(this.logged);
+    },
+
+    login: function login() {
+      var $form = $('.form', Polymer.dom(this).node);
+      var email = $form.form('get value', 'email');
+      var pwd = $form.form('get value', 'password');
+      Backbone.trigger('user:login', { email: email, password: pwd });
+    },
+
+    logout: function logout() {
+      console.log("Log out ! ");
+      Backbone.trigger('user:logout');
+    },
+
+    logged_in: function logged_in(user) {
+      console.log('a user has logged in', this.logged, user);
+      this.username = user.username;
+      this.logged = true;
+      this.toggle();
+    },
+
+    logged_out: function logged_out(user) {
+      console.log('a user has logged out', this.logged, user);
+      this.logged = false;
+      this.toggle();
+    }
+
+  });
+});</script></dom-module>

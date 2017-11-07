@@ -1,0 +1,17 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><dom-module id="padagraph-notification-vertex-card"><style>a.ui.label {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+</style><template><div on-click="handleClick" class="message"><b>{{action}} </b><padagraph-vertex-card-xs id="vertex" model="{{model}}"></padagraph-vertex-card-xs></div></template><script>"use strict";
+
+require(['backbone'], function (Backbone) {
+  Polymer({
+    is: "padagraph-notification-vertex-card",
+    properties: {
+      model: Object,
+      action: String,
+      username: String,
+      uuid: String
+    }
+  });
+});</script></dom-module>

@@ -1,0 +1,35 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-loading"><template><style>:host  {
+    position: absolute;
+    top: 35px;
+    left: 35px;
+}
+</style><template is="dom-if" if="{{visible}}"> <div class="ui active inverted dimmer"><div class="ui text loader">Loading</div></div></template></template><script>'use strict';
+
+require(['backbone'], function (Backbone) {
+  Polymer({
+    is: "padagraph-loading",
+
+    attached: function attached() {
+
+      var _this = this;
+
+      this.hide();
+
+      Backbone.listenTo(Backbone, 'play:loading', function () {
+        _this.show();
+      });
+      Backbone.listenTo(Backbone, 'play:complete', function () {
+        _this.hide();
+      });
+    },
+
+    hide: function hide() {
+      this.visible = false;
+    },
+
+    show: function show() {
+      this.visible = true;
+    }
+
+  });
+});</script></dom-module>

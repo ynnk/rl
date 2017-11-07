@@ -1,0 +1,14 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-node-property"><template><label>{{name}}</label><input type="text" value="{{value::input}}"/></template><script>"use strict";
+
+Polymer({
+  is: "padagraph-node-property",
+  properties: {
+    model: Object,
+    name: String,
+    value: {
+      type: String,
+      notify: true
+    }
+  },
+  ready: function ready() {}
+});</script></dom-module>

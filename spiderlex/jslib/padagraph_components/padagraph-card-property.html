@@ -1,0 +1,312 @@
+   <dom-module id="padagraph-card-property"><style>.video-link { margin-top:3px }
+
+.propvalue  ::content.header {cursor:pointer;}
+
+.propvalue ::content.name {color:gray;}
+
+.propvalue ::content .array {background-color:#FFD8BB;border:thin solid #FFB780;}
+.propvalue ::content .object {background-color:#E7F1FE;border:thin solid #7DA2CE;}
+.propvalue ::content .string {color:red;}
+.propvalue ::content .number {color:blue;}
+.propvalue ::content .function {color:green;}
+.propvalue ::content .open .children {display:block;}
+.propvalue ::content .closed .children {display:none;}
+
+.propvalue ::content .arrow {background-image:url("../img/d.png"); background-repeat:no-repeat; background-color:transparent; height:15px; width:15px; display:inline-block;}
+
+.propvalue ::content .open .arrow {background-position:-20px 0;}
+.propvalue ::content .closed .arrow {background-position:0 0;}
+.propvalue ::content .type {color:gray;font-size:8pt;float:right;}
+
+.propvalue ::content .hide {display:none;}
+
+.propvalue {width:100%;height:500px;overflow-y:scroll;}
+</style><template><div style="display:inline" class="propvalue"><content id="content"></content></div></template><script>'use strict';
+
+require(['backbone', 'underscore', 'jquery', 'pdgconst', 'json2html'], function (Backbone, _, $, Const, json2html) {
+
+    var transforms = {
+        'object': { 'tag': 'div', 'class': 'package ${show} ${type}', 'children': [{ 'tag': 'div', 'class': 'header', 'children': [{ 'tag': 'div', 'class': function _class(obj) {
+
+                        var classes = ["arrow"];
+
+                        if (getValue(obj.value) !== undefined) classes.push("hide");
+
+                        return classes.join(' ');
+                    } }, { 'tag': 'span', 'class': 'name', 'html': '${name}' }, { 'tag': 'span', 'class': 'value', 'html': function html(obj) {
+                        var value = getValue(obj.value);
+                        if (value !== undefined) return " : " + value;else return '';
+                    } }, { 'tag': 'span', 'class': 'type', 'html': '${type}' }] }, { 'tag': 'div', 'class': 'children', 'children': function children(obj) {
+                    return _children(obj.value);
+                } }] }
+    };
+
+    function getValue(obj) {
+        var type = $.type(obj);
+
+        //Determine if this object has children
+        switch (type) {
+            case 'array':
+            case 'object':
+                return undefined;
+                break;
+
+            case 'function':
+                //none
+                return 'function';
+                break;
+
+            case 'string':
+                return "'" + obj + "'";
+                break;
+
+            default:
+                return obj;
+                break;
+        }
+    }
+
+    //Transform the children
+    function _children(obj) {
+        var type = $.type(obj);
+
+        //Determine if this object has children
+        switch (type) {
+            case 'array':
+            case 'object':
+                return json2html.transform(obj, transforms.object);
+                break;
+
+            default:
+                //This must be a litteral
+                break;
+        }
+    }
+
+    function convert(name, obj, show) {
+
+        var type = $.type(obj);
+
+        if (show === undefined) show = 'closed';
+
+        var children = [];
+
+        //Determine the type of this object
+        switch (type) {
+            case 'array':
+                //Transform array
+                //Itterrate through the array and add it to the elements array
+                var len = obj.length;
+                for (var j = 0; j < len; ++j) {
+                    //Concat the return elements from this objects tranformation
+                    children[j] = convert(j, obj[j]);
+                }
+                break;
+
+            case 'object':
+                //Transform Object
+                var j = 0;
+                for (var prop in obj) {
+                    children[j] = convert(prop, obj[prop]);
+                    j++;
+                }
+                break;
+
+            default:
+                //This must be a litteral (or function)
+                children = obj;
+                break;
+        }
+
+        return { 'name': name, 'value': children, 'type': type, 'show': show };
+    }
+    function regEvents(el) {
+
+        $('.header', el).click(function () {
+            var parent = $(this).parent();
+
+            if (parent.hasClass('closed')) {
+                parent.removeClass('closed');
+                parent.addClass('open');
+            } else {
+                parent.removeClass('open');
+                parent.addClass('closed');
+            }
+        });
+    }
+
+    Polymer({
+        is: "padagraph-card-property",
+        properties: {
+            prop: {
+                type: Object,
+                observer: 'observeModel'
+            }
+        },
+
+        re: {
+            url: /(\b(?:https?):\/\/[-A-z0-9À-ú+&()@#\/%?=~|!:,.;]*[-A-z0-9+&@#\/%=~|])/ig,
+            youtube: /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((?:\w|-){11})\??(\S+)?$/,
+            vimeo: /http:\/\/(www\.)?vimeo.com\/(\d+)($|\/)/,
+            dailymotion: /http:\/\/(www\.)?dailymotion.com\/video\/(\d+)($|\/)/
+        },
+
+        observeModel: function observeModel(prop) {
+            var _this = this;
+
+            var re = this.re;
+
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = Polymer.dom(this).childNodes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var child = _step.value;
+
+                    Polymer.dom(this).removeChild(child);
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator['return']) {
+                        _iterator['return']();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            if (prop == null) return;
+
+            var ismulti = false; // text, tags
+            var value = null;
+            var labels = null;
+
+            if (_.isArray(prop.value)) {
+                ismulti = true;
+                labels = document.createElement("div");
+                labels.setAttribute('class', 'ui labels');
+                value = prop.value;
+            } else if (prop.type == "json") {
+                var json = JSON.parse(prop.value);
+                var html = document.createElement("div");
+                html.innerHTML = json2html.transform(convert('json', json, 'open'), transforms.object);
+                html.setAttribute('class', 'json');
+                Polymer.dom(this).appendChild(html);
+                return;
+            } else if (prop.value == null) {
+                value = "";
+                return;
+            } else if (_.isString(prop.value)) {
+                value = prop.value.split("\n");
+            } else if (_.isNumber(prop.value)) {
+                value = ["" + prop.value];
+            } else {
+                value = [prop.value];
+            }
+
+            var html = document.createElement("div");
+
+            for (var i in value) {
+
+                // no url in full text
+                if (_.isObject(value[i])) {
+                    var json = value[i];
+                    var html = document.createElement("div");
+                    html.innerHTML = json2html.transform(convert('json', json, 'open'), transforms.object);
+                    html.setAttribute('class', 'json');
+                    Polymer.dom(this).appendChild(html);
+                }
+
+                if (_.isString(value[i])) {
+                    var text = value[i].trim();
+                    if (text == "") continue;
+                    if (text.match(re.url) == null) {
+
+                        if (ismulti) {
+                            // multi tags
+                            var div = document.createElement("div");
+                            div.setAttribute('class', 'ui label');
+                            div.innerText = text;
+                            labels.appendChild(div);
+                        } else {
+                            var span = document.createElement("span");
+                            span.innerText = text;
+                            if (value.length == 1) {
+                                Polymer.dom(this).appendChild(span);
+                                return;
+                            } else {
+                                html.appendChild(span);
+                                var br = document.createElement("br");
+                                html.appendChild(br);
+                            }
+                        }
+                    } else {
+                        // url
+                        var _replace = function _replace(url) {
+                            var innerHTML = "<a target='_blank' href='" + url + "'>" + url + "</a><i class='external icon video-link'> </i><br/>";
+                            // Videos
+                            var videos = _this._get_embed(url).filter(function (e) {
+                                if (e) return true;
+                            });
+                            _.each(videos, function (video) {
+                                innerHTML += video + "<br/>";
+                            });
+                            return innerHTML;
+                        };
+
+                        var content = document.createElement("div");
+                        content.innerHTML = text.replace(re.url, _replace);
+                        html.appendChild(content);
+                    }
+                }
+            }
+            if (labels) Polymer.dom(this).appendChild(labels);
+            Polymer.dom(this).appendChild(html);
+            regEvents(Polymer.dom(this).children);
+        },
+
+        _get_embed: function _get_embed(text) {
+
+            var re = this.re;
+            return _.map(text.match(re.url), function (url) {
+                var video = null;
+                // is youtube
+                if (url.match(re.youtube)) {
+
+                    var id = url.match(re.youtube)[1];
+                    var params = url.match(re.youtube)[2] || "";
+                    params = params.replace(/(^|&)t=/, "$1start=");
+
+                    video = ['<div class="ui embed">', ' <iframe src="https://www.youtube.com/embed/' + id + '?' + params + '"', ' width="100%" ', ' frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>', '</div>'].join(' ');
+                }
+
+                // is vimeo
+                else if (url.match(re.vimeo)) {
+
+                        var id = url.match(re.vimeo)[2];
+                        video = ['<div class="ui embed">', '  <iframe src="https://player.vimeo.com/video/' + id + '"', '  width="100%"', '  frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>', '</div>'].join(' ');
+                    }
+
+                    // is dailymotion
+                    else if (url.match(re.dailymotion)) {
+
+                            var id = url.match(re.dailymotion)[2];
+                            video = ['<div class="ui embed">', '  <iframe src="https://www.dailymotion.com/embed/video/' + id + '"', '  width="100%"', '  frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>', '</div>'].join(' ');
+                        }
+
+                // Google maps
+                //  https://www.google.fr/maps/place//@43.5297514,1.7668858,16z
+                // <iframe src="https://www.google.com/maps?q=43.5297514,1.7668858,16z&output=embed"></iframe>
+
+                if (video) return video;
+            });
+        }
+
+    });
+});</script></dom-module>

@@ -1,0 +1,197 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-edit-type-form.html"/><link rel="import" href="./padagraph-edit-node-form.html"/><link rel="import" href="./padagraph-create-node-form.html"/><link rel="import" href="./padagraph-edge-form.html"/><dom-module id="padagraph-create"><template><style></style><div class="padagraph-box"><div class="ui message"><div class="ui form"><div class="header">Create {{edit_type}}</div><div class="content"> <template is="dom-if" if="{{edit_is_nodetype}}"> <padagraph-edit-type-form type="node"></padagraph-edit-type-form></template><template is="dom-if" if="{{edit_is_edgetype}}"> <padagraph-edit-type-form type="edge"></padagraph-edit-type-form></template><template is="dom-if" if="{{edit_is_node}}"> <padagraph-create-node-form graph="{{graph}}" model="{{model}}"></padagraph-create-node-form></template><template is="dom-if" if="{{edit_is_edge}}"> <padagraph-edge-form graph="{{graph}}" model="{{model}}"></padagraph-edge-form></template></div><div class="ui error message"></div><template is="dom-if" if="{{model}}"> <div class="padagraph-edit-buttons inline field"><!--template( is="dom-if", if="{{!save_disabled}}")--><button on-click="save" class="ui icon right floated primary button"><i class="ui save icon"> </i>save</button><button on-click="hide" class="ui icon right floated button"><i class="ui cancel icon"> </i>cancel</button></div></template></div></div></div></template><script>'use strict';
+
+require(['backbone', 'jquery', 'pdgconst'], function (Backbone, $, Const) {
+    Polymer({
+        is: "padagraph-create",
+
+        properties: {
+            graph: Object,
+            model: Object,
+
+            nodetype_model: Object,
+            edgetype_model: Object,
+            vertex_model: Object,
+            edge_model: Object,
+
+            save_disabled: Boolean
+
+        },
+
+        TYPES: [Const.ui_create_nodetype, Const.ui_create_node, Const.ui_create_edgetype, Const.ui_create_edge],
+
+        ready: function ready() {
+            var _this2 = this;
+
+            var _this = this;
+
+            this.model = null;
+            this.errors = null;
+            this.edittype = null;
+
+            this.edit_is_edgetype = true;
+            this.edit_is_nodetype = true;
+            this.edit_is_node = true;
+            this.edit_is_edge = true;
+
+            var validate = function validate(attrs, options) {
+                var errors = [];
+                if (attrs.name == "") {
+                    errors.push({
+                        field: "properties",
+                        header: "Name",
+                        message: "Missing name"
+                    });
+                }
+
+                var props = attrs.properties;
+                if (!props.models | props.models.length == 0) {
+                    errors.push({
+                        field: "properties",
+                        header: "Properties",
+                        message: "Can't create type without properties"
+                    });
+                }
+
+                props.each(function (prop) {
+                    if (prop.get('name') == "") errors.push({
+                        field: "properties",
+                        header: "Name",
+                        message: "Property should have a name !"
+                    });
+
+                    if ('type' in prop.get('otype') == false || prop.get('otype').type == "") errors.push({
+                        field: prop.get('name'),
+                        header: "Type",
+                        message: "Property " + prop.get('name') + " should have a type !"
+                    });
+                });
+                _this2.errors = errors;
+            };
+
+            Backbone.listenTo(Backbone, Const.ui_create_nodetype, function () {
+                console.debug('listen', Const.ui_create_nodetype);
+                _this2.setEdit(Const.ui_create_nodetype);
+                var model = new _this.nodetype_model();
+                model.validate = validate;
+                var options = [{ value: "",
+                    name: "label",
+                    otype: { type: "Text" }
+                }];
+                model.set('properties', new Cello.Options(options));
+                model.url = "../graphs/g/" + _this.graph.id + "/nodetype";
+                _this2.model = model;
+                $('padagraph-edit-type-form', _this)[0].setModel(model);
+                _this2.show();
+            });
+
+            Backbone.listenTo(Backbone, Const.ui_create_edgetype, function () {
+                console.debug('listen', Const.ui_create_edgetype);
+
+                _this2.setEdit(Const.ui_create_edgetype);
+                _this2.model = new _this2.edgetype_model();
+                _this2.model.validate = validate;
+                _this2.model.urlRoot = "../graphs/g/" + _this2.graph.id + "/edgetype";
+
+                _this2.model.set('properties', new Cello.Options());
+
+                $('padagraph-edit-type-form', _this2)[1].setModel(_this2.model);
+
+                _this2.show();
+            });
+
+            Backbone.listenTo(Backbone, Const.ui_create_node, function (options) {
+                console.debug('listen', Const.ui_create_node);
+
+                _this2.setEdit(Const.ui_create_node);
+
+                var vertex = new _this2.vertex_model();
+                vertex.collection = _this2.graph.vs;
+                vertex.urlRoot = "../graphs/g/" + _this2.graph.id + "/node";
+                vertex.set('properties', new Backbone.Model());
+
+                if (options && options.nodetype) vertex.set("nodetype", options.nodetype.id);
+
+                _this2.model = vertex;
+
+                _this2.show();
+            });
+
+            Backbone.listenTo(Backbone, Const.ui_create_edge, function (options) {
+                console.debug('listen', Const.ui_create_edge);
+
+                _this2.setEdit(Const.ui_create_edge);
+
+                var edge = new _this2.edge_model();
+                edge.collection = _this2.graph.es;
+                edge.urlRoot = "../graphs/g/" + _this.graph.id + "/edge";
+                edge.set('properties', new Backbone.Model());
+
+                if (options && options.source) edge.set('source', options.source.id);
+
+                if (options && options.target) edge.set('target', options.target.id);
+
+                if (options && options.edgetype) vertex.set("edgetype", options.edgetype.id);
+
+                _this2.model = edge;
+
+                _this2.show();
+            });
+        },
+
+        setEdit: function setEdit(edittype) {
+
+            this.edit_is_nodetype = edittype == Const.ui_create_nodetype;
+            this.edit_is_edgetype = edittype == Const.ui_create_edgetype;
+            this.edit_is_node = edittype == Const.ui_create_node;
+            this.edit_is_edge = edittype == Const.ui_create_edge;
+
+            this.edit_type = edittype;
+
+            if (this.TYPES.indexOf(edittype) < 0) {
+                this.save_disabled = false;
+                this.model = null;
+                this.edit_type = edittype = null;
+            }
+        },
+
+        hide: function hide() {
+            $(this).hide();
+            this.cancel();
+        },
+
+        show: function show() {
+            this.notifyPath('model', this.model);
+            $(this).show();
+        },
+
+        save: function save(e, data) {
+
+            this.clear_errors();
+
+            var errors = this.model.validate(this.model.attributes);
+            var $form = $('.form ', Polymer.dom(this).node);
+
+            if (errors) {
+                if (_.isString(errors)) $form.form('add errors', [errors]);else {
+                    $form.form('add errors', errors.map(function (e) {
+                        return _.isString(e) ? e : e.header + " - " + e.message;
+                    }));
+                }
+            } else {
+                if (this.model.save()) this.hide();
+            }
+        },
+
+        clear_errors: function clear_errors(e, data) {
+            var $form = $('.form ', Polymer.dom(this).node);
+            $form.form('add errors', []);
+            $('.error.message ul', $form).remove();
+        },
+
+        cancel: function cancel(e, data) {
+            this.setEdit(null);
+            this.clear_errors();
+        }
+
+    });
+});</script></dom-module>

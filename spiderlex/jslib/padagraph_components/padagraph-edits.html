@@ -1,0 +1,120 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-edit-type-form.html"/><link rel="import" href="./padagraph-edit-node-form.html"/><dom-module id="padagraph-edits"><template><style></style><div class="padagraph-box"><div class="ui message"><div class="ui form"><template is="dom-if" if="{{edit_is_node}}"> <padagraph-edit-node-form model="{{model}}" on-save="save" on-cancel="cancel" on-destroy="destroy"></padagraph-edit-node-form></template><template is="dom-if" if="{{edit_is_edge}}"> <div class="header">` You are editing <i class="ui minus icon"></i>{{model.label}} `</div><padagraph-edge-form graph="{{graph}}" model="{{model}}"></padagraph-edge-form></template><template is="dom-if" if="{{edit_is_nodetype}}"> <div class="header">` You are editing <i class="ui square thin icon"></i>{{model.label}} `</div><padagraph-edit-type-form label="Node" on-save="save" on-cancel="cancel" on-destroy="destroy"></padagraph-edit-type-form></template><template is="dom-if" if="{{edit_is_edgetype}}"><div class="header">` You are editing <i class="ui ellipsis horizontal thin icon"></i>{{model.label}} `</div><padagraph-edit-type-form label="Edge" on-save="save" on-cancel="cancel" on-destroy="destroy"></padagraph-edit-type-form></template><div class="padagraph-edit-buttons inline field"><!--template( is="dom-if", if="{{!save_disabled}}")--><template is="dom-if" if="{{saveable}}"><button on-click="save" class="ui icon right floated primary button"><i class="ui save icon"> </i>save</button></template><button on-click="cancel" class="ui icon right floated button"><i class="ui cancel icon"> </i>cancel</button><template is="dom-if" if="{{destroyable}}"><button on-click="destroy" class="ui icon left floated orange button"><i class="ui remove icon"> </i>delete</button><div class="ui small basic test modal"><div class="header">Delete {{edit}}</div><div class="content"><p>Are you sure you want to delete {{edit}} {{model.label}}</p></div><div class="actions"><div class="ui deny grey button">No</div><div class="ui ok right orange icon button">yes, delete.  <i class="checkmark icon"></i></div></div></div></template></div></div></div></div></template><script>'use strict';
+
+require(['backbone', 'jquery', 'pdgconst'], function (Backbone, $, Const) {
+    Polymer({
+        is: "padagraph-edits",
+
+        properties: {
+            edit: {
+                type: String },
+            // should be one of "nodetype", "edge", "node"
+            graph: {
+                type: Object,
+                notify: true
+            },
+            model: Object },
+
+        // ne model to edit
+        //label: String,
+        ready: function ready() {
+            var _this = this;
+            this.editables = [Const.ui_edit_nodetype, Const.ui_edit_node, Const.ui_edit_edgetype, Const.ui_edit_edge];
+
+            this.edit = null;
+            this.model = null;
+            //- set to true for the first initialisation, form is hidden anyway
+            this.edit_is_nodetype = true;
+            this.edit_is_node = true;
+            this.edit_is_edge = true;
+            this.edit_is_edgetype = true;
+
+            this.destroyable = false;
+
+            [Const.ui_edit_nodetype, Const.ui_edit_node, Const.ui_edit_edgetype, Const.ui_edit_edge].forEach(function (k) {
+                Backbone.listenTo(Backbone, k, function (model) {
+                    console.debug('listen', k, model);
+                    _this.setEdit(k, model);
+                });
+            });
+
+            this.hide();
+        },
+
+        setEdit: function setEdit(edittype, model) {
+            if (edittype !== null && model) {
+                if (this.editables.indexOf(edittype) >= 0) {
+
+                    this.edit = edittype;
+
+                    this.saveable = false;
+                    this.destroyable = false;
+
+                    this.edit_is_nodetype = edittype == Const.ui_edit_nodetype;
+                    this.edit_is_edgetype = edittype == Const.ui_edit_edgetype;
+                    this.edit_is_node = edittype == Const.ui_edit_node;
+                    this.edit_is_edge = edittype == Const.ui_edit_edge;
+
+                    if (edittype == Const.ui_edit_nodetype) {
+                        this.destroyable = false;
+                        this.saveable = true;
+                        //this.label = model.name;
+                        $('padagraph-edit-type-form', this)[0].setModel(model);
+                    }
+                    if (edittype == Const.ui_edit_edgetype) {
+                        this.destroyable = false;
+                        this.saveable = true;
+                        //this.label = model.name;
+                        $('padagraph-edit-type-form', this)[1].setModel(model);
+                    }
+                    if (edittype == Const.ui_edit_node) {
+                        this.destroyable = true;
+                        this.saveable = true;
+                    }
+                    if (edittype == Const.ui_edit_edge) {
+                        this.destroyable = true;
+                        this.saveable = true;
+                    }
+
+                    this.model = model;
+
+                    $(this).show();
+                }
+            } else {
+                this.edit = null;
+                this.model = null;
+            }
+        },
+
+        hide: function hide() {
+            this.setEdit(null);
+            $(this).hide();
+        },
+
+        cancel: function cancel(e, data) {
+            if (this.model) this.model.fetch({ is_cancel: true });
+            this.hide();
+        },
+
+        save: function save(e, data) {
+            this.model.save();
+            this.hide();
+        },
+
+        destroy: function destroy() {
+
+            $('.ui.basic.test.modal').modal({
+                closable: false,
+                onDeny: (function () {
+                    this.hide();
+                }).bind(this),
+                onApprove: (function () {
+                    if (this.model) {
+                        this.model.destroy();
+                    }
+                    this.hide();
+                }).bind(this)
+            }).modal('show');
+        }
+
+    });
+});</script></dom-module>

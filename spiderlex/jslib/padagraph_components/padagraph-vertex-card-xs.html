@@ -1,0 +1,52 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-vertex-card-xs"><template><a on-click="select" on-mouseover="intersect" class="ui label"><i style$="{{fontcolor}}" class="ui circle icon"></i>{{ model.label}}</a></template><script>'use strict';
+
+require(['backbone', 'pdgconst'], function (Backbone, Const) {
+  Polymer({
+    is: "padagraph-vertex-card-xs",
+    properties: {
+      model: {
+        type: Object,
+        observer: "compute_properties"
+      },
+
+      css_class: { type: String, value: "label" },
+
+      bgcolor: { type: String },
+      fontcolor: { type: String }
+    },
+
+    ready: function ready() {
+      var listener = {};
+      _.extend(listener, Backbone.Events);
+      this._listener = listener;
+    },
+
+    attached: function attached() {
+      var _this = this;
+
+      this._listener.stopListening();
+
+      this._listener.listenTo(this.model, 'change', (function () {
+        _this.compute_properties();
+      }).bind(this));
+
+      this.compute_properties();
+    },
+
+    //- computed properties
+    compute_properties: function compute_properties() {
+      this.bgcolor = "background-color:rgb(" + (this.model ? this.model.color : [0, 0, 0]) + ")";
+      this.fontcolor = "color:rgb(" + (this.model ? this.model.color : [0, 0, 0]) + ")";
+    },
+
+    //- actions
+
+    intersect: function intersect(event) {
+      Backbone.trigger('vertex:mouseover', this.model, event);
+    },
+
+    select: function select(e) {
+      Backbone.trigger(Const.select_node, this.model);
+    }
+  });
+});</script></dom-module>

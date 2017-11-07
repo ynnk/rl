@@ -1,0 +1,39 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-graph-list-item"><template><style>span.stat {
+    font-weight: 900;
+    padding-left: 1em;
+    font-size: 1.4rem;
+}
+span.stat i {
+    margin-right: 0.5em;
+}
+.description{
+    white-space: pre-line;
+}
+.meta .ui.basic.label {
+    margin-bottom: 3px;
+}
+
+</style><template is="dom-if" if="{{infos.properties.image}}">   <div class="ui small image"><img src="{{infos.properties.image}}"/></div></template><div class="content"><template is="dom-if" if="{{header}}">   <div class="header"><h3>{{infos.name}}</h3></div></template><div class="meta"><span class="stat"><i class="circle thin icon"></i>{{infos.meta.node_count}}</span><template is="dom-repeat" items="[[ infos.nodetypes]]"><div class="ui basic label"><i class="square outline icon"></i>{{item.name}}<div class="detail">{{item.count}}</div></div></template></div><div class="meta"><span class="stat"><i class="minus icon"></i>{{infos.meta.edge_count}}</span><template is="dom-repeat" items="[[infos.edgetypes]]"><div class="ui basic label"><i class="square outline icon"></i>{{item.name}}<div class="detail">{{item.count}}</div></div></template></div><div class="meta"><span class="stat"><i class="star thin icon"></i>{{infos.meta.star_count}}
+{{infos.meta.star_count}}</span></div><template is="dom-if" if="{{ infos.properties.description }}">   <div class="description">{{ infos.properties.description }}</div></template><div class="extra"><template is="dom-repeat" items="{{infos.properties.tags}}"><div class="ui basic label">{{item}}</div></template></div><template is="dom-if" if="{{button}}">   <div class="extra"><div class="date">created by <i class="user icon"></i>{{infos.owner}}</div><a href="{{graph_url}}" class="ui right floated primary button">Pad this graph</a></div></template></div></template><script>"use strict";
+
+Polymer({
+    is: "padagraph-graph-list-item",
+    properties: {
+        button: Boolean,
+        infos: Object,
+        graph_url: {
+            type: String,
+            computed: 'get_graph_url(infos)'
+        }
+    },
+    ready: function ready() {},
+
+    get_graph_url: function get_graph_url(infos) {
+        return "/graph/" + infos.name;
+    },
+
+    has_image: function has_image(infos) {
+        return infos.image.length > 0;
+    }
+
+});</script></dom-module>

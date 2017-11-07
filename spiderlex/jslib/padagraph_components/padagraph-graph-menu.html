@@ -1,0 +1,70 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-graph-menu"><style>.appmenus {
+    margin :12px;
+}
+.item {
+    text-align:left !important;
+}
+</style><template><a on-click="graph_infos" data-content="Graph infos" class="item"><i class="large icons"> <i class="info circle icon"></i></i>Graph infos</a><a on-click="create_nodetype" data-content="Create new node type" class="item"><i class="large icons"> <i class="square outline thin icon"></i><i class="corner inverted add icon"></i></i>Create new node type</a><div class="item"><div class="ui right dropdown"><i class="large icons"><i class="square outline icon"></i></i>Edit node type<div class="ui fluid menu"><template is="dom-repeat" items="[[graph.nodetypes.models]]"><div data-value$="{{item.id}}" on-click="handleChangeType" class="item">{{item.name}}</div></template></div></div></div><a on-click="create_edgetype" data-content="Create new edge type" class="item"><i class="large icons"> <i class="ellipsis horizontal icon"></i><i class="corner inverted add icon"></i></i>Create new edge type</a><div class="item"><div data-content="Edit edge type" class="ui right dropdown edgetype"><i class="large icons"><i class="ellipsis horizontal icon"></i></i>Edit edge type<div class="ui fluid menu"><template is="dom-repeat" items="[[graph.edgetypes.models]]"><div data-value$="{{item.id}}" on-click="handleChangeType" class="item">{{item.name}}</div></template></div></div></div><a on-click="clear_graph" data-content="Clear graph" class="item"><i class="large icons"><i class="remove icon"></i></i>Clear graph</a></template><script>'use strict';
+
+require(['jquery', 'backbone', 'pdgconst', 'semantic'], function ($, Backbone, Const) {
+    Polymer({
+        is: "padagraph-graph-menu",
+
+        properties: {
+            graph: {
+                type: Object,
+                observer: "_install_listeners"
+            }
+        },
+
+        dropdown: function dropdown() {
+            $('.ui.dropdown', this).dropdown({
+                position: 'bottom left'
+            });
+        },
+
+        handleChangeType: function handleChangeType(event, details) {
+            var value = event.currentTarget.dataset.value;
+            var otype = this.graph.nodetypes.get(value);
+            if (otype) {
+                Backbone.trigger(Const.ui_edit_nodetype, otype);
+            } else {
+                otype = this.graph.edgetypes.get(value);
+                if (otype) Backbone.trigger(Const.ui_edit_edgetype, otype);
+            }
+        },
+
+        _install_listeners: function _install_listeners(graph) {
+            var _this = this;
+
+            if (graph) {
+                Backbone.listenTo(this.graph.nodetypes, 'sync', function () {
+                    _this.notifyPath('graph.nodetypes.models', _this.graph.nodetypes.models.slice());
+                    _this.dropdown();
+                });
+                Backbone.listenTo(this.graph.edgetypes, 'sync', function () {
+                    _this.notifyPath('graph.edgetypes.models', _this.graph.edgetypes.models.slice());
+                    _this.dropdown();
+                });
+            }
+        },
+
+        //- Graph
+        graph_infos: function graph_infos() {
+            Backbone.trigger('request-graph-infos');
+        },
+
+        clear_graph: function clear_graph() {
+            Backbone.trigger('request-graph-clear');
+        },
+
+        create_nodetype: function create_nodetype() {
+            Backbone.trigger(Const.ui_create_nodetype);
+        },
+
+        create_edgetype: function create_edgetype() {
+            Backbone.trigger(Const.ui_create_edgetype);
+        }
+
+    });
+});</script></dom-module>

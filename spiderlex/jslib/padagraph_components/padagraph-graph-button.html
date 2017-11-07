@@ -1,0 +1,23 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-graph-menu.html"/><dom-module id="padagraph-graph-button"><template><div class="ui top left pointing dropdown"><i class="database icon"></i>{{graph.id}}<padagraph-graph-menu graph="{{graph}}" class="ui menu"></padagraph-graph-menu></div></template><script>'use strict';
+
+require(['backbone', 'pdgconst', 'semantic'], function (Backbone, Const) {
+  Polymer({
+    is: "padagraph-graph-button",
+
+    properties: {
+      graph: Object
+    },
+
+    attached: function attached() {
+      console.log('init graph dropdown', this.graph);
+      // properties accordions using async with act like domReady Event
+      $(".ui.dropdown", Polymer.dom(this).node).dropdown({
+        on: 'click',
+        inline: true,
+        hoverable: true,
+        position: 'bottom left'
+      });
+    }
+
+  });
+});</script></dom-module>

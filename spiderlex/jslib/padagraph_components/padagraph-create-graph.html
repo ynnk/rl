@@ -1,0 +1,125 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-create-graph"><template><template is="dom-if" if="{{ ! success }}"> <div class="ui form"><div class="content"><div class="required field"><label>name</label><input name="name" type="text" value="{{name::input}}" placeholder="Choose a uniq name"/></div><div class="field"><label>Description</label><textarea name="description" rows="3" value="{{description::input}}" placeholder="Describe your graph"></textarea></div><div class="field"><label>tags</label><input name="tags" type="text" value="{{tags::input}}" placeholder="Pick some tags"/></div><div class="field"><label>image</label><input name="image" type="text" value="{{image::input}}" placeholder="http://image.url"/></div><div class="ui divider">        </div><p></p><div id="errors" class="ui error message"></div><div class="inline field"><button on-click="save" class="ui icon right floated primary button"><i class="ui save icon"> </i>save</button></div></div></div></template><template is="dom-if" if="{{success}}"> <div class="ui item"><div class="ui image"><img src="{{infos.image}}"/></div><div class="content"><div class="header"><h3> {{infos.name}}</h3></div><a href="/graph/{{infos.name}}" class="ui right floated primary button">Pad this graph</a><div class="meta"><span class="stat"><i class="circle thin icon"></i>{{infos.node_count}}</span><span class="stat"><i class="minus icon"></i>{{infos.edge_count}}</span></div><div class="meta"><span>created by <i class="user icon"></i>{{infos.owner}}</span></div><div class="description">{{ infos.description }} </div><div class="extra"><template is="dom-repeat" items="{{infos.tags}}"><div class="ui basic label">{{item}}</div></template></div></div></div></template></template><script>'use strict';
+
+require(['backbone', 'jquery', 'semantic'], function (Backbone, $) {
+    Polymer({
+        is: "padagraph-create-graph",
+        properties: {
+            name: {
+                type: String,
+                notify: true,
+                value: ""
+            },
+            description: {
+                type: String,
+                notify: true,
+                value: ""
+            },
+            tags: {
+                type: String,
+                notify: true,
+                value: ""
+            },
+            image: {
+                type: String,
+                notify: true,
+                value: ""
+            },
+            success: {
+                type: Boolean,
+                value: false
+            }
+        },
+
+        ready: function ready() {
+
+            this.success = false;
+
+            // Model definition
+            this.GraphModel = Backbone.Model.extend({
+                url: "/graphs/create",
+
+                //- model validation
+                validate: function validate(attrs, options) {
+                    var errors = [];
+                    //- missing field name
+                    if (attrs.name == "") errors.push({
+                        field: "name",
+                        header: "Required field 'name'",
+                        message: "Field with * are required"
+                    });
+
+                    if (errors.length) {
+                        return errors;
+                    }
+                }
+            });
+        },
+
+        wrapErrors: function wrapErrors(model, errors) {
+            var $form = $('.form', Polymer.dom(this).node);
+
+            for (var i in errors) {
+                var field = errors[i].field;
+                if (field && field.length) $form.find(":input[name='" + field + "']").closest(".field").addClass("error");
+            }
+
+            $form.form('add errors', errors.map(function (e) {
+                return e.field + " " + e.header + " - " + e.message;
+            }));
+        },
+
+        save: function save() {
+            var _this = this;
+
+            //- model instance
+            var data = {
+                // graph properties
+                "name": this.name,
+                "description": this.description,
+                "tags": this.tags.split(" ").filter(function (e) {
+                    return e.length > 0;
+                }),
+                "image": this.image
+            };
+            this.infos = data;
+
+            var graph = new this.GraphModel(data);
+
+            //- server error callback
+            var callbacks = {
+                error: (function (model, response, options) {
+                    if (response && response.responseJSON && response.responseJSON.error == "ExistsError") {
+                        var error = {
+                            field: "name",
+                            header: "Graphs exists with that name.",
+                            message: "Please choose another name for this graph."
+                        };
+                        _this.wrapErrors(graph, [error]);
+                    } else if (response && response.responseJSON && response.responseJSON.error == "GraphNameError") {
+                        var error = {
+                            field: "name",
+                            header: "Invalid name",
+                            message: "Please choose another name for this graph."
+                        };
+                        _this.wrapErrors(graph, [error]);
+                    }
+                }).bind(this)
+
+            };
+
+            //- model validation error
+            graph.on("invalid", this.wrapErrors.bind(this));
+
+            // model sync callback
+            graph.on("sync", this.onSuccess.bind(this));
+            //- submit form, save on server if form validation passed
+            graph.save(null, callbacks);
+        },
+
+        onSuccess: function onSuccess(graph, data, xhr) {
+            this.success = true;
+            this.infos = data;
+        }
+
+    });
+});</script></dom-module>

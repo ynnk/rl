@@ -1,0 +1,56 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-node-properties-list.html"/><dom-module id="padagraph-create-node-form"><template><div class="ui segment">  <div class="inline field"><label>Node Type</label><select id="nodetype" name="nodetype" class="ui dropdown"><option value="0">Select node type</option><template is="dom-repeat" items="[[graph.nodetypes.models]]" as="nt"><option value="{{nt.id}}">{{nt.name}}</option></template></select></div><div class="ui hidden divider"></div><h4 class="ui dividing header">Properties</h4><div class="ui segment"><div class="scrollable"> <padagraph-node-properties-list model="{{model}}" uuid="{{type_uuid}}"></padagraph-node-properties-list></div></div></div></template><script>'use strict';
+
+require(['backbone', 'jquery'], function (Backbone, $) {
+  Polymer({
+
+    is: "padagraph-create-node-form",
+
+    properties: {
+      graph: {
+        type: Object,
+        observer: '_setGraph'
+      },
+
+      model: {
+        type: Object,
+        observer: '_setModel'
+      },
+
+      type_uuid: String
+    },
+
+    attached: function attached() {},
+
+    _setGraph: function _setGraph() {
+      var _this = this;
+
+      if (this.graph) {
+        Backbone.listenTo(this.graph.nodetypes, 'sync', function () {
+          _this.notifyPath('graph.nodetypes.models', _this.graph.nodetypes.models.slice());
+        });
+      }
+    },
+    _setModel: function _setModel() {
+      if (this.model != null) {
+        $('#nodetype', this).off('change');
+        $('#nodetype', this).on('change', this.handleChangeType.bind(this));
+        $('#nodetype', this).dropdown('set selected', this.model.id);
+      } else $('#nodetype', this).dropdown('set selected', "0");
+    },
+
+    handleChangeType: function handleChangeType(e) {
+      var value = this.$.nodetype.value;
+
+      if (value == "0") value = null;
+
+      if (this.model) {
+        this.model.set("nodetype", value);
+        this.model.set('properties', new Backbone.Model());
+        this.notifyPath("model", this.model);
+      }
+
+      this.type_uuid = value;
+    }
+
+  });
+});</script></dom-module>

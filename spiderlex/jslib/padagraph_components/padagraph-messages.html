@@ -1,0 +1,130 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-messages"><template><style>:host .padagraph-box {
+    background-color: transparent;
+}
+.ui.message {
+    max-width: 600px;
+    padding: 20px;
+    Z-index:1000;
+}
+
+button.ui.icon.right.floated.button {
+    margin-right: 12px;
+}  
+</style><template is="dom-if" if="{{visible}}"> <div class="padagraph-box-messages"><div class="ui icon message"><div class="content"><template is="dom-if" if="{{nodetype_created}}"> <div class="header">Node type '{{label}}' saved successfully</div><ul class="list"><li><a href="#" on-click="create_node" class="item">Create a new Node '{{label}}'.</a></li></ul></template><template is="dom-if" if="{{edgetype_created}}"> <div class="header">Edge type '{{label}}' saved successfully</div><ul class="list"><li><a href="#" on-click="create_edge" class="item">Create a new Edge '{{label}}'.</a></li></ul></template><template is="dom-if" if="{{node_created}}"> <div class="header">Node '{{label}}' saved successfully</div><ul class="list"><li><a href="#" on-click="create_node_edge" class="item">Add links to '{{label}}'.</a></li></ul></template><button on-click="hide" class="ui primary icon right floated button">Ok,<i class="ui checkmark icon"> </i></button><!--template( is="dom-if", if="{{!model}}")  //.padagraph-edit-buttons.inline.field
+  ////template( is="dom-if", if="{{!save_disabled}}")
+  //button.ui.icon.right.floated.primary.button(on-click='save')
+    //i.ui.save.icon 
+    //| save
+  //button.ui.icon.right.floated.button(on-click='hide')
+    //i.ui.cancel.icon 
+    //| cancel
+
+
+
+--></div></div></div></template></template><script>'use strict';
+
+require(['backbone', 'jquery'], function (Backbone, $) {
+    Polymer({
+        is: "padagraph-messages",
+
+        properties: {
+            graph: Object,
+            model: Object,
+            visible: Boolean
+        },
+
+        TYPES: ["nodetype", "edgetype", "node", "edge"],
+
+        ready: function ready() {
+            var _this = this;
+
+            this.cancel();
+
+            Backbone.listenTo(Backbone, 'nodetype:save', function (model, resp, options) {
+                _this.nodetype_created = true;
+                _this.label = model.name;
+                _this.show();
+            });
+            Backbone.listenTo(Backbone, 'edgetype:save', function (model, resp, options) {
+                _this.edgetype_created = true;
+                _this.label = model.name;
+                _this.show();
+            });
+
+            Backbone.listenTo(Backbone, 'edge:save', function (model, resp, options) {
+                // no options used
+                resp || (resp = {});
+
+                if (resp.status == 'deleted') {
+                    Backbone.trigger('engine:auto_compute');
+                    return;
+                }
+
+                var graph = _this.graph;
+                var nodes = _.filter([resp.source, resp.target], function (uuid) {
+                    return graph.vs.get(uuid) == null;
+                });
+
+                if (nodes.length) {
+                    Backbone.trigger('engine:additive_nodes', nodes);
+                } else {
+                    graph.es.add(model);
+                    Backbone.trigger('engine:auto_compute');
+                }
+            });
+
+            Backbone.listenTo(Backbone, 'node:save', function (model, resp, options) {
+
+                model.set('uuid', resp.uuid);
+
+                resp || (resp = {});
+                _this.node_created = true;
+                _this.label = model.label;
+                _this.model = model;
+
+                if (resp.status == 'deleted') {
+                    Backbone.trigger('engine:auto_compute');
+                    return;
+                }
+
+                if (resp.status == 'created') Backbone.trigger('engine:additive_nodes', [model.id], {});
+
+                //this.show();
+            });
+        },
+
+        hide: function hide() {
+            this.cancel();
+        },
+
+        show: function show() {
+            this.visible = true;
+            this.notifyPath('model', this.model);
+        },
+
+        cancel: function cancel(e, data) {
+            this.visible = false;
+            this.node_created = false;
+            this.edgetype_created = false;
+            this.nodetype_created = false;
+            this.model = null;
+        },
+
+        create_node: function create_node() {
+            Backbone.trigger('create:node', { nodetype: this.model });
+        },
+
+        create_edge: function create_edge() {
+            Backbone.trigger('vertex:select', { edgetype: this.model });
+            Backbone.trigger('create:edge', { source: this.model });
+            this.hide();
+        },
+
+        create_node_edge: function create_node_edge() {
+            Backbone.trigger('vertex:select', this.model);
+            Backbone.trigger('create:edge', { source: this.model });
+            this.hide();
+        }
+
+    });
+});</script></dom-module>
