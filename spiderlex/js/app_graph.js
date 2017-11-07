@@ -548,7 +548,7 @@ define([
             //$("padagraph-collection-filter")[0].set_type_filter(null)
             $("padagraph-collection-filter").each(
                 function(i,e) {
-                    if (e.graph) e.set_type_filter(null);
+                    if (e.graph) e.reset_filters();
                 });
                 
             // auto scroll on request 

@@ -406,7 +406,21 @@ require.config({
                 });
                 app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
                     app.engine_play_completed(response, args, state)
+                    $("padagraph-collection-filter").each( function(i,e) {
+                            if (e.graph) e.reset_filters();
+                    });
+
                 });
+
+                
+                app.listenTo(app.engines.additive_nodes, 'play:success', function(response, args, state) {
+                    $("padagraph-collection-filter").each(
+                    function(i,e) {
+                        if (e.graph) e.reset_filters();
+                    });                    
+                });
+
+                
 
                 app.start(graph, app.engines.explore);
                 
