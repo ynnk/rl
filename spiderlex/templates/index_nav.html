@@ -401,11 +401,11 @@ require.config({
                 app.create_engines();
                 app.fetch_engines(complete);
 
-                app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
-                    app.engine_play_completed(response, args, state)
-                });
                 app.listenTo(app.engines.explore, 'play:loading', function() {
                     app.search_loading()
+                });
+                app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
+                    app.engine_play_completed(response, args, state)
                 });
 
                 app.start(graph, app.engines.explore);
