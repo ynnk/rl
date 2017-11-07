@@ -142,7 +142,7 @@ def app_graph(lang, query=None, path = ""):
     args = request.args
     return render_template(
         'index_nav.html',
-        polymer_path = "%s/static/padagraph_components/" % path,
+        polymer_path = "%s/static/padagraph_components" % path,
         debug= True, # app.debug,
         lang = lang,
         data= "",
