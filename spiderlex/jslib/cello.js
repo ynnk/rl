@@ -1354,11 +1354,13 @@ var Graph = Backbone.Model.extend({
             this.meta.set(data.meta, {parse:true})
 
         options = options ? _.clone(options) : {};
-        this.es.reset([], options);
-        this.vs.reset([], options);
-        options = {parse:true};
-        this.vs.set(data.vs, options);
-        this.es.set(data.es, options);
+        if (data.vs && data.es){
+            this.es.reset([], options);
+            this.vs.reset([], options);
+            options = {parse:true};
+            this.vs.set(data.vs, options);
+            this.es.set(data.es, options);
+        }
 
         this.trigger('reset');
         
