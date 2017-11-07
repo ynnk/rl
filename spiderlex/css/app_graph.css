@@ -180,7 +180,7 @@ ul.autocomplete li.completion_lexie{
     padding-top: 6px;
     padding-left: 6px;
 }
-#lndic padagraph-vertex-card-xs {
+#lndic rlf-vertex-xs {
     padding-left: 6px;
 }
 #vz_graph .sidebar {
@@ -247,6 +247,9 @@ ul.autocomplete li.completion_lexie{
 #vz_graph .button{
     position: absolute;
     left: calc(100% - 49px);
+/*
+    right: 8px;
+*/
     top: 12px;
 }
 

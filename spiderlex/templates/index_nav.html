@@ -121,19 +121,15 @@
                     </div>
                 </div>
             </div>
+
+            
             <div class="pusher">
                 <div class="ui bottom attached segment">
                     <div id='vz_button0' class="ui left aligned attached fixed button">
-                        <i class=" angle double right icon" style="display:none"></i>
-                        <i class="angle double left icon" style="display:none"></i>
+                        <i class="angle double right icon" style="display:none"></i>
+                        <i class="angle double left icon" style=""></i>
                     </div>
 
-<!--
-<padagraph-gviz-json id="{{gid}}" routes="{{routes}}" data="{{data}}" sync="{{sync}}">
-                    </padagraph-gviz-json>
--->
-                        
-                        
                           <padagraph-gviz options="{{options}}">
 <!--
                             <padagraph-model-popup id="gvizpopup"></padagraph-model-popup>
@@ -222,9 +218,9 @@ require.config({
 
 
 
-    require(["underscore", "backbone",
-        "app_graph", "cello", "embed",  "gviz", "models"
-    ],  function( _, Backbone, App, Cello, Embed, Gviz, Models){
+    require(["jquery", "underscore", "backbone",
+        "app_graph", "cello", "embed",  "gviz", "models", "semantic"
+    ],  function( $, _, Backbone, App, Cello, Embed, Gviz, Models, SEMUI){
 
 
         // UI
@@ -266,10 +262,9 @@ require.config({
                 $('#vz_button0>.left').show();
                 _canvas_resized(false);
                 _window_resized();
-            })
-            .sidebar('show')
-            
-            ;
+            });
+        $('#vz_graph .sidebar')
+            .sidebar('hide');
             
         $('#maintabs>nav .item').click(function(){
                 $('#vz_graph .sidebar').sidebar('show');
@@ -317,8 +312,6 @@ require.config({
         var parse = {data:false, sync:false};
         
         if (sync){
-            //var gid = sync.substring(sync.lastIndexOf('/')+1);
-            //var urlRoot = sync.substring(0, sync.lastIndexOf('/') + 1)
            
             app.create_graph_model({'urlRoot': urlRoot, 'url' : sync, 'gid': gid,
                     vertex_model: Models.Vertex,

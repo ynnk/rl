@@ -588,7 +588,7 @@ define([
                 if (model){
                     model.add_flag("pzero");
 
-                    var card = document.createElement("padagraph-vertex-card-xs");
+                    var card = document.createElement("rlf-vertex-xs");
                     card.model = model;
                     
                     ln[0].appendChild(card);

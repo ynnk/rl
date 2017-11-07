@@ -1,4 +1,56 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="rlf-vertex-gc"><style>.gc{
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="rlf-vertex-xs"><template><a on-click="select" on-mouseover="intersect" class="ui label"><i style$="{{fontcolor}}" class="ui circle icon"></i><template is="dom-if" if="{{model.properties.attributes.prefix.length}}"><span class="normal-font">{{model.properties.attributes.prefix}} {{model.properties.attributes.form}}</span></template><template is="dom-if" if="{{!model.properties.attributes.prefix.length}}"><span class="normal-font">{{model.properties.attributes.vocable}}</span></template><template is="dom-if" if="{{model.properties.attributes.subscript}}"><span class="subscript-font">{{model.properties.attributes.subscript}}</span></template><template is="dom-if" if="{{model.properties.attributes.superscript}}"><span class="superscript-font">{{model.properties.attributes.superscript}}</span></template><template is="dom-if" if="{{model.properties.attributes.num}}"><span class="num-font">{{model.properties.attributes.num}}</span></template><!--| {{ model.label}}-->
+</a></template><script>'use strict';
+
+require(['backbone', 'pdgconst'], function (Backbone, Const) {
+  Polymer({
+    is: "rlf-vertex-xs",
+    properties: {
+      model: {
+        type: Object,
+        observer: "compute_properties"
+      },
+
+      css_class: { type: String, value: "label" },
+
+      bgcolor: { type: String },
+      fontcolor: { type: String }
+    },
+
+    ready: function ready() {
+      var listener = {};
+      _.extend(listener, Backbone.Events);
+      this._listener = listener;
+    },
+
+    attached: function attached() {
+      var _this = this;
+
+      this._listener.stopListening();
+
+      this._listener.listenTo(this.model, 'change', (function () {
+        _this.compute_properties();
+      }).bind(this));
+
+      this.compute_properties();
+    },
+
+    //- computed properties
+    compute_properties: function compute_properties() {
+      this.bgcolor = "background-color:rgb(" + (this.model ? this.model.color : [0, 0, 0]) + ")";
+      this.fontcolor = "color:rgb(" + (this.model ? this.model.color : [0, 0, 0]) + ")";
+    },
+
+    //- actions
+
+    intersect: function intersect(event) {
+      Backbone.trigger('vertex:mouseover', this.model, event);
+    },
+
+    select: function select(e) {
+      Backbone.trigger(Const.select_node, this.model);
+    }
+  });
+});</script></dom-module><dom-module id="rlf-vertex-gc"><style>.gc{
     font-weight: normal;
     //margin-left: 15pt;
     margin-bottom: 1pt;
