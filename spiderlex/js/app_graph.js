@@ -544,11 +544,6 @@ define([
             $("#loading-indicator").hide(0);
             app.views.userquery.$input.attr('placeholder', "Search");
             
-            // collapse current graph viz
-            if ( app.views.gviz ) {
-                app.views.gviz.collapse(200);
-            }
-
             app.update_models(response);
             //$("padagraph-collection-filter")[0].set_type_filter(null)
             $("padagraph-collection-filter").each(
