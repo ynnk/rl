@@ -545,11 +545,6 @@ define([
             app.views.userquery.$input.attr('placeholder', "Search");
             
             app.update_models(response);
-            //$("padagraph-collection-filter")[0].set_type_filter(null)
-            $("padagraph-collection-filter").each(
-                function(i,e) {
-                    if (e.graph) e.reset_filters();
-                });
                 
             // auto scroll on request 
             $(window).scrollTop($(".two.column.row").parent().height());

@@ -245,13 +245,21 @@ ul.autocomplete li.completion_lexie{
     width:100%;
 }
 
-#vz_graph .button{
+#vz_button0{
     position: absolute;
     left: calc(100% - 49px);
 /*
     right: 8px;
 */
     top: 12px;
+}
+
+#lexlinksfilter .menu {
+    width: 100%;
+}
+
+#lexlinksfilter h4 {
+    margin-left:6px;
 }
 
 #vz_graph .button.teal i{
@@ -274,7 +282,7 @@ ul.autocomplete li.completion_lexie{
 }
 
 #pdgmenu {
-    background-color: #12EEAA;
+    background-color: #e8e8e8;
     position:absolute;
     margin: 12px;
     text-align: right;
