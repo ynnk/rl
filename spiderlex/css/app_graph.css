@@ -97,6 +97,7 @@ ul.autocomplete li.completion_lexie{
     border-radius: 4px 4px 0px 0px;
     border-color: #e7e7e7;
     box-shadow: none;
+    margin-bottom: -1px;
 }
 
 @media (max-width: 508px) {

@@ -87,7 +87,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
                 this._listener.listenTo(this.graph.vs, 'filter:changed', this.filter_count.bind(this));
             }
 
-            this._listener.listenTo(this.types, 'add', this.reset_filters.bind(this));
+            //this._listener.listenTo(this.types, 'add', this.reset_filters.bind(this));
 
             setTimeout(function () {
                 _this.reset_filters();
