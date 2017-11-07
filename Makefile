@@ -11,7 +11,7 @@ pdg:
 
 deploy:
 	git pull
-	cp spiderlex/js/* spiderlex/static/
-	cp spiderlex/jsext/* spiderlex/static/
+	cp -r spiderlex/js/* spiderlex/static/
+	cp -r spiderlex/jsext/* spiderlex/static/
 	cp -r spiderlex/jslib/* spiderlex/static/
 
