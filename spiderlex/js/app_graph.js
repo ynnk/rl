@@ -518,7 +518,7 @@ define([
                     model.add_flag("pzero");
 
                     var card = document.createElement("rlf-vertex-xs");
-                    card.
+                    card.asLabel = true;
                     card.model = model;
                     
                     ln[0].appendChild(card);

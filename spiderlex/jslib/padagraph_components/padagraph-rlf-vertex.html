@@ -115,7 +115,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
     }
 
   });
-});</script></dom-module><dom-module id="rlf-vertex-xs"><template><a on-click="select" on-mouseover="intersect"><i style$="{{fontcolor}}" class="ui circle icon"></i><template is="dom-if" if="{{model.properties.attributes.prefix.length}}"><span class="normal-font">{{model.properties.attributes.prefix}} {{model.properties.attributes.form}}</span></template><template is="dom-if" if="{{!model.properties.attributes.prefix.length}}"><span class="normal-font">{{model.properties.attributes.vocable}}</span></template><template is="dom-if" if="{{model.properties.attributes.subscript}}"><span class="subscript-font">{{model.properties.attributes.subscript}}</span></template><template is="dom-if" if="{{model.properties.attributes.superscript}}"><span class="superscript-font">{{model.properties.attributes.superscript}}</span></template><template is="dom-if" if="{{model.properties.attributes.num}}"><span class="num-font">{{model.properties.attributes.num}}</span></template><!--| {{ model.label}}-->
+});</script></dom-module><dom-module id="rlf-vertex-xs"><template><a class$="{{_compute_css(asLabel)}}" on-click="select" on-mouseover="intersect"><i style$="{{fontcolor}}" class="ui circle icon"></i><template is="dom-if" if="{{model.properties.attributes.prefix.length}}"><span class="normal-font">{{model.properties.attributes.prefix}} {{model.properties.attributes.form}}</span></template><template is="dom-if" if="{{!model.properties.attributes.prefix.length}}"><span class="normal-font">{{model.properties.attributes.vocable}}</span></template><template is="dom-if" if="{{model.properties.attributes.subscript}}"><span class="subscript-font">{{model.properties.attributes.subscript}}</span></template><template is="dom-if" if="{{model.properties.attributes.superscript}}"><span class="superscript-font">{{model.properties.attributes.superscript}}</span></template><template is="dom-if" if="{{model.properties.attributes.num}}"><span class="num-font">{{model.properties.attributes.num}}</span></template><!--| {{ model.label}}-->
 </a></template><script>'use strict';
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {
@@ -127,9 +127,8 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
         observer: "compute_properties"
       },
 
-      css_class: { type: String, value: "label" },
+      asLabel: { type: Boolean, value: false },
 
-      bgcolor: { type: String },
       fontcolor: { type: String }
     },
 
@@ -152,6 +151,10 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
     },
 
     //- computed properties
+    _compute_css: function _compute_css(asLabel) {
+      return asLabel ? "ui label" : "";
+    },
+
     compute_properties: function compute_properties() {
       this.bgcolor = "background-color:rgb(" + (this.model ? this.model.color : [0, 0, 0]) + ")";
       this.fontcolor = "color:rgb(" + (this.model ? this.model.color : [0, 0, 0]) + ")";
