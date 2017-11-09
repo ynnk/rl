@@ -4,13 +4,28 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
   
     var Models = {};
 
+    Models.Edge = App.Models.Edge.extend({
+    
+        initialize : function(attrs, options){
+            App.Models.Edge.__super__.initialize.apply(this, arguments);
+
+            var lexlinks = new Backbone.Collection( _.filter( this.collection.between( this.source, this.target ), function(e){
+                return false
+            }));
+
+            this.lexlinks = lexlinks;
+
+        },
+        
+    },{ // !! static not in the same brackets !!
+    active_flags : ['intersected', 'faded', 'selected']
+});
+            
     Models.Vertex = App.Models.Vertex.extend(
             {
             
                 initialize : function(attrs, options){
-                    App.Models.Vertex.__super__.initialize.apply(this, arguments);
-                    
-                    
+                    App.Models.Vertex.__super__.initialize.apply(this, arguments);                    
 //                    Cello.get(this, "formatted_definiens");
                     //var lfs = new Backbone.Collection();
                     //lfs.comparator = 'position';

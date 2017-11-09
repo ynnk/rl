@@ -174,7 +174,7 @@ class Parser(object):
             
             'df' : Text(), # json
 
-            #'lfs' : Text(), # json
+            'lfs' : Text(), # json
             'gcs' : Text(), # json
             'examples' : Text(), # json
             'locutions' : Text(), # json
@@ -212,7 +212,7 @@ class Parser(object):
 
                 'gcs' : [],
                 'locutions': [],
-                #'lfs': [],
+                'lfs': [],
                 'df': {
                     'form' : node['name'],
                     'left_pf_form': '',
@@ -492,7 +492,8 @@ class Parser(object):
                         'edgetype': edgetypes[_name(flex[lf])]['uuid'],
                         'source': idx[source],
                         'target': idx[target],
-                        'properties': { 'weight' : weight,
+                        'properties': {
+                                'weight' : weight,
                                 'form': form,
                                 'separator': separator,
                                 'merged':merged,

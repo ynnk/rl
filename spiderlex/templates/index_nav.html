@@ -131,13 +131,11 @@
                     </div>
 
                           <padagraph-gviz options="{{options}}">
-<!--
-                            <padagraph-model-popup id="gvizpopup"></padagraph-model-popup>
--->
                             <div id="pdgmenu" class="ui icon vertical borderless menu">
                               <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
                               <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
                             </div>
+                            <rlf-mouse-popup id="gvizpopup"></rlf-mouse-popup>
                           </padagraph-gviz>
     
 
@@ -268,23 +266,6 @@ require.config({
                 $('#vz_graph .sidebar').sidebar('show');
         });
             
-        $('#vz_mouse_position')
-            .popup({
-//                popup: '#edge_tooltip',
-//                preserve: true,
-                movePopup : true,
-//                inline : true
-                position : 'top left'
-            })
-            .popup('hide')
-        ;
-
-        
-
-
-
-
-
         // The "app" dependency is passed in as "App"
         var path = "../static/bower_components/";
         
@@ -311,8 +292,10 @@ require.config({
         
         if (sync){
            
-            app.create_graph_model({'urlRoot': urlRoot, 'url' : sync, 'gid': gid,
-                    vertex_model: Models.Vertex,
+            app.create_graph_model({
+                'urlRoot': urlRoot,'url' : sync, 'gid': gid,
+                vertex_model: Models.Vertex,
+                edge_model: Models.Edge,
                 });
                 
             app.models.graph.on('sync', function(){
@@ -368,7 +351,6 @@ require.config({
             // !!!!! to be removed !!!!!
             graph.vs.on("add"  , function(e){e.properties.set('lfs', "{}")});
 
-
             var comp = $("padagraph-engine-control")[0];
             comp.engine = "layout"
             comp.blocks = app.engines.layout.blocks.models;
@@ -381,7 +363,14 @@ require.config({
             viz.graph = graph;
             viz.app = app;
             viz.options = Gviz.DEFAULTS;
-            
+
+            var popup = $("rlf-mouse-popup");
+            if (popup.length){
+                popup = popup[0]
+                popup.graph = graph;
+            }
+
+            var gviz = viz.gviz;
             app.gviz = viz.gviz;
             
             var comp = $("padagraph-collection-filter", "#lexlinks")[0];
@@ -400,7 +389,7 @@ require.config({
                 app.fetch_engines(complete);
 
                 app.listenTo(app.engines.explore, 'play:loading', function() {
-                    app.search_loading()
+                    app.search_loading();
                 });
                 app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
                     app.engine_play_completed(response, args, state)
@@ -440,11 +429,8 @@ require.config({
         }
 
 
-
-        
         console.log("root: {{ root_url }}, gkey : {{ gkey }}, complete_url: {{ complete_url }}");
       
-
         
         // resize window event 
         var min_height = 250;

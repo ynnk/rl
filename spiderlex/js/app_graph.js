@@ -315,67 +315,6 @@ define([
         create_results_views: function(){
             var app = this;
 
-            var intersectnode_renderOn = function(node, event){
-                if (! node.has_flag('intersected')){
-                    node.add_flag('intersected');
-                }
-            }
-            
-            var intersectnode_renderOff = function(){
-                if (app.gviz.model.vs.by_flag('intersected').length){
-                    app.gviz.model.vs.set_intersected(null);
-                }
-            }
-            
-            //Edge tooltip
-            EdgeToolTip = Cello.ui.Tooltip.extend({
-                el : "#edge_tooltip",
-                template :  _.template(
-                    "<div class='edges'>"
-                    +"<% _(edges).each( function(edge, index){ %>"
-                    +   "<div class='ui centered'>"
-                    +   "<a href='#' class='' >"
-                    +     "<% _.each(edge.source.formatted_label, function(token){ %>"
-                    +           " <span class = '<%= token.css.substring(1) %>'><%= token.form %></span>"
-                    +        "<% }); %>"
-                    +   "</a> &rarr;"
-                    +   "<a href='#' class='' >"
-                    +       "<% _.each(edge.target.formatted_label, function(token){ %>"
-                    +       " <span class = '<%= token.css.substring(1) %>'><%= token.form %></span>"
-                    +       "<% }); %>"
-                    +   "</a>"
-                    +   "</div>"
-                    +   "<% edge.lexlinks.each( function(lexlink){ %>"
-                    +   "<div class='ui centered familylink'>"
-                    +       "<span><%= lexlink.family.label%></span>"
-                    +       "<span  class = 'lexfunc'>"
-                    +           "<% _.each(lexlink.formatted_label, function(token){ %>"
-                    +               " <span class = '<%= token.css.substring(1) %>'><%= token.form %></span>"
-                    +           "<% }); %>"
-                    +       "</span>"
-                    +   "</div>"
-                    +   "<% }); %>"
-                    +   "<% if ( index < (edges.length -1) ){ %>"
-                    +      "<div class='ui divider'></div>"
-                    +   "<% }%>"
-                    +"<% }); %>"
-                    +"</div>"
-                ),
-                  
-                before_render : function(edge){
-                    var data = {edges : [edge]}
-                    var sym = edge.sym
-                    if (sym) data.edges.push(sym);
-                    return data;
-                }
-            });
-            
-            edge_tooltip = new EdgeToolTip({});
-            
-            
-
-//CTX MENU
-
             var ItemMenuView  = Cello.ui.list.ListItemView.extend({
             
                 className: "item small",
@@ -579,6 +518,7 @@ define([
                     model.add_flag("pzero");
 
                     var card = document.createElement("rlf-vertex-xs");
+                    card.
                     card.model = model;
                     
                     ln[0].appendChild(card);

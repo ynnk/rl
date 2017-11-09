@@ -47,7 +47,10 @@
         }
     },
     
-    {".intersected": {} },
+    {".intersected": {
+        "lineWidth"  : 3,
+
+        } },
     
 
     {  '.disabled': {
