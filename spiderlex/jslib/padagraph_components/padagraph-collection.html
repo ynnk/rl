@@ -40,7 +40,9 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
                 type: Boolean, value: false },
             filtered_count: {
                 type: String
-            }
+            },
+
+            groups_sort: Object
         },
 
         observers: ['setGraphModel(app, graph)', 'apply_filters(elements, filter_groups, filter_label, filter_label_chk)'],
@@ -144,6 +146,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
             var fs = _.filter(ls, function (e) {
                 return e.count > 0;
             });
+
             var groups = _.groupBy(fs, function (e) {
                 return e.group;
             });
@@ -153,6 +156,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
                 }, 0);
                 return { label: k, selected: true, items: v, count: count };
             });
+            if (this.groups_sort) groups.sort(this.groups_sort);
 
             this.filter_groups = groups;
         },

@@ -588,6 +588,14 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
                 };
                 return l(a) - l(b);
             };
+
+            var map_position = {
+                "Co-polysemy": 1,
+                "DefinitionalInclusion": 2,
+                "LexicalFunction": 3,
+                "FormalInclusion": 4
+            };
+
             this.by_edgetypes = _.chain(edgetypes).pairs().sortBy(function (_ref4) {
                 var _ref42 = _slicedToArray(_ref4, 2);
 
@@ -599,13 +607,18 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 
                 var k = _ref52[0];
                 var e = _ref52[1];
+
+                var family = graph.edgetypes.get(k).parse_label()['family'];
                 return {
                     uuid: k,
                     edgetype: graph.edgetypes.get(k),
-                    family: graph.edgetypes.get(k).parse_label()['family'],
-                    neighbors: e.sort(sort_neighors)
+                    family: family,
+                    neighbors: e.sort(sort_neighors),
+                    position: map_position[family]
                 };
-            }).filter(edgetype_filter).value();
+            }).filter(edgetype_filter).sort(function (a, b) {
+                return a.position - b.position;
+            }).value();
         }
 
     });
@@ -718,5 +731,6 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
     explore: function explore() {
       Backbone.trigger('explore', this.model);
     }
+
   });
 });</script></dom-module>

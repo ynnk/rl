@@ -130,9 +130,6 @@ def app_graph_lang(lang):
 @app.route("/<string:lang>/id/<string:query>")
 def app_graph_query(lang, query=None):
     return app_graph(lang, query=query, path="")
-    
-
-
         
 def app_graph(lang, query=None, path = ""):
 

@@ -378,7 +378,22 @@ require.config({
             var comp = $("padagraph-collection-filter", "#lexlinks")[0];
             comp.app = app;
             comp.graph = graph;
+
+            var map_position = {
+                "Co-polysemy" : 1,
+                "DefinitionalInclusion" : 2,
+                "LexicalFunction" : 3,
+                "FormalInclusion" : 4
+            };
             
+            comp.groups_sort = (a,b) => {
+                var position = function(e){
+                    return map_position[e.label];
+                }
+                return position(a) - position(b);
+            };
+            
+
         };
 
 
