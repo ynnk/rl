@@ -5,10 +5,12 @@
    margin-left: 2px;
    max-height: calc(100% - 24px);
    text-align:center;
+   
 }
 .meta {
    margin: 2 2 8 8px;
  }
+.edges a { cursor:pointer }
 .intersected.ui.popup {
    max-width: 520px;
    position: relative;
@@ -17,10 +19,7 @@
 .intersected h4 {
    margin: 2 2 8 8px;
 }
-.edges:last-child {
-   display:none;
-}
-   </style><template><div id="pdg-mouse-popup" hidden$="{{!is_visible}}"><div class="intersected ui popup visible"><template is="dom-if" if="{{ edges }}"><div class="edges"><template is="dom-repeat" items="{{ edges }}" as="edge"><rlf-vertex-xs id="source" model="[[edge.source]]"></rlf-vertex-xs><a on-click="select" class="edge"><i class="ellipsis horizontal icon"></i></a><rlf-vertex-xs id="target" model="[[edge.target]]"> </rlf-vertex-xs><div class="meta"> {{edge.label}}</div><div class="ui divider"></div></template></div></template></div></div></template><script>'use strict';
+   </style><template><div id="pdg-mouse-popup" hidden$="{{!is_visible}}"><div class="intersected ui message visible"><template is="dom-if" if="{{ edges }}"><div class="edges"><template is="dom-repeat" items="{{ edges }}" as="edge"><rlf-vertex-xs id="source" model="[[edge.source]]" over="intersect" clicked="select"></rlf-vertex-xs><a on-click="select" class="edge"><i class="ellipsis horizontal icon"></i></a><rlf-vertex-xs id="target" model="[[edge.target]]" over="intersect" clicked="select"> </rlf-vertex-xs><div class="meta"><rlf-edge-type model="{{edge.edgetype}}" family="true"></rlf-edge-type></div><div hidden$="[[computeSpanHidden(index)]]" class="ui divider"></div></template></div></template></div></div></template><script>'use strict';
 
 require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
   Polymer({
@@ -112,10 +111,49 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
           "value": obj.properties.get(e)
         };
       });
+    },
+
+    computeSpanHidden: function computeSpanHidden(index) {
+      return this.edges.length - 1 === index;
     }
 
   });
-});</script></dom-module><dom-module id="rlf-vertex-xs"><template><a class$="{{_compute_css(asLabel)}}" on-click="select" on-mouseover="intersect"><i style$="{{fontcolor}}" class="ui circle icon"></i><template is="dom-if" if="{{model.properties.attributes.prefix.length}}"><span class="normal-font">{{model.properties.attributes.prefix}} {{model.properties.attributes.form}}</span></template><template is="dom-if" if="{{!model.properties.attributes.prefix.length}}"><span class="normal-font">{{model.properties.attributes.vocable}}</span></template><template is="dom-if" if="{{model.properties.attributes.subscript}}"><span class="subscript-font">{{model.properties.attributes.subscript}}</span></template><template is="dom-if" if="{{model.properties.attributes.superscript}}"><span class="superscript-font">{{model.properties.attributes.superscript}}</span></template><template is="dom-if" if="{{model.properties.attributes.num}}"><span class="num-font">{{model.properties.attributes.num}}</span></template><!--| {{ model.label}}-->
+});</script></dom-module><dom-module id="rlf-edge-type"><style>.family {
+    font-weight: bold;
+    color: #333;
+}
+
+.edgetypelabel {
+    margin-left: 1em;
+}
+
+.inline {
+  display: inline;
+}
+</style><template><template is="dom-if" if="{{ family }}">         <div class="edgetypelabel"><span class="family normal-font">{{edgetype.family}} : </span><span class="family normal-font">{{edgetype.name}}</span><span class="subscript-font">{{edgetype.subscript}}</span><span class="superscript-font">{{edgetype.superscript}}</span><span class="combination-font">{{edgetype.combination}}</span></div></template><template is="dom-if" if="{{ !family }}"><div class="inline"><span class="family normal-font">{{edgetype.name}}</span><span class="subscript-font">{{edgetype.subscript}}</span><span class="superscript-font">{{edgetype.superscript}}</span><span class="combination-font">{{edgetype.combination}}</span></div></template></template><script>'use strict';
+
+require(['backbone', 'pdgconst'], function (Backbone, Const) {
+  Polymer({
+    is: "rlf-edge-type",
+    properties: {
+      model: {
+        type: Object
+      },
+      family: { type: Boolean, value: false }
+    },
+
+    observers: ["parse(model)"],
+
+    parse: function parse(model) {
+
+      if (!model) return;
+
+      this.edgetype = model.parse_label();
+    }
+
+  });
+});</script></dom-module><dom-module id="rlf-vertex-xs"><style>a { cursor: pointer; }
+</style><template><a class$="{{_compute_css(asLabel)}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><i style$="{{fontcolor}}" class="ui circle icon"></i><template is="dom-if" if="{{vertex.prefix.length}}"><span class="normal-font">{{vertex.prefix}} {{vertex.vocable}}</span></template><template is="dom-if" if="{{!model.prefix.length}}"><span class="normal-font">{{vertex.vocable}}</span></template><template is="dom-if" if="{{vertex.subscript}}"><span class="subscript-font">{{vertex.subscript}}</span></template><template is="dom-if" if="{{vertex.superscript}}"><span class="superscript-font">{{vertex.superscript}}</span></template><template is="dom-if" if="{{vertex.num}}"><span class="num-font">{{vertex.num}}</span></template><!--| {{ model.label}}-->
 </a></template><script>'use strict';
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {
@@ -129,7 +167,11 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
       asLabel: { type: Boolean, value: false },
 
-      fontcolor: { type: String }
+      fontcolor: { type: String },
+
+      over: String,
+      out: { type: String, value: "mouseout" },
+      clicked: String
     },
 
     ready: function ready() {
@@ -144,10 +186,10 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
       this._listener.stopListening();
 
       this._listener.listenTo(this.model, 'change', (function () {
-        _this.compute_properties();
+        _this.compute_properties(_this.model);
       }).bind(this));
 
-      this.compute_properties();
+      this.compute_properties(this.model);
     },
 
     //- computed properties
@@ -155,20 +197,58 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
       return asLabel ? "ui label" : "";
     },
 
-    compute_properties: function compute_properties() {
-      this.bgcolor = "background-color:rgb(" + (this.model ? this.model.color : [0, 0, 0]) + ")";
-      this.fontcolor = "color:rgb(" + (this.model ? this.model.color : [0, 0, 0]) + ")";
+    compute_properties: function compute_properties(model) {
+
+      if (!model) return;
+
+      if (model.properties) {
+        if (model.id) {
+          var vertex = ['prefix', 'num', 'vocable', 'subscript', 'superscript'].map(function (e) {
+            return [e, model.properties.get(e)];
+          });
+          this.vertex = _.object(vertex);
+        } else {
+          var vertex = ['prefix', 'num', 'vocable', 'subscript', 'superscript'].map(function (e) {
+            return [e, model.properties[e]];
+          });
+          this.vertex = _.object(vertex);
+        }
+      }
+
+      this.bgcolor = "background-color:rgb(" + (model.id ? model.color : [0, 0, 0]) + ")";
+      this.fontcolor = "color:rgb(" + (model.id ? model.color : [0, 0, 0]) + ")";
     },
 
-    //- actions
-
-    intersect: function intersect(event) {
-      Backbone.trigger('vertex:mouseover', this.model, event);
+    mouseout: function mouseout(event) {
+      this.do_action(this.out, event, this.model);
+    },
+    mouseover: function mouseover(event) {
+      this.do_action(this.over, event, this.model);
     },
 
-    select: function select(e) {
-      Backbone.trigger(Const.select_node, this.model);
+    mouseclicked: function mouseclicked(event) {
+      this.do_action(this.clicked, event, this.model);
+    },
+
+    do_action: function do_action(action, event, model) {
+
+      if (action == 'add') {
+        Backbone.trigger('engine:additive_nodes', [model.uuid]);
+      } else if (action == 'mouseout') {
+        if (model.id) Backbone.trigger('vertex:mouseout', model, event);
+      } else if (action == 'intersect') {
+        Backbone.trigger('vertex:mouseover', model, event);
+      } else if (action == 'select') {
+        Backbone.trigger('select_node', model);
+      } else if (action == 'explore') {
+        var params = { graph: this.model.graph.id, query: this.model.id };
+        Backbone.trigger('engine:explore', params);
+      } else if (action == 'expand') {
+        var params = { graph: this.model.graph.id, nodes: [this.model.id], weights: [] };
+        Backbone.trigger('engine:expand_prox', params);
+      }
     }
+
   });
 });</script></dom-module><dom-module id="rlf-vertex-gc"><style>.gc{
     font-weight: normal;
@@ -343,24 +423,192 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 });</script></dom-module><dom-module id="rlf-vertex-lf"><style>span.stdslf:after {
     content: ': ';
 }
-</style><template><h4>[LF]</h4><template is="dom-repeat" items="{{lfs}}"><div class="pop">{{item.pop_name}}</div><div class="lexical_function"></div><template is="dom-if" if="{{item.prefix}}"><div class="nstdlfc">{{item.prefix}}</div><div class="stdslf"></div></template></template></template><script>'use strict';
+</style><template><h4>[LF]</h4><div id="neighbourhood" class="item"><!--template(is="dom-repeat",items="[[by_nodetypes]]", as="item")//h4
+    //i.ui.square.outline.icon
+    //| {{item.neighbors.length}} {{item.nodetype.name}}
+
+//.content
+    //template(is="dom-repeat",items="[[item.neighbors]]" as="edge" )
+      //.truc()
+      
+        //padagraph-vertex-card-xl-edge(edge="{{edge}}")
+
+        //template(is="dom-if", if="{{edge.node.id}}")
+          //.card(style="display:inline;")
+            //rlf-vertex-xs( model="{{edge.node}}"  over="intersect" clicked="select")
+
+        //template(is="dom-if", if="{{!edge.node.id}}")
+            //rlf-vertex-xs( model="{{edge.node}}", clicked="add")
+--><template is="dom-repeat" items="[[by_edgetypes]]" as="item"><template is="dom-if" if="{{ item.neighbors.length }}"><div class="content"><rlf-edge-type model="{{item.edgetype}}"></rlf-edge-type><template is="dom-repeat" items="[[item.neighbors]]" as="edge"><!--padagraph-vertex-card-xl-edge(edge="{{edge}}")--><!--i(class="{{edge.icon}}") {{edge.relation}}--><template is="dom-if" if="{{edge.node.id}}"><rlf-vertex-xs model="{{edge.node}}" over="intersect" clicked="select" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{!edge.node.id}}"><rlf-vertex-xs model="{{edge.node}}" clicked="add" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{edge.model.properties.attributes.syntacticframe.length}}"><span class="target_synt_frame">[{{edge.model.properties.attributes.syntacticframe}}]</span></template><template is="dom-if" if="{{edge.model.properties.attributes.constraint.length}}"><span class="target_constraint">| {{edge.model.properties.attributes.constraint}}</span></template></template></div></template></template></div><template is="dom-repeat" items="{{lfs}}"><div class="pop">{{item.pop_name}}</div><div class="lexical_function"></div><template is="dom-if" if="{{item.prefix}}"><div class="nstdlfc">{{item.prefix}}</div><div class="stdslf"></div></template></template></template><script>'use strict';
+
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
-  Polymer({
-    is: "rlf-vertex-lf",
-    properties: {
-      model: {
-        type: Object,
-        observer: 'observe'
-      },
-      lfs: Object
-    },
+    Polymer({
+        is: "rlf-vertex-lf",
+        properties: {
+            model: {
+                type: Object,
+                observer: 'observe'
+            }
+        },
 
-    observe: function observe(model) {
-      this.lfs = model ? Object.values(JSON.parse(model.properties.get('lfs'))) : [];
-    }
+        observe: function observe(model) {
+            var _this = this;
 
-  });
+            //this.lfs = model ? Object.values(JSON.parse(model.properties.get('lfs'))) : []
+
+            if (!this._listener) {
+
+                this._listener = {};
+                _.extend(this._listener, Backbone.Events);
+            }
+
+            this._listener.stopListening();
+
+            if (!model) return;
+
+            var fetch = function fetch() {
+
+                var success = function success(data) {
+                    _this._update_neighbors(data);
+                };
+
+                if (model.graph) model.fetch_neighbors(success);
+            };
+
+            this._listener.listenTo(this.model.graph.vs, 'add', function () {
+                return fetch();
+            });
+
+            fetch();
+        },
+
+        _update_neighbors: function _update_neighbors(data) {
+
+            if (this.model == null || this.model.graph == null) return;
+
+            var neighbors = data.neighbors;
+            var nodetypes = _.chain(neighbors).map(function (d) {
+                return d[2].nodetype;
+            }).uniq().map(function (d) {
+                return [d, []];
+            }).object().value();
+
+            var edgetypes = _.chain(neighbors).map(function (d) {
+                return d[0].edgetype;
+            }).uniq().map(function (d) {
+                return [d, []];
+            }).object().value();
+
+            var graph = this.model.graph;
+            var vs = this.model.graph.vs;
+            var es = this.model.graph.es;
+
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = neighbors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var _step$value = _slicedToArray(_step.value, 3);
+
+                    var edge = _step$value[0];
+                    var relation = _step$value[1];
+                    var node = _step$value[2];
+
+                    var _node = vs.get(node.uuid) ? vs.get(node.uuid) : node;
+                    var _edge = es.get(edge.uuid) ? es.get(edge.uuid) : edge;
+
+                    //or 'resize horizontal icon' the day we have undirected links
+                    var direction_icon = relation == "IN" ? 'long arrow left icon' : 'long arrow right icon';
+
+                    var edgetype = graph.edgetypes.get(edge.edgetype);
+                    var nodetype = graph.nodetypes.get(node.nodetype);
+
+                    if (relation == "OUT") {
+
+                        nodetypes[nodetype.id].push({ 'edgetype': edgetype.name, // name
+                            'model': _edge, // bb model or dict
+                            'relation': relation, // str
+                            'node': _node, //- bb model or dict
+                            'icon': direction_icon
+                        });
+
+                        edgetypes[edgetype.id].push({ 'edgetype': edgetype.name, //name
+                            'model': _edge, // bb model or dict
+                            'relation': relation, // str
+                            'node': _node, //- bb model or dict
+                            'icon': direction_icon
+                        });
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator['return']) {
+                        _iterator['return']();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            this.by_nodetypes = _.chain(nodetypes).pairs().sortBy(function (_ref) {
+                var _ref2 = _slicedToArray(_ref, 2);
+
+                var k = _ref2[0];
+                var e = _ref2[1];
+                return e.length;
+            }).map(function (_ref3) {
+                var _ref32 = _slicedToArray(_ref3, 2);
+
+                var k = _ref32[0];
+                var e = _ref32[1];
+                return {
+                    nodetype: graph.nodetypes.get(k),
+                    neighbors: e
+                };
+            }).value();
+
+            var edgetype_filter = function edgetype_filter(e) {
+                return true;
+            };
+            edgetype_filter = function (e) {
+                return e.family == 'LexicalFunction';
+            };
+
+            var sort_neighors = function sort_neighors(a, b) {
+                var l = function l(e) {
+                    return parseInt(e.model.properties.get('position'));
+                };
+                return l(a) - l(b);
+            };
+            this.by_edgetypes = _.chain(edgetypes).pairs().sortBy(function (_ref4) {
+                var _ref42 = _slicedToArray(_ref4, 2);
+
+                var k = _ref42[0];
+                var e = _ref42[1];
+                return e.length;
+            }).reverse().map(function (_ref5) {
+                var _ref52 = _slicedToArray(_ref5, 2);
+
+                var k = _ref52[0];
+                var e = _ref52[1];
+                return {
+                    uuid: k,
+                    edgetype: graph.edgetypes.get(k),
+                    family: graph.edgetypes.get(k).parse_label()['family'],
+                    neighbors: e.sort(sort_neighors)
+                };
+            }).filter(edgetype_filter).value();
+        }
+
+    });
 });</script></dom-module><dom-module id="rlf-vertex-df"><style>.definiendum {
     margin-left: 15pt; */
     font-weight: normal;
@@ -443,7 +691,10 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
     text-align:left;
     padding:2px;
 }
-</style><template><template is="dom-if" if="model">           <div class="rlf"><p>entry {{ model.properties.attributes.rlfid }}</p><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex></div></template></template><script>   'use strict';
+.rlf a {
+    cursor:pointer;
+}
+</style><template><template is="dom-if" if="model">           <div class="rlf"><rlf-vertex-xs model="{{model}}" asLabel="true" clicked="explore"></rlf-vertex-xs><br/><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ model.id }}</a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex><div class="ui divider"> </div><rlf-vertex-loc model="{{model}}"></rlf-vertex-loc><div class="ui divider"> </div></div></template></template><script>   'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({
@@ -453,7 +704,15 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       model: {
         type: Object
       }
+    },
+    //observer: 'observeModel'
+    geturl: function geturl() {
+      return this.model ? this.model.url() : "";
+    },
+    expand: function expand() {
+      var graph = this.model.graph;
+      var params = { graph: graph.id, nodes: [this.model.id], weights: [] };
+      Backbone.trigger('engine:expand_prox', params);
     }
   });
-});
-//observer: 'observeModel'</script></dom-module>
+});</script></dom-module>

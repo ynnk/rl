@@ -4,6 +4,36 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
   
     var Models = {};
 
+    Models.EdgeType = Cello.EdgeType.extend({
+
+    parse_label: function(){
+
+            var label = this.label;
+            
+            var token = label.substring(label.indexOf('/') + 1);
+            var splitted_token = token.split("_");
+            
+            var e = {};
+            e.family = label.indexOf('/') >= 0 ? label.substring(0,label.indexOf('/')) : "";
+            e.name =  splitted_token[0].trim();
+            e.subscript = "";
+            e.superscript = "";
+            e.combination = "";
+
+            if (splitted_token.length > 1){
+                splitted_token = splitted_token[1].split("^");
+                if (splitted_token.length >= 1) e.subscript = splitted_token[0].trim();
+                if (splitted_token.length > 1) e.superscript = splitted_token[1].trim();
+            }
+
+            //if ( (index + 1) < label_combination.length )
+                //e.combination = "&";  
+
+            return e;
+        }
+
+    });
+    
     Models.Edge = App.Models.Edge.extend({
     
         initialize : function(attrs, options){
@@ -38,6 +68,25 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
                         this.remove_flag('form');
                     });
                 },
+
+                fetch_neighbors(success){
+
+                    var self = this;
+                    var url_root = this.url() ;
+
+                    $.ajax({
+                      url:`${url_root}/neighbors`,
+                      type:"POST",
+                      data:JSON.stringify({
+                              start:0
+                          }),
+                      contentType:"application/json; charset=utf-8",
+                      dataType:"json",
+                      success: success              
+                    })
+
+                },
+
                 
                 _format_label : function(){
             

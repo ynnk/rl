@@ -1994,6 +1994,8 @@ Cello.Vertices = Vertices;
 Cello.Vertex = Vertex;
 Cello.Edges = Edges;
 Cello.Edge = Edge;
+Cello.EdgeType = EdgeType;
+Cello.NodeType = NodeType;
 
 
 // Returns a random integer between min and max

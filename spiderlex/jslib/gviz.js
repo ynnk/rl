@@ -2162,7 +2162,7 @@ gviz.ThreeVizHelpers = {
                 _.each(text_lines[i], function (token){
                     var font = _this.node_materials[token.css].font;
                     font = get_font(font, viz.user_font_size)
-                    context.font = font
+                    context.font = font;
                     fontsize = _.max([fontsize, parseInt(/([0-9]*)px/.exec(font)[1])]);
                     text_width += context.measureText(token.form).width;
                 });
@@ -2219,7 +2219,7 @@ gviz.ThreeVizHelpers = {
 
                     //update of padding
                     var xi = x + paddingRelX;
-                    var yi = y + paddingY +  (i)*(  paddingRelY + (text_height | 0));
+                    var yi = y - paddingY - (i)*(  paddingRelY + (text_height | 0));
 
                     /* : TODO : text background */  
                     //maxX = Math.max(maxX, dimension.width + letter_width/2);

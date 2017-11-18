@@ -519,6 +519,8 @@ define([
 
                     var card = document.createElement("rlf-vertex-xs");
                     card.asLabel = true;
+                    card.over = "intersect";
+                    card.clicked = "select";
                     card.model = model;
                     
                     ln[0].appendChild(card);

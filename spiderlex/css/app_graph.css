@@ -522,13 +522,7 @@ span.combination-font:after{
     padding-left: 15px;
     padding-right: 15px;
 }
-/*#vz_mouse_position{
-    position:absolute;
-    height: 100%;
-    z-index: 2250;
-    content: "toto":
-}*/
-
+   
 #tomc{
     z-index: 2010;
 }
@@ -537,12 +531,10 @@ span.combination-font:after{
     text-align: center;
 }
 
-#edge_tooltip>div.edges>div.edge{
+#edge_tooltip>div.edges>div.edge {
     font-weight: bold;
     text-align: center;
 }
-
-
 
 
 #tooltip>div.edges>div.edge> a{

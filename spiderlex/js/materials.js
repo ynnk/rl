@@ -133,9 +133,9 @@
 
     {".num-font" : 
         {
-        "font" : "normal 8px sans",
+        "font" : "bold 8px Helvetica",        
         "fontFillStyle" : "#333", 
-        //"paddingRelY" : 0,
+        "paddingRelY" : 4,
         "paddingRelX" : 6,
         "fontStrokeWidth": 0.2
         }
