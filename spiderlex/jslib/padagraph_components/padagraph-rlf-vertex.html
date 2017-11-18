@@ -694,7 +694,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 .rlf a {
     cursor:pointer;
 }
-</style><template><template is="dom-if" if="model">           <div class="rlf"><rlf-vertex-xs model="{{model}}" asLabel="true" clicked="explore"></rlf-vertex-xs><br/><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ model.id }}</a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex><div class="ui divider"> </div><rlf-vertex-loc model="{{model}}"></rlf-vertex-loc><div class="ui divider"> </div></div></template></template><script>   'use strict';
+</style><template><template is="dom-if" if="model">           <div class="rlf"><rlf-vertex-xs model="{{model}}" asLabel="true" on-click="explore"></rlf-vertex-xs><br/><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ model.id }}</a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex><div class="ui divider"> </div><rlf-vertex-loc model="{{model}}"></rlf-vertex-loc><div class="ui divider"> </div></div></template></template><script>   'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({
@@ -713,6 +713,10 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       var graph = this.model.graph;
       var params = { graph: graph.id, nodes: [this.model.id], weights: [] };
       Backbone.trigger('engine:expand_prox', params);
+    },
+
+    explore: function explore() {
+      Backbone.trigger('explore', this.model);
     }
   });
 });</script></dom-module>

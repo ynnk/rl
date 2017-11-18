@@ -119,7 +119,21 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
                     }
                     
                     return formatted_label;
-                }
+                },
+
+                toString: function(){
+                    var str = [];
+                    //TODO: Cello.get !
+                    //TODO loop on graph, lang, pos
+                    str.push(this.properties.get("prefix") || "");
+                    str.push(this.properties.get("vocable"));
+                    str.push(this.properties.get("subscript")  || "");
+                    str.push(this.properties.get("superscript")  || "");
+                    str.push(this.properties.get("num")  || "");
+
+                    return str.join("*");
+                },
+                
             }) ;
 
     /* Query */

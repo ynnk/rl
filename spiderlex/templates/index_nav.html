@@ -135,21 +135,18 @@
                               <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
                               <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
                             </div>
-                                
 <!--
                             <padagraph-model-popup id="vpopup"></padagraph-model-popup>
 -->
                             <rlf-mouse-popup id="gvizpopup"></rlf-mouse-popup>
                           </padagraph-gviz>
-    
 
                 </div>
             </div>
             </div>
             
             <div id="footer" class="ui center aligned attached top segment">
-                Données <a href='http://www.atilf.fr/spip.php?article908' class="ui teal">Projet Relief</a> 
-                Réalisation  2017 
+
             </div>
             
         </div>
@@ -415,6 +412,12 @@ require.config({
                 
 
                 app.start(graph, app.engines.explore);
+
+                app.listenTo(Backbone, "explore", function(model){
+
+                    app.navigate_to_label(model.toString());
+                    
+                });
                 
                 app.listenTo(app.views.userquery, "submited", function(){
                     console.log(" === submited", arguments);
