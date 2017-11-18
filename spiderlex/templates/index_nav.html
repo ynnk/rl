@@ -102,7 +102,7 @@
                 <div class='vz-tab-content'>
                     <div class="ui tab subitem" data-tab="tab-lexlinks">
                         <div id='lexlinks'>
-                            <padagraph-collection-filter id='lexlinksfilter' mode="edge" asmenu="asmenu" asitem="asitem" filters="types"></padagraph-collection-filter>
+                            <rlf-lexfunc-filter id='lexlinksfilter' mode="edge" asitem="asitem" filters="types"   ></rlf-lexfunc-filter>
                         </div>
                     </div>
                     <div class="ui tab subitem" data-tab="tab-clusters">
@@ -375,7 +375,7 @@ require.config({
             var gviz = viz.gviz;
             app.gviz = viz.gviz;
             
-            var comp = $("padagraph-collection-filter", "#lexlinks")[0];
+            var comp = $("rlf-lexfunc-filter", "#lexlinks")[0];
             comp.app = app;
             comp.graph = graph;
 
@@ -410,7 +410,7 @@ require.config({
                 });
                 app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
                     app.engine_play_completed(response, args, state)
-                    $("padagraph-collection-filter").each( function(i,e) {
+                    $("rlf-lexfunc-filter").each( function(i,e) {
                             if ( e.graph && e.reset_filters ) e.reset_filters();
                     });
 
@@ -418,7 +418,7 @@ require.config({
 
                 
                 app.listenTo(app.engines.additive_nodes, 'play:success', function(response, args, state) {
-                    $("padagraph-collection-filter").each(
+                    $("rlf-lexfunc-filter").each(
                     function(i,e) {
                         if (e.graph) e.reset_filters();
                     });                    

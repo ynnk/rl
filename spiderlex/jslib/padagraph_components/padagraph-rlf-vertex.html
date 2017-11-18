@@ -1,4 +1,392 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="rlf-mouse-popup"><style>#pdg-mouse-popup {
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="rlf-lexfunc-filter"><style>.menu .form {padding:6px}
+
+.ui.typefilter.checkbox {
+    margin-left: 12px;
+}
+.ui.groupfilter.checkbox {
+    margin-top: 12px;
+}
+</style><template><div class="ui vertical menu"><template is="dom-if" if="{{ filter_visible(filters, 'all') }}"> <div on-click="reset_filters" class="link item">All</div></template><template is="dom-if" if="[[ filter_visible(filters,'selected') ]]"> <div on-click="set_selected_label" class="item"><padagraph-vertex-card-xs model="[[selected_node]]"></padagraph-vertex-card-xs></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'label') }}"> <template is="dom-if" if="{{ filter_visible(filters,'headers') }}"> <h4 class="ui header">Label</h4></template><div class="ui form"><div style="margin: 0 1em 0.3em 0em;" class="field"><div class="ui small icon input"><i class="search icon"></i><input type="text" placeholder="Label filter" value="{{filter_label::input}}"/></div></div><template is="dom-if" if="{{is_mode_node}}"> <div class="field"><div class="ui labelfilter checkbox"><input type="checkbox" on-click="click_filter_label_chk"/><label>include neighbors</label></div></div></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'types') }}"> <template is="dom-if" if="{{ filter_visible('headers') }}"><h4 class="ui header">Types</h4></template><div class="ui form groups"><template is="dom-repeat" items="{{filter_groups}}" as="group"><div class="field"><div class="ui groupfilter checkbox"><input id="chkgroup{{group.label}}" on-click="set_group_filter" type="checkbox" checked="checked"/><label for$="chkgroup{{group.label}}">{{group.label}} ({{group.count}}) </label></div></div><template is="dom-repeat" items="{{group.items}}" as="item"><div class="field"><div class="ui typefilter checkbox"><input id="type{{item.label}}" on-click="set_type_filter" type="checkbox" checked="checked"/><label for$="type{{item.label}}"><rlf-edge-type model="{{item.model}}"></rlf-edge-type><div class="ui tiny basic label">{{item.count}}</div></label></div></div></template></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'headers') }}"> <h4 class="ui header">Layout</h4></template><template is="dom-if" if="{{ filter_visible(filters,'layout') }}"> <div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></template><div class="divider"></div><h4 class="ui header">Layout</h4><div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></div></template><script>'use strict';
+
+require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
+
+    Polymer({
+        is: "rlf-lexfunc-filter",
+
+        properties: {
+            app: Object,
+            graph: Object,
+            mode: {
+                type: String, value: 'node' }, // [edge, node]
+
+            asitem: { type: Boolean, value: false },
+            aslabel: { type: Boolean, value: false },
+
+            //- autocompute layout
+            autocompute: { type: Boolean, value: false },
+
+            /* privates */
+            elements: {
+                type: Array, value: function value() {
+                    return [];
+                } },
+
+            filters: String,
+
+            filter_groups: {
+                type: Array, value: null },
+            filter_types: {
+                type: Array, value: null },
+            filter_label: {
+                type: String, value: "" },
+            filter_label_chk: {
+                type: Boolean, value: false },
+            filtered_count: {
+                type: String
+            },
+
+            groups_sort: Object
+        },
+
+        observers: ['setGraphModel(app, graph)', 'apply_filters(elements, filter_groups, filter_label, filter_label_chk)'],
+
+        button_class: function button_class(css, asitem, aslabel) {
+            return css + " " + (this.asitem ? "item" : this.aslabel ? "label" : "");
+        },
+
+        created: function created() {
+            this._listener = {};
+            _.extend(this._listener, Backbone.Events);
+        },
+
+        setGraphModel: function setGraphModel(app, graph) {
+
+            if (!app || !graph) return;
+
+            $('.dropdown', this).dropdown();
+            this.collection = null;
+            this.types = null;
+            this.is_mode_edge = this.mode == "edge";
+            this.is_mode_node = this.mode == "node";
+
+            this.remove_all();
+
+            if (this.is_mode_node) {
+                this.collection = this.graph.vs;
+                this.types = this.graph.nodetypes;
+            } else if (this.is_mode_edge) {
+                this.collection = this.graph.es;
+                this.types = this.graph.edgetypes;
+            }
+
+            this._listener.stopListening();
+
+            this._listener.listenTo(this.collection, 'add', this.push_node.bind(this));
+            this._listener.listenTo(this.collection, 'remove', this.pop_node.bind(this));
+            this._listener.listenTo(this.collection, 'reset', this.remove_all.bind(this));
+
+            this._listener.listenTo(this.collection, 'addflag:selected', this.add_selected.bind(this));
+            this._listener.listenTo(this.collection, 'rmflag:selected', this.rm_selected.bind(this));
+
+            this._listener.listenTo(this.collection, 'filter:changed', this.filter_count.bind(this));
+            if (this.is_mode_edge) {
+                this._listener.listenTo(this.graph.vs, 'filter:changed', this.filter_count.bind(this));
+            }
+
+            //this._listener.listenTo(this.types, 'add', this.reset_filters.bind(this));
+            //setTimeout( () => {this.reset_filters()}, 1000 );
+        },
+
+        reset_filters: function reset_filters() {
+
+            this.set_type_filters();
+
+            $('.typefilter.checkbox input', this).each(function (e, x) {
+                x.checked = true;
+            });
+            $('.groupfilter.checkbox input', this).each(function (e, x) {
+                x.checked = true;
+            });
+            $('.labelfilter.checkbox input', this).each(function (e, x) {
+                x.checked = false;
+            });
+
+            _.each(this.filter_groups, function (e, i) {
+                e.selected = true;
+            });
+
+            _.each(this.filter_types, function (e, i) {
+                e.selected = true;
+            });
+
+            this.filter_label_chk = false;
+            this.filter_label = "";
+        },
+
+        filter_visible: function filter_visible(filters, filter) {
+
+            var f = this.filters ? this.filters.split(" ") : [];
+            var visible = f.length == 0 || f.indexOf(filter) > -1;
+            return visible;
+        },
+
+        set_type_filters: function set_type_filters() {
+            var types = this.mode == "node" ? this.graph.nodetypes : this.graph.edgetypes;
+            var collection = this.mode == "node" ? this.graph.vs : this.graph.es;
+
+            var ls = _.map(types.models, function (e) {
+                var filter = function filter(m) {
+                    return e.get('uuid') == m.type.get('uuid');
+                };
+                var count = collection.filter(filter).length;
+
+                var group = e.label.indexOf('/') > 0 ? e.label.substr(0, e.label.indexOf('/')) : "*";
+                var name = e.label.substr(e.label.indexOf('/') + 1);
+
+                return { group: group, name: name, label: e.label, selected: true, count: count, model: e };
+            });
+
+            var fs = _.filter(ls, function (e) {
+                return e.count > 0;
+            });
+
+            var groups = _.groupBy(fs, function (e) {
+                return e.group;
+            });
+            groups = _.map(groups, function (v, k) {
+                var count = _.reduce(v, function (memo, e) {
+                    return memo + e.count;
+                }, 0);
+                return { label: k, selected: true, items: v, count: count };
+            });
+            if (this.groups_sort) groups.sort(this.groups_sort);
+
+            this.filter_groups = groups;
+        },
+
+        set_group_filter: function set_group_filter(filter) {
+            if (filter.model) {
+                var group = this;
+                filter.model.group.selected = !filter.model.group.selected;
+                _.each(filter.model.group.items, function (e) {
+                    e.selected = filter.model.group.selected;
+                    document.getElementById("type" + e.label).checked = e.selected;
+                });
+
+                var array = this.filter_groups;
+                this.filter_groups = [];
+                this.filter_groups = array;
+            } else {
+                // match all collection models
+                this.reset_filters();
+            }
+        },
+
+        set_type_filter: function set_type_filter(filter) {
+            if (filter && filter.model) {
+                var item = filter.model.item;
+                item.selected = !item.selected;
+
+                _.each(this.filter_groups, function (e, i) {
+                    if (e.label == item.group) {
+                        e.selected = true;
+                        document.getElementById("chkgroup" + e.label).checked = true;
+                    }
+                });
+
+                var array = this.filter_groups;
+                this.filter_groups = [];
+                this.filter_groups = array;
+            } else {
+                // match all collection models
+                this.reset_filters();
+            }
+        },
+
+        set_selected_label: function set_selected_label() {
+            if (this.selected_node) {
+                $('.labelfilter.checkbox input', this).each(function (e, x) {
+                    x.checked = true;
+                });
+                $('.groupfilter.checkbox input', this).each(function (e, x) {
+                    x.checked = true;
+                });
+                $('.typefilter.checkbox input', this).each(function (e, x) {
+                    x.checked = true;
+                });
+                this.filter_label_chk = true;
+                this.filter_label = this.selected_node.label;
+            }
+        },
+
+        add_selected: function add_selected(model) {
+            this.selected_node = model;
+        },
+
+        rm_selected: function rm_selected(model) {
+            this.selected_node = null;
+        },
+
+        click_filter_label_chk: function click_filter_label_chk() {
+            var chk = $('.labelfilter.checkbox input', this)[0];
+            this.filter_label_chk = chk.checked;
+        },
+
+        update_filtering: function update_filtering() {
+            this.apply_filters(this.elements, this.filter_types, this.filter_label, this.filter_label_chk);
+        },
+
+        apply_filters: function apply_filters(elements, groups, label, _chk) {
+            var _this = this;
+
+            if (!groups || !groups.length) return;
+
+            $(".filter.icon", this).toggleClass('red');
+            $(".filter.icon", this).toggleClass('loading');
+
+            _.each(groups, function (g, i) {
+                _.each(g.items, function (e, j) {
+                    var filter = _this.filtered([{ label: e.label, selected: true }], label);
+                    e.count = elements.filter(filter).length;
+                    //this.notifyPath('filter_types.'+i+'.count' )
+                    _this.notifyPath('filter_groups.' + i + '.items.' + j + '.count');
+                });
+                g.count = _.reduce(g.items, function (memo, e) {
+                    return memo + e.count;
+                }, 0);
+                _this.notifyPath('filter_groups.' + i + '.count');
+            });
+
+            var types = _.flatten(_.map(groups, function (e) {
+                return e.items;
+            }));
+            var filter = this.filtered(types, label);
+            var filter_inv = function filter_inv(e) {
+                return !filter(e);
+            };
+            var disabled = this.collection.models.filter(filter_inv);
+
+            if (this.is_mode_node) {
+
+                var vs = this.collection;
+                vs.add_flag("disabled", disabled, true);
+                vs.trigger('filter:changed');
+
+                var es = this.collection.graph.es;
+                var filter_edge = function filter_edge(e) {
+                    return e.source.has_flag('disabled') || e.target.has_flag('disabled');
+                };
+                var disabled_edges = es.models.filter(filter_edge);
+                es.add_flag("disabled-by-nodes", disabled_edges, true, { silent: true });
+
+                var disabled_edges = _.union(disabled_edges, es.by_flag("disabled-by-edges"));
+
+                es.add_flag("disabled", disabled_edges, true);
+                es.trigger("filter:changed");
+            }
+
+            if (this.is_mode_edge) {
+
+                var es = this.collection;
+                es.add_flag("disabled-by-edges", disabled, true, { silent: true });
+                var by_nodes = es.by_flag("disabled-by-nodes");
+
+                var disabled = _.union(disabled, by_nodes);
+                es.add_flag("disabled", disabled, true);
+                es.trigger("filter:changed");
+            }
+            $(".filter.icon", this).toggleClass('red');
+            $(".filter.icon", this).toggleClass('loading');
+
+            if (this.autocompute) this.update_layout();
+        },
+
+        filter_count: function filter_count() {
+            var disabled = this.collection.by_flag("disabled");
+            this.filtered_count = this.collection.length - disabled.length;
+        },
+
+        filtered: function filtered(types, pattern) {
+            var mode = this.mode;
+            var selected = _.filter(types, function (e) {
+                return e.selected;
+            });
+            var chk_neighbors = this.filter_label_chk;
+
+            return function (item) {
+
+                var matchpattern = true;
+                var matchtype = true;
+
+                if (pattern && pattern != "") {
+                    var label = item.label.toLowerCase();
+                    pattern = pattern.toLowerCase();
+
+                    matchpattern = label.match(pattern);
+                    if (mode == "node" && chk_neighbors && !matchpattern && item.neighbors) {
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = item.neighbors()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var e = _step.value;
+
+                                label = e.label.toLowerCase();
+                                matchpattern = label.match(pattern);
+                                if (matchpattern) break;
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator['return']) {
+                                    _iterator['return']();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                matchtype = matchtype & _.filter(selected, function (e) {
+
+                    var label = null;
+                    if (mode == "node") label = item.nodetype.label;
+                    if (mode == "edge") label = item.edgetype.label;
+                    return label == e.label;
+                }).length;
+
+                return matchtype && matchpattern;
+            };
+        },
+
+        update_layout: function update_layout() {
+            this.app.trigger('engine:auto_compute');
+        },
+
+        push_node: function push_node(el) {
+
+            if (!el) return;
+            if (this.mode == "edge" && el.is_loop()) return;
+
+            this.push("elements", el);
+        },
+
+        pop_node: function pop_node(el) {
+            this.arrayDelete("elements", el);
+        },
+
+        remove_all: function remove_all() {
+            this.splice("elements", 0, this.elements.length);
+        }
+
+    });
+});</script></dom-module><dom-module id="rlf-mouse-popup"><style>#pdg-mouse-popup {
    max-width: 600px;
    position: fixed;
    padding: 0 2 4 4px;
@@ -130,7 +518,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 .inline {
   display: inline;
 }
-</style><template><template is="dom-if" if="{{ family }}">         <div class="edgetypelabel"><span class="family normal-font">{{edgetype.family}} : </span><span class="family normal-font">{{edgetype.name}}</span><span class="subscript-font">{{edgetype.subscript}}</span><span class="superscript-font">{{edgetype.superscript}}</span><span class="combination-font">{{edgetype.combination}}</span></div></template><template is="dom-if" if="{{ !family }}"><div class="inline"><span class="family normal-font">{{edgetype.name}}</span><span class="subscript-font">{{edgetype.subscript}}</span><span class="superscript-font">{{edgetype.superscript}}</span><span class="combination-font">{{edgetype.combination}}</span></div></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{ family }}">         <div class="edgetypelabel"><span class="family normal-font">{{edgetype.family}} :</span><span class="family normal-font">{{edgetype.name}}</span><span class="subscript-font">{{edgetype.subscript}}</span><span class="superscript-font">{{edgetype.superscript}}</span><span class="combination-font">{{edgetype.combination}}</span></div></template><template is="dom-if" if="{{ !family }}"><div class="inline"><span class="family normal-font">{{edgetype.name}}</span><span class="subscript-font">{{edgetype.subscript}}</span><span class="superscript-font">{{edgetype.superscript}}</span><span class="combination-font">{{edgetype.combination}}</span></div></template></template><script>'use strict';
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {
   Polymer({
@@ -582,9 +970,9 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
                 return e.family == 'LexicalFunction';
             };
 
-            var sort_neighors = function sort_neighors(a, b) {
+            var sort_neighbors = function sort_neighbors(a, b) {
                 var l = function l(e) {
-                    return parseInt(e.model.properties.get('position'));
+                    return parseInt(e.model.properties.position);
                 };
                 return l(a) - l(b);
             };
@@ -613,7 +1001,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
                     uuid: k,
                     edgetype: graph.edgetypes.get(k),
                     family: family,
-                    neighbors: e.sort(sort_neighors),
+                    neighbors: e.sort(sort_neighbors),
                     position: map_position[family]
                 };
             }).filter(edgetype_filter).sort(function (a, b) {
@@ -707,7 +1095,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 .rlf a {
     cursor:pointer;
 }
-</style><template><template is="dom-if" if="model">           <div class="rlf"><rlf-vertex-xs model="{{model}}" asLabel="true" on-click="explore"></rlf-vertex-xs><br/><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ model.id }}</a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex><div class="ui divider"> </div><rlf-vertex-loc model="{{model}}"></rlf-vertex-loc><div class="ui divider"> </div></div></template></template><script>   'use strict';
+</style><template><template is="dom-if" if="model">           <div class="rlf"><rlf-vertex-xs model="{{model}}" asLabel="true" on-click="explore"></rlf-vertex-xs><br/><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ model.id }}</a><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex><div class="ui divider"> </div><rlf-vertex-loc model="{{model}}"></rlf-vertex-loc><div class="ui divider"> </div></div></template></template><script>   'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({

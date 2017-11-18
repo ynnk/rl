@@ -187,13 +187,15 @@ class Parser(object):
         for e in entries.values() : e.pop('id')
 
 
-        def as_token(nid):
+        def as_token(nid, other):
+            
             node = nodes.get(nid, None)
             if node:
                 keys =  [ "id","num", "prefix", "subscript", "superscript", "vocable"]
                 values =  [ node[k] for k in keys ]
                 return dict(zip(keys, values))
-
+            else:
+                print "as token missing %s" % nid, other
             return None
             
         
@@ -278,7 +280,7 @@ class Parser(object):
             # LN Locutions nominales, prepositionnelles, phrases
             else :
                 node['locutions'].append( { 'locution_gc' : {
-                    'locution_tokens' : [ as_token(e) for e in embededlex[1:-1].split(',')  ],
+                    'locution_tokens' : [ as_token(e, r) for e in embededlex[1:-1].split(',')  ],
                     'name' : pos[POS]['name'],
                     'type' : pos[POS]['type']
                 }})
@@ -361,6 +363,8 @@ class Parser(object):
             example.update({ 'occurrences': occurrences,
                              'position'   : po })
             node['examples'].append( example )
+
+        
 
 
         # POST Nodes vertex
@@ -604,7 +608,8 @@ def parse(gid, path, sqldb, backend, host, key):
 
     parser.info("  %s " % bot.get_schema(gid))
 
-    complete("peur")
-    
+    db = sqlite3.connect(sqldb)
+    complete("peur", db)
+    db.close()
 if __name__ == '__main__':
     sys.exit(main())

@@ -22,6 +22,10 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
             asitem: { type: Boolean, value: false },
             aslabel: { type: Boolean, value: false },
             asmenu: { type: Boolean, value: false },
+
+            //- autocompute layout
+            autocompute: { type: Boolean, value: false },
+
             /* privates */
             elements: {
                 type: Array, value: function value() {
@@ -140,7 +144,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
                 var group = e.label.indexOf('/') > 0 ? e.label.substr(0, e.label.indexOf('/')) : "*";
                 var name = e.label.substr(e.label.indexOf('/') + 1);
 
-                return { group: group, name: name, label: e.label, selected: true, count: count };
+                return { group: group, name: name, label: e.label, selected: true, count: count, model: e };
             });
 
             var fs = _.filter(ls, function (e) {
@@ -294,6 +298,8 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
             }
             $(".filter.icon", this).toggleClass('red');
             $(".filter.icon", this).toggleClass('loading');
+
+            if (this.autocompute) this.update_layout();
         },
 
         filter_count: function filter_count() {
