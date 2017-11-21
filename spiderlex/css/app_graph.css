@@ -510,36 +510,12 @@ span.combination-font:after{
 }
 
 /*tooltip */
-#edge_tooltip{
-    position:absolute;
-    top: 0;
-    left:0;
-    background-color : #FFF;
-    z-index: 950;
-    text-align: left;
-    border: 1px solid white;
-    border-radius: 6px;
-    padding-left: 15px;
-    padding-right: 15px;
+#pdg-mouse-popup {
+    margin-left: 12px;
 }
-   
+
 #tomc{
     z-index: 2010;
-}
-
-#edge_tooltip>div.edges{
-    text-align: center;
-}
-
-#edge_tooltip>div.edges>div.edge {
-    font-weight: bold;
-    text-align: center;
-}
-
-
-#tooltip>div.edges>div.edge> a{
-    font-weight: bold;
-    color: black;
 }
 
 

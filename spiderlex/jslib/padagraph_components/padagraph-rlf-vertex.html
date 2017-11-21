@@ -390,7 +390,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
    max-width: 600px;
    position: fixed;
    padding: 0 2 4 4px;
-   margin-left: 2px;
+   margin-left: 12px;
    max-height: calc(100% - 24px);
    text-align:center;
    
@@ -1023,7 +1023,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
     color: black;
     font-weight: bold;
 }
-</style><template><h4>[DF]</h4><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
+</style><template><h4>[DF]</h4><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><div id="defhtml" class="definiendum"></div><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({
@@ -1070,6 +1070,8 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       this.df = df;
       this.left_pf_form = left_pf_form;
       this.right_pf_form = right_pf_form;
+
+      this.$.defhtml.innerHTML = df.html ? "<div class='ui hidden divider'></div>" + df.html : "";
     }
 
   });
