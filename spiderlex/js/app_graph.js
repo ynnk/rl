@@ -594,7 +594,7 @@ define([
             var app = this;
 
             // initialise the app it self
-            app.create_models();&
+            app.create_models();
             app._add_to_global();
  
             // create views
