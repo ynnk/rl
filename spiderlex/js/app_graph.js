@@ -594,7 +594,7 @@ define([
             var app = this;
 
             // initialise the app it self
-            app.create_models();
+            app.create_models();&
             app._add_to_global();
  
             // create views
@@ -602,8 +602,6 @@ define([
             app.views.keb.install_on_body({});
             app.create_results_views();
 
-            // bind the engine
-            // Router
         },
         
         set_routes: function(){
