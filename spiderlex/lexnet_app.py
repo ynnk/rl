@@ -17,9 +17,12 @@ import sqlite3
 # Build the app & 
 app = Flask(__name__)
 app.debug = os.environ.get('APP_DEBUG', None) == "true"
-logger = get_basic_logger(logging.DEBUG)
+PRODUCTION = os.environ.get('PRODUCTION', None)
 
+print "PRODUCTION", PRODUCTION
 print "debug ", app.debug, os.environ.get('APP_DEBUG', None)
+
+logger = get_basic_logger(logging.DEBUG)
 
 from flask_cors import CORS
 CORS(app)
@@ -29,12 +32,25 @@ app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET
 
 
 CONFIG = { 'fr' :{ 
-            #'db' : '../testdbfr.sqlite'}
-            'db' : '../completedb_fr.sqlite' }
+           'db' : '../completedb_fr.sqlite'}
          }
-    
+
 LANGS = tuple([ lang for lang,v in CONFIG.items()])
 
+
+CLIENT_CONF =  {
+    'sync': "http://localhost:5002/static/rlfr.json",
+    'routes' : "http://localhost:5000/engines",
+    'urlRoot': "http://localhost:5000/graphs/g/",
+}
+
+if PRODUCTION:
+    CLIENT_CONF =  {
+        'routes': "http://padagraph.io/engines", 
+        'sync': "http://padagraph.io/graphs/g/rlfr",
+        'urlRoot': "http://padagraph.io/graphs/g/",
+    }
+    
 
 def get_db(lang):
     if lang not in CONFIG:
@@ -69,7 +85,12 @@ def complete(lang, text=None):
     db = get_db(lang)
     name = request.form.get('name', text)
     # uuid, entry, name, lexnum as num , prefix, subscript, superscript
-    array = rllib.complete(name, db)
+
+    if name.startswith('#'):
+        array = rllib.complete_id(name[1:], db )
+    else :
+        array = rllib.complete(name, db)
+
     buff = ""
     for c in array:
         filters = [ c.get(k, None) not in ('', None) for k in ("num", "subscript", "superscript") ]
@@ -108,11 +129,14 @@ def complete_uuids(lang, text=None):
     entries = text.split(";")
     complete = []
     for e in entries:
-        k = ['prefix', 'name', 'subscript', 'superscript', 'num']
-        v = e.split("*") + ([''] * 5)
-        d = dict(zip(k,v[:len(k)]))
-        d = rllib.complete_uuids(d, db, limit=30 )
-        if d : complete.extend(d)
+        if e.startswith('#'):
+            complete = rllib.complete_id(e[1:], db )
+        else :
+            k = ['prefix', 'name', 'subscript', 'superscript', 'num']
+            v = e.split("*") + ([''] * 5)
+            d = dict(zip(k,v[:len(k)]))
+            d = rllib.complete_uuids(d, db, limit=30 )
+            if d : complete.extend(d)
         
     return jsonify(
         { 'results': {
@@ -138,26 +162,17 @@ def app_graph(lang, query=None, path = ""):
         abort(404)
 
     args = request.args
+
     return render_template(
         'index_nav.html',
         polymer_path = "%s/static/padagraph_components" % path,
-        debug= True, # app.debug,
+        debug=  app.debug,
         lang = lang,
         data= "",
-        gid = "rlfr",
 
+        gid = "rl%s" % lang,
         root_url = url_for("index"),
-        
         complete_url = "/%s/complete" % lang,
-        routes= "http://padagraph.io/engines", 
-        sync= "http://padagraph.io/graphs/g/rlfr",
-        urlRoot= "http://padagraph.io/graphs/g/",
-        
-        #complete_url = "/%s/complete" % lang , 
-        #sync= "http://localhost:5002/static/rlfr.json",
-        #routes= "http://localhost:5000/engines",
-        #urlRoot= "http://localhost:5000/graphs/g/",
-        
         query=query,
 
         options = json.dumps({
@@ -184,7 +199,10 @@ def app_graph(lang, query=None, path = ""):
             'adaptive_zoom': 1,
             'use_material_transitions': True,
             'raycaster_precision' : 4
-        })
+        }),
+        
+        ** CLIENT_CONF
+        
         )
 
 def main():

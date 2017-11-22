@@ -6,7 +6,7 @@
 .ui.groupfilter.checkbox {
     margin-top: 12px;
 }
-</style><template><div class="ui vertical menu"><template is="dom-if" if="{{ filter_visible(filters, 'all') }}"> <div on-click="reset_filters" class="link item">All</div></template><template is="dom-if" if="[[ filter_visible(filters,'selected') ]]"> <div on-click="set_selected_label" class="item"><padagraph-vertex-card-xs model="[[selected_node]]"></padagraph-vertex-card-xs></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'label') }}"> <template is="dom-if" if="{{ filter_visible(filters,'headers') }}"> <h4 class="ui header">Label</h4></template><div class="ui form"><div style="margin: 0 1em 0.3em 0em;" class="field"><div class="ui small icon input"><i class="search icon"></i><input type="text" placeholder="Label filter" value="{{filter_label::input}}"/></div></div><template is="dom-if" if="{{is_mode_node}}"> <div class="field"><div class="ui labelfilter checkbox"><input type="checkbox" on-click="click_filter_label_chk"/><label>include neighbors</label></div></div></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'types') }}"> <template is="dom-if" if="{{ filter_visible('headers') }}"><h4 class="ui header">Types</h4></template><div class="ui form groups"><template is="dom-repeat" items="{{filter_groups}}" as="group"><div class="field"><div class="ui groupfilter checkbox"><input id="chkgroup{{group.label}}" on-click="set_group_filter" type="checkbox" checked="checked"/><label for$="chkgroup{{group.label}}">{{group.label}} ({{group.count}}) </label></div></div><template is="dom-repeat" items="{{group.items}}" as="item"><div class="field"><div class="ui typefilter checkbox"><input id="type{{item.label}}" on-click="set_type_filter" type="checkbox" checked="checked"/><label for$="type{{item.label}}"><rlf-edge-type model="{{item.model}}"></rlf-edge-type><div class="ui tiny basic label">{{item.count}}</div></label></div></div></template></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'headers') }}"> <h4 class="ui header">Layout</h4></template><template is="dom-if" if="{{ filter_visible(filters,'layout') }}"> <div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></template><div class="divider"></div><h4 class="ui header">Layout</h4><div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></div></template><script>'use strict';
+</style><template><div class="ui vertical menu">       <template is="dom-if" if="{{ filter_visible(filters, 'all') }}"> <div on-click="reset_filters" class="link item">All</div></template><template is="dom-if" if="[[ filter_visible(filters,'selected') ]]"> <div on-click="set_selected_label" class="item"><padagraph-vertex-card-xs model="[[selected_node]]"></padagraph-vertex-card-xs></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'label') }}"> <template is="dom-if" if="{{ filter_visible(filters,'headers') }}"> <h4 class="ui header">Label</h4></template><div class="ui form"><div style="margin: 0 1em 0.3em 0em;" class="field"><div class="ui small icon input"><i class="search icon"></i><input type="text" placeholder="Label filter" value="{{filter_label::input}}"/></div></div><template is="dom-if" if="{{is_mode_node}}"> <div class="field"><div class="ui labelfilter checkbox"><input type="checkbox" on-click="click_filter_label_chk"/><label>include neighbors</label></div></div></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'types') }}"> <template is="dom-if" if="{{ filter_visible('headers') }}"><h4 class="ui header">Types</h4></template><div class="ui form groups"><template is="dom-repeat" items="{{filter_groups}}" as="group"><div class="field"><div class="ui groupfilter checkbox"><input id="chkgroup{{group.label}}" on-click="set_group_filter" type="checkbox" checked="checked"/><label for$="chkgroup{{group.label}}">{{group.label}} ({{group.count}}) </label></div></div><template is="dom-repeat" items="{{group.items}}" as="item"><div class="field"><div class="ui typefilter checkbox"><input id="type{{item.label}}" on-click="set_type_filter" type="checkbox" checked="checked"/><label for$="type{{item.label}}"><rlf-edge-type model="{{item.model}}"></rlf-edge-type><div class="ui tiny basic label">{{item.count}}</div></label></div></div></template></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible(filters,'headers') }}"> <h4 class="ui header">Layout</h4></template><template is="dom-if" if="{{ filter_visible(filters,'layout') }}"> <div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></template></div></template><script>'use strict';
 
 require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
 
@@ -257,6 +257,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
                 _this.notifyPath('filter_groups.' + i + '.count');
             });
 
+            var graph = this.collection.graph;
             var types = _.flatten(_.map(groups, function (e) {
                 return e.items;
             }));
@@ -276,24 +277,39 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
                 var filter_edge = function filter_edge(e) {
                     return e.source.has_flag('disabled') || e.target.has_flag('disabled');
                 };
-                var disabled_edges = es.models.filter(filter_edge);
-                es.add_flag("disabled-by-nodes", disabled_edges, true, { silent: true });
 
-                var disabled_edges = _.union(disabled_edges, es.by_flag("disabled-by-edges"));
+                es.add_flag("disabled-by-nodes", es.models.filter(filter_edge), true, { silent: true });
 
-                es.add_flag("disabled", disabled_edges, true);
+                disabled = _.union(es.by_flag("disabled-by-edges"), es.by_flag("disabled-by-nodes"));
+
+                es.add_flag("disabled", disabled, true);
                 es.trigger("filter:changed");
-            }
-
-            if (this.is_mode_edge) {
+            } else if (this.is_mode_edge) {
 
                 var es = this.collection;
                 es.add_flag("disabled-by-edges", disabled, true, { silent: true });
                 var by_nodes = es.by_flag("disabled-by-nodes");
 
-                var disabled = _.union(disabled, by_nodes);
-                es.add_flag("disabled", disabled, true);
-                es.trigger("filter:changed");
+                disabled = _.union(disabled, by_nodes);
+                graph.es.add_flag("disabled", disabled, true);
+                graph.es.trigger("filter:changed");
+
+                var vs = graph.vs.map(function (v) {
+                    var f = function f(e) {
+                        return !e.has_flag('disabled');
+                    };
+                    var edges = graph.incident(v, graph.ALL).filter(f);
+                    if (edges.length == 0) return v;
+                    return null;
+                }).filter(function (v) {
+                    return v != null;
+                });
+
+                var disabled_by_edges = graph.vs.by_flag("disabled_by_edges");
+                disabled = graph.vs.by_flag("disabled");
+                disabled = _.chain(disabled).difference(disabled_by_edges).union(vs).value();
+                graph.vs.add_flag("disabled_by_edges", vs, true);
+                graph.vs.add_flag("disabled", disabled, true);
             }
             $(".filter.icon", this).toggleClass('red');
             $(".filter.icon", this).toggleClass('loading');
@@ -428,6 +444,8 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
     },
 
     graph_changed: function graph_changed() {
+      var _this = this;
+
       this._listener.stopListening();
 
       this._listener.listenTo(Backbone, 'edge:mouseover', (function (edge, event) {
@@ -439,6 +457,13 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
       this._listener.listenTo(Backbone, 'edge:mouseout', (function (edge, event) {
         this.edges = null;
+      }).bind(this));
+
+      this._listener.listenTo(Backbone, 'vertex:mouseover', (function (vertex, event) {
+        if (vertex && vertex.id) {
+          var src = $(_this).find($(event.srcElement));
+          if (!src || src.length == 0) _this.edges = null;
+        }
       }).bind(this));
     },
 
@@ -651,7 +676,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 }
 
 span:after { content: " "; }
-</style><template><h4>[GC]</h4><template is="dom-repeat" items="[[gcs]]" as="gc"><div class$="{{gc.css}}">{{gc.name}}</div><template is="dom-repeat" items="[[gc.locution_tokens]]" as="tk"><template is="dom-if" if="{{tk.vocable}}"><a href="#__TODO__EXPLORE__"><!--{{tk.prefix}} * {{tk.vocable}} * {{tk.subscript}} * {{tk.superscript}} * {{tk.num}}--><template is="dom-if" if="{{tk.prefix.length}}"><span class="normal-font">{{tk.prefix}} {{tk.form}}</span></template><template is="dom-if" if="{{!tk.prefix.length}}"><span class="normal-font">{{tk.vocable}}</span></template><template is="dom-if" if="{{tk.subscript}}"><span class="subscript-font">{{tk.subscript}}</span></template><template is="dom-if" if="{{tk.superscript}}"><span class="superscript-font">{{tk.superscript}}</span></template><template is="dom-if" if="{{tk.num}}"><span class="num-font">{{tk.num}}</span></template></a></template><template is="dom-if" if="{{!tk.vocable}}"><span class="num-font">{{tk.form}}</span></template></template></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{locutions.locution_tokens.length}}"><template is="dom-repeat" items="[[locutions]]" as="loc"><span>{{loc.name}}</span><template is="dom-repeat" items="" as="tk"><template is="dom-if" if="{{tk.id}}"><rlf-vertex-xs model="{{tk}}" over="intersect" clicked="select" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{!edge.node.id}}"><rlf-vertex-xs model="{{edge.node}}" clicked="add" asLabel="true"></rlf-vertex-xs></template></template></template></template><template is="dom-repeat" items="[[gcs]]" as="gc"><div class$="{{gc.css}}">{{gc.name}}</div><template is="dom-repeat" items="[[gc.locution_tokens]]" as="tk"><template is="dom-if" if="{{tk.vocable}}"><a href="#__TODO__EXPLORE__"><!--{{tk.prefix}} * {{tk.vocable}} * {{tk.subscript}} * {{tk.superscript}} * {{tk.num}}--><template is="dom-if" if="{{tk.prefix.length}}"><span class="normal-font">{{tk.prefix}} {{tk.form}}</span></template><template is="dom-if" if="{{!tk.prefix.length}}"><span class="normal-font">{{tk.vocable}}</span></template><template is="dom-if" if="{{tk.subscript}}"><span class="subscript-font">{{tk.subscript}}</span></template><template is="dom-if" if="{{tk.superscript}}"><span class="superscript-font">{{tk.superscript}}</span></template><template is="dom-if" if="{{tk.num}}"><span class="num-font">{{tk.num}}</span></template></a></template><template is="dom-if" if="{{!tk.vocable}}"><span class="num-font">{{tk.form}}</span></template></template></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({
@@ -678,6 +703,12 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
           locution_tokens: locutions
         };
       });
+
+      var locutions = model ? Object.values(JSON.parse(model.properties.get('locutions'))) : [];
+      this.locutions = [];
+      if (locutions && locutions.length && locutions[0].locution_gc) {
+        this.locutions = locutions[0].locution_gc;
+      }
     }
   });
 });</script></dom-module><dom-module id="rlf-vertex-ex"><style>/*example*/
@@ -766,7 +797,7 @@ span.occurrence
     color: green;
     font-weight: bold;
 }
-</style><template><h4>[EX]</h4><template is="dom-repeat" items="[[examples]]" as="example"><div class="example_quotation"><template is="dom-repeat" items="[[example.splitted]]" as="item"><template is="dom-if" if="{{ ! item.occurrence }}">{{item.text}}</template><template is="dom-if" if="{{item.occurrence}}"><span class="occurrence">{{item.text}}</span></template></template></div><div class="example_referencing"><span class="example_source">{{ example.source }}</span><template is="dom-repeat" items="[[example.authors]]"><template is="dom-if" if="{{item.first_name}}"><span class="example_last_name">{{item.first_name}}</span></template><template is="dom-if" if="{{item.last_name}}"><span class="example_first_name">{{item.last_name}}</span></template></template><template is="dom-if" if="{{example.title}}"><span class="example_title">{{example.title}}</span></template><template is="dom-if" if="{{example.date_day}}"><span class="example_date_day">{{example.date_day}}</span></template><template is="dom-if" if="{{example.date_month}}"><span class="example_date_month">{{example.date_month}}</span></template><template is="dom-if" if="{{example.date_year}}"><span class="example_date_year">{{example.date_year}}</span></template><span class="example_location">{{ example.location }}</span></div></template></template><script>'use strict';
+</style><template><template is="dom-repeat" items="[[examples]]" as="example"><div class="example_quotation"><template is="dom-repeat" items="[[example.splitted]]" as="item"><template is="dom-if" if="{{ ! item.occurrence }}">{{item.text}}</template><template is="dom-if" if="{{item.occurrence}}"><span class="occurrence">{{item.text}}</span></template></template></div><div class="example_referencing"><span class="example_source">{{ example.source }}</span><template is="dom-repeat" items="[[example.authors]]"><template is="dom-if" if="{{item.first_name}}"><span class="example_last_name">{{item.first_name}}</span></template><template is="dom-if" if="{{item.last_name}}"><span class="example_first_name">{{item.last_name}}</span></template></template><template is="dom-if" if="{{example.title}}"><span class="example_title">{{example.title}}</span></template><template is="dom-if" if="{{example.date_day}}"><span class="example_date_day">{{example.date_day}}</span></template><template is="dom-if" if="{{example.date_month}}"><span class="example_date_month">{{example.date_month}}</span></template><template is="dom-if" if="{{example.date_year}}"><span class="example_date_year">{{example.date_year}}</span></template><span class="example_location">{{ example.location }}</span></div></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
     Polymer({
@@ -811,7 +842,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 });</script></dom-module><dom-module id="rlf-vertex-lf"><style>span.stdslf:after {
     content: ': ';
 }
-</style><template><h4>[LF]</h4><div id="neighbourhood" class="item"><!--template(is="dom-repeat",items="[[by_nodetypes]]", as="item")//h4
+</style><template><div id="neighbourhood" class="item"><!--template(is="dom-repeat",items="[[by_nodetypes]]", as="item")//h4
     //i.ui.square.outline.icon
     //| {{item.neighbors.length}} {{item.nodetype.name}}
 
@@ -1023,7 +1054,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
     color: black;
     font-weight: bold;
 }
-</style><template><h4>[DF]</h4><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><div id="defhtml" class="definiendum"></div><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><div id="defhtml" class="definiendum"></div><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({
@@ -1075,7 +1106,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
     }
 
   });
-});</script></dom-module><dom-module id="rlf-vertex-loc"><style></style><template><h4>[PH]</h4></template><script>'use strict';
+});</script></dom-module><dom-module id="rlf-vertex-loc"><style></style><template><span></span></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({
@@ -1097,7 +1128,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 .rlf a {
     cursor:pointer;
 }
-</style><template><template is="dom-if" if="model">           <div class="rlf"><rlf-vertex-xs model="{{model}}" asLabel="true" on-click="explore"></rlf-vertex-xs><br/><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ model.id }}</a><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex><div class="ui divider"> </div><rlf-vertex-loc model="{{model}}"></rlf-vertex-loc><div class="ui divider"> </div></div></template></template><script>   'use strict';
+</style><template><template is="dom-if" if="model">           <div class="rlf"><rlf-vertex-xs model="{{model}}" asLabel="true" on-click="explore"></rlf-vertex-xs><br/><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ model.id }}</a><h4>[GC]</h4><rlf-vertex-gc model="{{model}}"></rlf-vertex-gc><div class="ui divider"> </div><h4>[DF]</h4><rlf-vertex-df model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><h4>[LF]</h4><rlf-vertex-lf model="{{model}}"></rlf-vertex-lf><div class="ui divider"> </div><h4>[EX]</h4><rlf-vertex-ex model="{{model}}"></rlf-vertex-ex><div class="ui divider"> </div><h4>[PH]</h4><rlf-vertex-loc model="{{model}}"></rlf-vertex-loc><div class="ui divider"> </div></div></template></template><script>   'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({

@@ -408,14 +408,13 @@ require.config({
                 app.listenTo(app.engines.explore, 'play:loading', function() {
                     app.search_loading();
                 });
+                
                 app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
                     app.engine_play_completed(response, args, state)
                     $("rlf-lexfunc-filter").each( function(i,e) {
                             if ( e.graph && e.reset_filters ) e.reset_filters();
                     });
-
                 });
-
                 
                 app.listenTo(app.engines.additive_nodes, 'play:success', function(response, args, state) {
                     $("rlf-lexfunc-filter").each(
@@ -423,9 +422,14 @@ require.config({
                         if (e.graph) e.reset_filters();
                     });                    
                 });
-
                 
-
+               app.models.graph.on('sync', function(){
+                    $("rlf-lexfunc-filter").each(
+                    function(i,e) {
+                        if (e.graph) e.reset_filters();
+                    });                    
+                });
+                    
                 app.start(graph, app.engines.explore);
 
                 app.listenTo(Backbone, "explore", function(model){
@@ -451,9 +455,7 @@ require.config({
           });
         }
 
-
         console.log("root: {{ root_url }}, gkey : {{ gkey }}, complete_url: {{ complete_url }}");
-      
         
         // resize window event 
         var min_height = 250;
@@ -497,27 +499,6 @@ require.config({
 
     }, function(){console.log( "ERROR",  arguments)})();
 </script>
-
-<div class="ui dimmer modals page " style="">
-
-    <div class="ui modal ">
-            <i class="close icon"></i>
-
-            <div class="header">{{gname}}</div>
-
-            <div class="content">        
-                <p>
-                    Données <a href='http://www.atilf.fr/spip.php?article908' class="ui teal">Projet Relief</a> 
-                    Réalisation <a href="http://kodexlab.com">Kodex·Lab</a> 2014 
-                </p>
-                <p>
-                    remarques et cmt : <a href="https://proxteam.eu/pad/p/cello_tmuse">https://proxteam.eu/pad/p/cello_tmuse</a>
-                </p>
-            </div>
-    </div>
-
-</div>
-
 
 </body>
 </html>

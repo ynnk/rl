@@ -659,23 +659,6 @@ define([
                 return false;
             });
 
-            
-            // arrows
-            Mousetrap.bind('right', function(){
-                $("#myCarousel").carousel("next");
-            });
-            Mousetrap.bind('left', function(){
-                $("#myCarousel").carousel("prev");
-            });
-
-            // direct slide access
-            var kevents = { 'g,G' : 0, 'c,C':1, 'l,L':2, 'd,D':3 }
-            _.each(kevents , function(v,k){
-                console.log(k,v)
-                Mousetrap.bind(k.split(','), function(){
-                    $("#myCarousel").carousel(v)
-                });
-            });
         }
     });
     
