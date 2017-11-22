@@ -1338,7 +1338,6 @@ var Graph = Backbone.Model.extend({
         // create a graph from json data
         Cello.debug("parse graph", data);
 
-        this.edge_list = {};
 
         if (data.nodetypes)
         {
@@ -1355,6 +1354,9 @@ var Graph = Backbone.Model.extend({
 
         options = options ? _.clone(options) : {};
         if (data.vs && data.es){
+
+            this.edge_list = {};
+
             this.es.reset([], options);
             this.vs.reset([], options);
             options = {parse:true};
