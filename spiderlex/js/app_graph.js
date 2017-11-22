@@ -595,10 +595,7 @@ define([
 
             // initialise the app it self
             app.create_models();
-            
-            if(app.debug){
-                app._add_to_global();
-            }
+            app._add_to_global();
  
             // create views
             app.create_query_engine_views(explore);
