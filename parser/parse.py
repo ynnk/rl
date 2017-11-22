@@ -257,8 +257,8 @@ class Parser(object):
         
         handler = GramCharacHandler()
         pos = handler.parse("%s/05-lsgramcharac-model.xml" % path)
+        
         rels = readcsv(path, "06-lsgramcharac-rel.csv", type=list)
-
         for r in rels:
             id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
             if POS == "":
@@ -279,8 +279,10 @@ class Parser(object):
             
             # LN Locutions nominales, prepositionnelles, phrases
             else :
+                embededlex = re.findall( "[0-9]+", embededlex)
+                #embededlex = embededlex[1:-1].split(',')
                 node['locutions'].append( { 'locution_gc' : {
-                    'locution_tokens' : [ as_token(e, r) for e in embededlex[1:-1].split(',')  ],
+                    'locution_tokens' : [ as_token(e, r) for e in embededlex  ],
                     'name' : pos[POS]['name'],
                     'type' : pos[POS]['type']
                 }})
@@ -297,7 +299,6 @@ class Parser(object):
             """
             pass
 
-        
         # Nodes DF
 
         # 09-lssemlabel-model.xml 
@@ -528,8 +529,6 @@ class Parser(object):
         print len(nodes)
 
 
-
-
 def make_complete_db(db, completions):
     db = sqlite3.connect(db)
     c = db.cursor()
@@ -574,8 +573,9 @@ def main():
 
     gid, path, sqldb, backend = args.gid, args.path, args.sqldb, args.backend
 
+    
     key = open(args.key).read().strip() if args.key else None
-
+    print args.host, args.key 
 
     parse( gid, path, sqldb, backend, args.host, key )
     
