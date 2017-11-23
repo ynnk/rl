@@ -491,15 +491,19 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
         webkit: nav.indexOf("webkit") > 0,
         mozilla: nav.indexOf("firefox") > 0
       };
-
+      var offset = {};
       if (browser.webkit) {
-        $el.offset({ 'top': event.pageY - $el.parent().position().top - $el.height() + 12,
-          'left': event.pageX - $el.parent().position().left + 2 });
+        offset = {
+          'top': event.pageY - $el.parent().position().top - $el.height() + 12,
+          'left': event.pageX - $el.parent().position().left + 2 };
       } else {
         // if (browser.mozilla){
-        $el.offset({ 'top': event.pageY - $el.parent().position().top - $('body').scrollTop(),
-          'left': event.pageX - $el.parent().position().left - $('body').scrollLeft() });
+        var offset = { 'top': event.pageY - $el.parent().position().top - $el.height() + 12,
+          'left': event.pageX + 2 };
       }
+
+      console.log(offset);
+      $el.offset(offset);
     },
 
     computed: function computed(obj) {
@@ -566,7 +570,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
   });
 });</script></dom-module><dom-module id="rlf-vertex-xs"><style>a { cursor: pointer; }
-</style><template><a class$="{{_compute_css(asLabel)}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><i style$="{{fontcolor}}" class="ui circle icon"></i><template is="dom-if" if="{{vertex.prefix.length}}"><span class="normal-font">{{vertex.prefix}} {{vertex.vocable}}</span></template><template is="dom-if" if="{{!model.prefix.length}}"><span class="normal-font">{{vertex.vocable}}</span></template><template is="dom-if" if="{{vertex.subscript}}"><span class="subscript-font">{{vertex.subscript}}</span></template><template is="dom-if" if="{{vertex.superscript}}"><span class="superscript-font">{{vertex.superscript}}</span></template><template is="dom-if" if="{{vertex.num}}"><span class="num-font">{{vertex.num}}</span></template><!--| {{ model.label}}-->
+</style><template><a class$="{{_compute_css(asLabel)}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><i style$="{{fontcolor}}" class="ui circle icon"></i><template is="dom-if" if="{{vertex.prefix.length}}"><span class="normal-font">{{vertex.prefix}} </span></template><template is="dom-if" if="{{!model.prefix.length}}"><span class="normal-font">{{vertex.vocable}}</span></template><template is="dom-if" if="{{vertex.subscript}}"><span class="subscript-font">{{vertex.subscript}}</span></template><template is="dom-if" if="{{vertex.superscript}}"><span class="superscript-font">{{vertex.superscript}}</span></template><template is="dom-if" if="{{vertex.num}}"><span class="num-font">{{vertex.num}}</span></template><!--| {{ model.label}}-->
 </a></template><script>'use strict';
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {

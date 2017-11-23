@@ -206,11 +206,14 @@ class Parser(object):
                 'rlfid' : node['id'],
                 'id' : node['id'],
                 'label' : node['name'],
+                
                 'vocable' : node['name'],
                 'prefix' : node['addtoname'],
                 'num' : node['lexnum'],
                 'subscript' : node['subscript'],
                 'superscript' : node['superscript'],
+
+                'label_form' : None,
 
                 'gcs' : [],
                 'locutions': [],
@@ -224,13 +227,13 @@ class Parser(object):
 
                 'definiens' : None,
                 'formatted_definiens' : None,
-                'label_form' : None,
             })
 
             to_delete = ('%', 'entry', 'lexnum', 'addtoname')
             for k in to_delete : del node[k]
 
         print len( set( [ n['id'] for n in nodes.values() ]) ), len(nodes)
+        
             
 
 
@@ -332,7 +335,10 @@ class Parser(object):
             else :
                 self.error( " # 17-lsdef # no def for %s" % id )
 
+
         self.todo( "17-lsdef.csv  Liens d inclusion définitionnelle " )
+        
+        
                 
         # Nodes Exemples
         
@@ -364,6 +370,7 @@ class Parser(object):
             example.update({ 'occurrences': occurrences,
                              'position'   : po })
             node['examples'].append( example )
+
 
         
 
