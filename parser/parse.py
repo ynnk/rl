@@ -356,7 +356,8 @@ class Parser(object):
                 
             
             if "$" in embededlex :
-                print "\n\n", embededlex
+                print "\n\n", node['rlfid']
+                print embededlex
                 print _embededlex
                 actants =  node['df']['actants']
                 print actants

@@ -724,7 +724,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 }
 
 span:after { content: " "; }
-</style><template><span class="pos">{{gc.pos.name}} </span><template is="dom-if" if="[[tokens]]"><!--span {{gc.locution.name}}--><span>[</span><template is="dom-repeat" items="[[tokens]]" as="tk"><template is="dom-if" if="{{tk.model}}"><rlf-vertex-xs model="{{tk.model}}" over="intersect" clicked="select" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{!tk.model}}"><rlf-vertex-xs model="{{tk}}" clicked="add" asLabel="true" complete="[[complete]]"></rlf-vertex-xs></template><template is="dom-if" if="{{ hasmore_token(tokens, index) }}"><span class="plus">&nbsp;+ </span></template></template><span>&nbsp]</span></template><br/><template is="dom-repeat" items="[[gc.othergc]]"><span class="othergc">{{item}}</span><br/></template><template is="dom-repeat" items="[[gc.usagenote]]"><span class="usage">{{item}}</span><br/></template></template><script>'use strict';
+</style><template><template is="dom-repeat" items="[[gc.usagenote]]"><span class="usage">{{item}}</span><br/></template><span class="pos">{{gc.pos.name}} </span><template is="dom-if" if="[[tokens]]"><!--span {{gc.locution.name}}--><span>[</span><template is="dom-repeat" items="[[tokens]]" as="tk"><template is="dom-if" if="{{tk.model}}"><rlf-vertex-xs model="{{tk.model}}" over="intersect" clicked="select" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{!tk.model}}"><rlf-vertex-xs model="{{tk}}" clicked="add" asLabel="true" complete="[[complete]]"></rlf-vertex-xs></template><template is="dom-if" if="{{ hasmore_token(tokens, index) }}"><span class="plus">&nbsp;+ </span></template></template><span>&nbsp]</span></template><br/><template is="dom-repeat" items="[[gc.othergc]]"><span class="othergc">{{item}}</span><br/></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
     Polymer({
@@ -1155,23 +1155,18 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       var df = JSON.parse(model.properties.get('df'));
       if (df.label_form == '') df.label_form = null;
 
-      var actants = df.actantslist ? df.actantslist : "()";
-      actants = actants.substring(1, actants.length - 1).split(',');
-      actants = actants.map(function (e) {
-        return e.substring(e.indexOf('=') + 1);
-      });
-
+      var actants = df.actants;
       var left_pf_form = "",
           right_pf_form = "";
 
       if (df.propform) {
         left_pf_form = df.propform.substring(0, df.propform.indexOf('~'));
-        actants.forEach(function (e, i) {
-          left_pf_form = left_pf_form.replace('$' + (i + 1), e);
+        actants.forEach(function (e) {
+          left_pf_form = left_pf_form.split(e[0]).join(e[1]);
         });
         var right_pf_form = df.propform.substring(df.propform.indexOf('~') + 1);
-        actants.forEach(function (e, i) {
-          right_pf_form = right_pf_form.replace('$' + (i + 1), e);
+        actants.forEach(function (e) {
+          right_pf_form = right_pf_form.split(e[0]).join(e[1]);
         });
         this.tildevalue = df.tildevalue == "" ? df.form : df.tildevalue;
       }
