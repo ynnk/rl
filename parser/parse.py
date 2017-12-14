@@ -195,7 +195,6 @@ class Parser(object):
                 if node:
                     values =  [ node[k] for k in KEYS ]
                     dic = dict(zip(KEYS, values))
-                    if '$' in form : print "$ in " , form 
                     
             if form and len(form):
                 # conversion des variables d actants
@@ -233,6 +232,7 @@ class Parser(object):
                     'actants' : [],
                     'left_pf_form': '',
                     'right_pf_form': '',
+                    'html' : '',
                   },
                 'examples' : [],
 
@@ -348,6 +348,7 @@ class Parser(object):
                 _embededlex = embededlex.replace('),(', ');(')
                 _embededlex = [ e  for e  in  _embededlex[1:-1].split(';') ]
                 _embededlex = [ e[1:-1].split(',') for e in _embededlex ]
+                actants =  node['df']['actants']
                 gc['locution'] =  {
                     'tokens' : [ as_token(id,form, actants) for id,form in _embededlex  ],
                     'name' : pos[POS]['name'],

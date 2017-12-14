@@ -1155,21 +1155,24 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       var df = JSON.parse(model.properties.get('df'));
       if (df.label_form == '') df.label_form = null;
 
-      var actants = df.actants;
       var left_pf_form = "",
           right_pf_form = "";
 
       if (df.propform) {
         left_pf_form = df.propform.substring(0, df.propform.indexOf('~'));
-        actants.forEach(function (e) {
+        df.actants.forEach(function (e) {
           left_pf_form = left_pf_form.split(e[0]).join(e[1]);
         });
-        var right_pf_form = df.propform.substring(df.propform.indexOf('~') + 1);
-        actants.forEach(function (e) {
+        right_pf_form = df.propform.substring(df.propform.indexOf('~') + 1);
+        df.actants.forEach(function (e) {
           right_pf_form = right_pf_form.split(e[0]).join(e[1]);
         });
         this.tildevalue = df.tildevalue == "" ? df.form : df.tildevalue;
       }
+      // def html
+      if (df.html) df.actants.forEach(function (e) {
+        df.html = df.html.split(e[0]).join(e[1]);
+      });
 
       this.df = df;
       this.left_pf_form = left_pf_form;
