@@ -143,6 +143,7 @@ class Parser(object):
         gid = self.gid
         path = self.path
 
+        KEYS =  [ "id","num", "prefix", "subscript", "superscript", "vocable"]
         
         WEIGHT_COPO = 1
         WEIGHT_LOC = 1
@@ -163,6 +164,7 @@ class Parser(object):
                     );
 
         lexie_props = {
+        
             'rlfid' : Text(),
             'id' : Text(),
             'label' : Text(),
@@ -171,13 +173,14 @@ class Parser(object):
             'prefix' : Text(),
             'subscript' : Text(),
             'superscript' : Text(),
-            
+
             'df' : Text(), # json
 
             'lfs' : Text(), # json
-            'gcs' : Text(), # json
+            'gc' : Text(), # json
             'examples' : Text(), # json
             'locutions' : Text(), # json
+            
         }
         nodetypes["Lexie"] = bot.post_nodetype(gid, "Lexie", "", lexie_props) 
 
@@ -187,17 +190,21 @@ class Parser(object):
         for e in entries.values() : e.pop('id')
 
 
-        def as_token(nid, other):
-            
-            node = nodes.get(nid, None)
-            if node:
-                keys =  [ "id","num", "prefix", "subscript", "superscript", "vocable"]
-                values =  [ node[k] for k in keys ]
-                return dict(zip(keys, values))
-            else:
-                print "as token missing %s" % nid, other
-            return None
-            
+        def as_token(nid, form ):
+            if nid : 
+                node = nodes.get(nid, None)
+                if node:
+                    values =  [ node[k] for k in KEYS ]
+                    dic = dict(zip(KEYS, values))
+                    if form and len(form):
+                        dic['vocable'] = form
+                    return dic
+
+            values =  [ "" for k in KEYS ]
+            dic = dict(zip(KEYS, values))
+            dic['vocable'] = form
+            return dic
+                
         
         for node in nodes.values():
             entry = entries[node['entry']]
@@ -215,8 +222,9 @@ class Parser(object):
 
                 'label_form' : None,
 
-                'gcs' : [],
+                'gc' : {},
                 'locutions': [],
+
                 'lfs': [],
                 'df': {
                     'form' : node['name'],
@@ -240,10 +248,12 @@ class Parser(object):
         # GC + PH LOCUTIONS
 
         """
-        gcs : {}
-        
-        locutions : [ 
-            locution_gc: {
+        gc : {
+            usagenote : [],
+            othergc : [],
+            pos : {},
+            
+            locution : {
                 locution_tokens	: [ {
                     id  : "41142",
                     num	: "I.1b",
@@ -255,7 +265,8 @@ class Parser(object):
                 name :	locution verbale
                 type :	2
             }
-        ]
+
+        }
         """
         
         handler = GramCharacHandler()
@@ -268,28 +279,36 @@ class Parser(object):
                 error( " # 06-lsgramcharac-rel : missing POS %s for id %s  : %s" % (POS, id,r) )
                 continue
                 
+            # GC Caractéristiques grammaticales
+
             node = nodes[id]   
             othercharac =  [ pos[e]['name']  for e in re.findall("([0-9]+)", othercharac )]
+            usagenote =  [ pos[e]['name']  for e in re.findall("([0-9]+)", usagenote )]
             
-            # GC Caractéristiques grammaticales
+            gc = {}
+            gc['usagenote'] = usagenote # fem ..
+            gc['othergc']  = othercharac  
+            gc['locution'] = None
+            gc['pos'] = {
+                            'name' : pos[POS]['name'],
+                            'type' : pos[POS]['type']
+                         }
             
-            if not len( embededlex ):
-                node['gcs'].append({
-                    'locution_tokens' : [],
-                    'name' : pos[POS]['name'],
-                    'type' : pos[POS]['type']
-                })
             
             # LN Locutions nominales, prepositionnelles, phrases
-            else :
-                embededlex = re.findall( "[0-9]+", embededlex)
+            if len( embededlex ):
+                #embededlex = re.findall( "[0-9]+", embededlex)
                 #embededlex = embededlex[1:-1].split(',')
-                node['locutions'].append( { 'locution_gc' : {
-                    'locution_tokens' : [ as_token(e, r) for e in embededlex  ],
+                embededlex = embededlex.replace('),(', ');(')
+                embededlex = [ e  for e  in  embededlex[1:-1].split(';') ]
+                embededlex = [ e[1:-1].split(',') for e in embededlex ]
+                gc['locution'] =  {
+                    'tokens' : [ as_token(id,form) for id,form  in embededlex  ],
                     'name' : pos[POS]['name'],
                     'type' : pos[POS]['type']
-                }})
+                }
 
+            node['gc'] = gc
         
         self.todo(  " 06-lsgramcharac-rel.csv : TODO POST LOCUTIONS" )        
         for r in rels:
@@ -379,7 +398,7 @@ class Parser(object):
         self.info( "\n * POSTING Lexie nodes : %s" % (len(nodes.values())) )
         
         def gen(nodes):
-            jsons = ( 'df', 'gcs', 'examples', 'locutions' )
+            jsons = ( 'df', 'gc', 'examples', 'locutions' )
             for node in nodes :
                 properties = {
                     k : node[k] if k not in jsons else json.dumps(node[k]) for k in lexie_props
