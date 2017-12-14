@@ -188,19 +188,24 @@ class Parser(object):
         for e in entries.values() : e.pop('id')
 
 
-        def as_token(nid, form ):
+        def as_token(nid, form, actants ):
+            dic = dict(zip(KEYS, [ "" for e in KEYS ]))
             if nid : 
                 node = nodes.get(nid, None)
                 if node:
                     values =  [ node[k] for k in KEYS ]
                     dic = dict(zip(KEYS, values))
-                    if form and len(form):
-                        dic['vocable'] = form
-                    return dic
-
-            values =  [ "" for k in KEYS ]
-            dic = dict(zip(KEYS, values))
-            dic['vocable'] = form
+                    if '$' in form : print "$ in " , form 
+                    
+            if form and len(form):
+                # conversion des variables d actants
+                _form = form
+                if len(actants):
+                    for k,v in actants :
+                        _form = _form.replace(k,v)
+                    
+                dic['vocable'] = _form
+                        
             return dic
                 
         
@@ -225,6 +230,7 @@ class Parser(object):
                 'lfs': [],
                 'df': {
                     'form' : node['name'],
+                    'actants' : [],
                     'left_pf_form': '',
                     'right_pf_form': '',
                   },
@@ -238,6 +244,52 @@ class Parser(object):
             for k in to_delete : del node[k]
 
         print len( set( [ n['id'] for n in nodes.values() ]) ), len(nodes)
+
+
+
+
+        # DF
+
+        # 09-lssemlabel-model.xml 
+        # 10-lssemlabel-rel.csv
+        # 11-lspropform-rel.csv
+        # 17-lsdef.csv
+
+        handler = SemLabelHandler()
+        semlabels = handler.parse("%s/09-lssemlabel-model.xml" % path)
+        rels = readcsv(path, "10-lssemlabel-rel.csv", type=list)
+
+        for sense, label, percent in rels:
+            df = nodes[sense]['df']
+            df['label_form'] = semlabels[label]
+            df['percent'] = percent
+            
+        rels = readcsv(path, "11-lspropform-rel.csv", type=list)
+        for id, propform, tildevalue, percent, actantslist in rels:
+            df = nodes[id]['df']
+            df['propform'] = propform
+            df['tildevalue'] = tildevalue
+            df['percent'] = percent
+
+            actants = actantslist if actantslist else "()";
+            actants = [ e for e in actants[1:-1].split(',') if len(e)];
+            actants = map(lambda e: e.split('=') , actants)
+            
+            df['actants']     = actants
+            df['actantslist'] = actantslist
+            
+        for r in readcsv(path, "17-lsdef.csv", type=list):
+            id,	def_XML, def_HTML = r
+            if id in nodes:
+                df = nodes[id]['df']
+                df['xml'] = def_XML
+                df['html'] = def_HTML
+            else :
+                self.error( " # 17-lsdef # no def for %s" % id )
+
+
+        self.todo( "17-lsdef.csv  Liens d inclusion définitionnelle " )
+        
         
 
         # GC + PH LOCUTIONS
@@ -293,14 +345,24 @@ class Parser(object):
             if len( embededlex ):
                 #embededlex = re.findall( "[0-9]+", embededlex)
                 #embededlex = embededlex[1:-1].split(',')
-                embededlex = embededlex.replace('),(', ');(')
-                embededlex = [ e  for e  in  embededlex[1:-1].split(';') ]
-                embededlex = [ e[1:-1].split(',') for e in embededlex ]
+                _embededlex = embededlex.replace('),(', ');(')
+                _embededlex = [ e  for e  in  _embededlex[1:-1].split(';') ]
+                _embededlex = [ e[1:-1].split(',') for e in _embededlex ]
                 gc['locution'] =  {
-                    'tokens' : [ as_token(id,form) for id,form  in embededlex  ],
+                    'tokens' : [ as_token(id,form, actants) for id,form in _embededlex  ],
                     'name' : pos[POS]['name'],
                     'type' : pos[POS]['type']
                 }
+                
+            
+            if "$" in embededlex :
+                print "\n\n", embededlex
+                print _embededlex
+                actants =  node['df']['actants']
+                print actants
+                print [ as_token(id,form, actants) for id,form in _embededlex ]
+                z= [ e['vocable'] for e in  [ as_token(id,form, actants) for id,form in _embededlex ]]
+                print z
 
             node['gc'] = gc
         
@@ -314,43 +376,6 @@ class Parser(object):
         
             """
             pass
-
-        # Nodes DF
-
-        # 09-lssemlabel-model.xml 
-        # 10-lssemlabel-rel.csv
-        # 11-lspropform-rel.csv
-        # 17-lsdef.csv
-
-        handler = SemLabelHandler()
-        semlabels = handler.parse("%s/09-lssemlabel-model.xml" % path)
-        rels = readcsv(path, "10-lssemlabel-rel.csv", type=list)
-
-        for sense, label, percent in rels:
-            df = nodes[sense]['df']
-            df['label_form'] = semlabels[label]
-            df['percent'] = percent
-            
-        rels = readcsv(path, "11-lspropform-rel.csv", type=list)
-        for id, propform, tildevalue, percent, actantslist in rels:
-            df = nodes[id]['df']
-            df['propform'] = propform
-            df['tildevalue'] = tildevalue
-            df['percent'] = percent
-            df['actantslist'] = actantslist
-            
-        for r in readcsv(path, "17-lsdef.csv", type=list):
-            id,	def_XML, def_HTML = r
-            if id in nodes:
-                df = nodes[id]['df']
-                df['xml'] = def_XML
-                df['html'] = def_HTML
-            else :
-                self.error( " # 17-lsdef # no def for %s" % id )
-
-
-        self.todo( "17-lsdef.csv  Liens d inclusion définitionnelle " )
-        
         
                 
         # Nodes Exemples
@@ -507,6 +532,7 @@ class Parser(object):
 
         # POST Edges
 
+        # LF
         rels = readcsv(path, "13-lslf-rel.csv", type=list)
         edges = []
         skipped_weight = 0
