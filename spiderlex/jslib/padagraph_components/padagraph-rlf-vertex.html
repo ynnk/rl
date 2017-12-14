@@ -744,6 +744,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
             var self = this;
 
             var gc = model ? JSON.parse(model.properties.get('gc')) : {};
+            this.gc = gc;
             if (gc.locution && gc.locution.tokens) {
 
                 var vs = model.collection;
@@ -776,7 +777,6 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
                 });
 
                 this.tokens = gc.locution.tokens;
-                this.gc = gc;
             }
         },
         hasmore_token: function hasmore_token(items, index) {
