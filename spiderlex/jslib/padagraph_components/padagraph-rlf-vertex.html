@@ -575,8 +575,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
   });
 });</script></dom-module><dom-module id="rlf-vertex-xs"><style>a { cursor: pointer; }
-</style><template><a class$="{{_compute_css(asLabel)}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><template is="dom-if" if="{{vertex.icon}}"><i style$="{{vertex.fontcolor}}" class="ui circle icon"></i></template><template is="dom-if" if="{{vertex.prefix.length}}"><span class="normal-font">{{vertex.prefix}} </span></template><template is="dom-if" if="{{!model.prefix.length}}"><span class="normal-font">{{vertex.vocable}}</span></template><template is="dom-if" if="{{vertex.subscript}}"><span class="subscript-font">{{vertex.subscript}}</span></template><template is="dom-if" if="{{vertex.superscript}}"><span class="superscript-font">{{vertex.superscript}}</span></template><template is="dom-if" if="{{vertex.num}}"><span class="num-font">{{vertex.num}}</span></template><!--| {{ model.label}}-->
-</a></template><script>'use strict';
+</style><template><template is="dom-if" if="{{vertex.id}}"><a class$="{{_compute_css(asLabel)}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><template is="dom-if" if="{{vertex.icon}}"><i style$="{{vertex.fontcolor}}" class="ui circle icon"></i></template><template is="dom-if" if="{{vertex.prefix.length}}"><span class="normal-font">{{vertex.prefix}} </span></template><template is="dom-if" if="{{vertex.vocable}}"><span class="normal-font">{{vertex.vocable}}</span></template><template is="dom-if" if="{{vertex.subscript}}"><span class="subscript-font">{{vertex.subscript}}</span></template><template is="dom-if" if="{{vertex.superscript}}"><span class="superscript-font">{{vertex.superscript}}</span></template><template is="dom-if" if="{{vertex.num}}"><span class="num-font">{{vertex.num}}</span></template><!--| {{ model.label}}--></a></template><template is="dom-if" if="{{!vertex.id.length}}"><span class="normal-font">{{vertex.vocable}}</span></template></template><script>'use strict';
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {
     Polymer({
@@ -639,7 +638,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
             if (!model) return;
 
             var vertex = null;
-            var keys = ['prefix', 'num', 'vocable', 'subscript', 'superscript'];
+            var keys = ['id', 'prefix', 'num', 'vocable', 'subscript', 'superscript'];
 
             if (model.properties) {
                 if (model.id) {
@@ -652,7 +651,8 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
                     });
                 }
             }
-            if (!vertex && model.id) {
+
+            if (!vertex && model.vocable) {
                 vertex = keys.map(function (e) {
                     return [e, model[e]];
                 });
