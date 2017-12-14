@@ -575,7 +575,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
   });
 });</script></dom-module><dom-module id="rlf-vertex-xs"><style>a { cursor: pointer; }
-</style><template><template is="dom-if" if="{{vertex.id}}"><a class$="{{_compute_css(asLabel)}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><template is="dom-if" if="{{vertex.icon}}"><i style$="{{vertex.fontcolor}}" class="ui circle icon"></i></template><template is="dom-if" if="{{vertex.prefix.length}}"><span class="normal-font">{{vertex.prefix}} </span></template><template is="dom-if" if="{{vertex.vocable}}"><span class="normal-font">{{vertex.vocable}}</span></template><template is="dom-if" if="{{vertex.subscript}}"><span class="subscript-font">{{vertex.subscript}}</span></template><template is="dom-if" if="{{vertex.superscript}}"><span class="superscript-font">{{vertex.superscript}}</span></template><template is="dom-if" if="{{vertex.num}}"><span class="num-font">{{vertex.num}}</span></template><!--| {{ model.label}}--></a></template><template is="dom-if" if="{{!vertex.id.length}}"><span class="normal-font">{{vertex.vocable}}</span></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{vertex.id}}"><a class$="{{_compute_css(asLabel)}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><template is="dom-if" if="{{vertex.icon}}"><i style$="{{vertex.fontcolor}}" class="ui circle icon"></i></template><template is="dom-if" if="{{!vertex.icon}}"><i class="ui small black circle thin icon"></i></template><template is="dom-if" if="{{vertex.prefix.length}}"><span class="normal-font">{{vertex.prefix}} </span></template><template is="dom-if" if="{{vertex.vocable}}"><span class="normal-font">{{vertex.vocable}}</span></template><template is="dom-if" if="{{vertex.subscript}}"><span class="subscript-font">{{vertex.subscript}}</span></template><template is="dom-if" if="{{vertex.superscript}}"><span class="superscript-font">{{vertex.superscript}}</span></template><template is="dom-if" if="{{vertex.num}}"><span class="num-font">{{vertex.num}}</span></template><!--| {{ model.label}}--></a></template><template is="dom-if" if="{{!vertex.id.length}}"><span class="normal-font">{{vertex.vocable}}</span></template></template><script>'use strict';
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {
     Polymer({
@@ -658,7 +658,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
                 });
             }
 
-            var ismodel = model.properties && model.id;
+            var ismodel = model.properties != null && model.id != null;
             vertex = _.object(vertex);
             vertex.fontcolor = "color:rgb(" + (ismodel ? model.color : [0, 0, 0]) + ")";
             vertex.icon = ismodel;
@@ -724,7 +724,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 }
 
 span:after { content: " "; }
-</style><template><span class="pos">{{gc.pos.name}} </span><template is="dom-if" if="[[tokens]]"><!--span {{locutions.name}}--><span>[</span><template is="dom-repeat" items="[[tokens]]" as="tk"><template is="dom-if" if="{{tk.model}}"><rlf-vertex-xs model="{{tk.model}}" over="intersect" clicked="select" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{!tk.model}}"><rlf-vertex-xs model="{{tk}}" clicked="add" asLabel="true" complete="[[complete]]"></rlf-vertex-xs></template><template is="dom-if" if="{{ hasmore_token(tokens, index) }}"><span class="plus">+ </span></template></template><span>]</span></template><br/><template is="dom-repeat" items="[[gc.othergc]]"><span class="othergc">{{item}}</span><br/></template><template is="dom-repeat" items="[[gc.usagenote]]"><span class="usage">{{item}}</span><br/></template></template><script>'use strict';
+</style><template><span class="pos">{{gc.pos.name}} </span><template is="dom-if" if="[[tokens]]"><!--span {{gc.locution.name}}--><span>[</span><template is="dom-repeat" items="[[tokens]]" as="tk"><template is="dom-if" if="{{tk.model}}"><rlf-vertex-xs model="{{tk.model}}" over="intersect" clicked="select" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{!tk.model}}"><rlf-vertex-xs model="{{tk}}" clicked="add" asLabel="true" complete="[[complete]]"></rlf-vertex-xs></template><template is="dom-if" if="{{ hasmore_token(tokens, index) }}"><span class="plus">&nbsp;+ </span></template></template><span>&nbsp]</span></template><br/><template is="dom-repeat" items="[[gc.othergc]]"><span class="othergc">{{item}}</span><br/></template><template is="dom-repeat" items="[[gc.usagenote]]"><span class="usage">{{item}}</span><br/></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
     Polymer({

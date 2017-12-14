@@ -165,21 +165,19 @@ class Parser(object):
 
         lexie_props = {
         
-            'rlfid' : Text(),
-            'id' : Text(),
-            'label' : Text(),
-            'num' : Text(),
+            'rlfid'   : Text(),
+            'id'      : Text(),
+            'label'   : Text(),
+            'num'     : Text(),
             'vocable' : Text(),
-            'prefix' : Text(),
+            'prefix'  : Text(),
             'subscript' : Text(),
             'superscript' : Text(),
 
-            'df' : Text(), # json
-
-            'lfs' : Text(), # json
             'gc' : Text(), # json
+            'df' : Text(), # json
             'examples' : Text(), # json
-            'locutions' : Text(), # json
+            'lfs' : Text(), # json
             
         }
         nodetypes["Lexie"] = bot.post_nodetype(gid, "Lexie", "", lexie_props) 
@@ -223,7 +221,6 @@ class Parser(object):
                 'label_form' : None,
 
                 'gc' : {},
-                'locutions': [],
 
                 'lfs': [],
                 'df': {
@@ -242,8 +239,6 @@ class Parser(object):
 
         print len( set( [ n['id'] for n in nodes.values() ]) ), len(nodes)
         
-            
-
 
         # GC + PH LOCUTIONS
 
@@ -293,7 +288,6 @@ class Parser(object):
                             'name' : pos[POS]['name'],
                             'type' : pos[POS]['type']
                          }
-            
             
             # LN Locutions nominales, prepositionnelles, phrases
             if len( embededlex ):
