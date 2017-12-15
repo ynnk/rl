@@ -19,6 +19,8 @@ from reliure.types import Text
 from rllib import prepare_graph, export_graph, complete
 
 import sqlite3
+from bs4 import BeautifulSoup
+
  
 
 """
@@ -283,7 +285,10 @@ class Parser(object):
             if id in nodes:
                 df = nodes[id]['df']
                 df['xml'] = def_XML
-                df['html'] = def_HTML
+                soup = BeautifulSoup(def_HTML, 'html.parser')
+                df['html'] = soup.body.prettify()
+                
+
             else :
                 self.error( " # 17-lsdef # no def for %s" % id )
 

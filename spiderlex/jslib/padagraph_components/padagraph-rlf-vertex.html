@@ -744,7 +744,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
             var self = this;
 
             var gc = model ? JSON.parse(model.properties.get('gc')) : {};
-            this.gc = gc;
+
             if (gc.locution && gc.locution.tokens) {
 
                 var vs = model.collection;
@@ -778,6 +778,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 
                 this.tokens = gc.locution.tokens;
             }
+            this.gc = gc;
         },
         hasmore_token: function hasmore_token(items, index) {
             return items ? index < items.length - 1 : false;
@@ -1120,7 +1121,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 
     });
 });</script></dom-module><dom-module id="rlf-vertex-df"><style>.definiendum {
-    margin-left: 15pt; */
+    margin-left: 15pt;
     font-weight: normal;
     margin-left: 15pt;
     margin-bottom: 1pt;
@@ -1128,11 +1129,15 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
     color: black;
 }
 
+p {
+    margin : 0px;
+}
+
 .vocable {
     color: black;
     font-weight: bold;
 }
-</style><template><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><div id="defhtml" class="definiendum"></div><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><div class="definiendum"><div id="defhtml" class="pf"></div></div><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({

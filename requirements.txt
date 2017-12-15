@@ -12,7 +12,7 @@ flask-bcrypt
 
 requests
 itsdangerous
-
+beautifulsoup4
 uuid
 py2neo<3
 

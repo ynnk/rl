@@ -561,9 +561,14 @@ div.definiendum
     margin-bottom: 1pt;
     text-align: left;
     color: black;
-
 }
 
+#defhtml p {
+    margin:0;
+}
+#defhtml p.assert_pc {
+    margin-left:30pt;
+}
 div.pf .vocable{
     color: black;
     font-weight: bold;
