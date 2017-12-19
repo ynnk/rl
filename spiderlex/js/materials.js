@@ -48,7 +48,7 @@
     },
     
     {".intersected": {
-        "lineWidth"  : 3,
+        "lineWidth"  : 4,
 
         } },
     

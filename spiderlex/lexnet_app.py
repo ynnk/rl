@@ -198,7 +198,7 @@ def app_graph(lang, query=None, path = ""):
             'auto_rotate': 0,
             'adaptive_zoom': 1,
             'use_material_transitions': True,
-            'raycaster_precision' : 4
+            'raycaster_precision' : 2
         }),
         
         ** CLIENT_CONF

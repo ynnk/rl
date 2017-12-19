@@ -410,8 +410,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
 });</script></dom-module><dom-module id="rlf-mouse-popup"><style>#pdg-mouse-popup {
    max-width: 600px;
    position: fixed;
-   padding: 0 2 4 4px;
-   margin-left: 12px;
+   padding: 10px;
    max-height: calc(100% - 24px);
    text-align:center;
    
@@ -918,26 +917,22 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
         }
 
     });
-});</script></dom-module><dom-module id="rlf-vertex-lf"><style>span.stdslf:after {
+});</script></dom-module><dom-module id="rlf-vertex-lf"><style>.neighbor, .neighbors {
+  display: inline;
+}
+.stdslf:after {
     content: ': ';
 }
-</style><template><div id="neighbourhood" class="item"><!--template(is="dom-repeat",items="[[by_nodetypes]]", as="item")//h4
-    //i.ui.square.outline.icon
-    //| {{item.neighbors.length}} {{item.nodetype.name}}
+.neighbor:after
+{
+  content: ' , ';
+}
 
-//.content
-    //template(is="dom-repeat",items="[[item.neighbors]]" as="edge" )
-      //.truc()
-      
-        //padagraph-vertex-card-xl-edge(edge="{{edge}}")
-
-        //template(is="dom-if", if="{{edge.node.id}}")
-          //.card(style="display:inline;")
-            //rlf-vertex-xs( model="{{edge.node}}"  over="intersect" clicked="select")
-
-        //template(is="dom-if", if="{{!edge.node.id}}")
-            //rlf-vertex-xs( model="{{edge.node}}", clicked="add")
---><template is="dom-repeat" items="[[by_edgetypes]]" as="item"><template is="dom-if" if="{{ item.neighbors.length }}"><div class="content"><rlf-edge-type model="{{item.edgetype}}"></rlf-edge-type><template is="dom-repeat" items="[[item.neighbors]]" as="edge"><!--padagraph-vertex-card-xl-edge(edge="{{edge}}")--><!--i(class="{{edge.icon}}") {{edge.relation}}--><template is="dom-if" if="{{edge.node.id}}"><rlf-vertex-xs model="{{edge.node}}" over="intersect" clicked="select" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{!edge.node.id}}"><rlf-vertex-xs model="{{edge.node}}" clicked="add" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{edge.model.properties.attributes.syntacticframe.length}}"><span class="target_synt_frame">[{{edge.model.properties.attributes.syntacticframe}}]</span></template><template is="dom-if" if="{{edge.model.properties.attributes.constraint.length}}"><span class="target_constraint">| {{edge.model.properties.attributes.constraint}}</span></template></template></div></template></template></div><template is="dom-repeat" items="{{lfs}}"><div class="pop">{{item.pop_name}}</div><div class="lexical_function"></div><template is="dom-if" if="{{item.prefix}}"><div class="nstdlfc">{{item.prefix}}</div><div class="stdslf"></div></template></template></template><script>'use strict';
+.neighbor:last-of-type:after
+{
+  content: '';
+}
+</style><template><div id="neighbourhood" class="item"><template is="dom-repeat" items="[[by_edgetypes]]" as="item"><template is="dom-if" if="{{ item.neighbors.length }}"><div class="content"><rlf-edge-type model="{{item.edgetype}}" class="stdslf"></rlf-edge-type><div class="neighbors"><template is="dom-repeat" items="[[item.neighbors]]" as="edge"><div class="neighbor"><template is="dom-if" if="{{edge.node.id}}"><rlf-vertex-xs model="{{edge.node}}" over="intersect" clicked="select" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{!edge.node.id}}"><rlf-vertex-xs model="{{edge.node}}" clicked="add" asLabel="true"></rlf-vertex-xs></template><template is="dom-if" if="{{edge.model.properties.attributes.syntacticframe.length}}"><span class="target_synt_frame">[{{edge.model.properties.attributes.syntacticframe}}]</span></template><template is="dom-if" if="{{edge.model.properties.attributes.constraint.length}}"><span class="target_constraint">| {{edge.model.properties.attributes.constraint}}</span></template></div></template></div></div></template></template></div></template></dom-module><s><template is="dom-repeat" items="{{lfs}}"><div class="pop">{{item.pop_name}}</div><div class="lexical_function"></div><template is="dom-if" if="{{item.prefix}}"><div class="nstdlfc">{{item.prefix}}</div><div class="stdslf"></div></template></template></s><script>'use strict';
 
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
@@ -1120,7 +1115,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
         }
 
     });
-});</script></dom-module><dom-module id="rlf-vertex-df"><style>.definiendum {
+});</script><dom-module id="rlf-vertex-df"><style>.definiendum {
     margin-left: 15pt;
     font-weight: normal;
     margin-left: 15pt;
@@ -1128,7 +1123,9 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
     text-align: left;
     color: black;
 }
-
+#defhtml {
+    margin-left: 20pt;
+}
 p {
     margin : 0px;
 }
@@ -1137,7 +1134,9 @@ p {
     color: black;
     font-weight: bold;
 }
-</style><template><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><div class="definiendum"><div id="defhtml" class="pf"></div></div><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
+
+#
+</style><template><template is="dom-if" if="{{df.label_form}}"><div class="definiendum"><div class="label">{{df.label_form.name}}</div><template is="dom-if" if="{{df.left_pf_form || df.right_pf_form }}"><div class="pf"><span>{{left_pf_form}}</span><span class="vocable">{{model.properties.attributes.prefix}} {{tildevalue}}</span><span>{{right_pf_form}}</span></div></template></div></template><div class="definiendum"><div id="defhtml"></div></div><template is="dom-if" if="{{df.definiens}}"><div class="definiens">{{df.definiens}}</div></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({
@@ -1183,7 +1182,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       this.left_pf_form = left_pf_form;
       this.right_pf_form = right_pf_form;
 
-      this.$.defhtml.innerHTML = df.html ? "<div class='ui hidden divider'></div>" + df.html : "";
+      this.$.defhtml.innerHTML = df.html ? "<div class=''>=</div>" + df.html : "";
     }
 
   });
