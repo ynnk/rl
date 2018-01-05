@@ -970,11 +970,11 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
                 if (model.graph) model.fetch_neighbors(success);
             };
 
-            this._listener.listenTo(this.model.graph.vs, 'add', function () {
-                return fetch();
+            this._listener.listenTo(this.model.graph.vs, 'add', function (m) {
+                return fetch(m);
             });
 
-            fetch();
+            fetch(model);
         },
 
         _update_neighbors: function _update_neighbors(data) {
@@ -1182,23 +1182,75 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       this.left_pf_form = left_pf_form;
       this.right_pf_form = right_pf_form;
 
-      this.$.defhtml.innerHTML = df.html ? "<div class=''>=</div>" + df.html : "";
+      var html = df.html;
+
+      this.$.defhtml.innerHTML = df.html ? "<div class=''>=</div>" + html : "";
     }
 
   });
-});</script></dom-module><dom-module id="rlf-vertex-loc"><style></style><template><span></span></template><script>'use strict';
+});</script></dom-module><dom-module id="rlf-vertex-loc"><style></style><template><template is="dom-if" if="{{ locutions.length }}"><template is="dom-repeat" items="[[locutions]]"><rlf-vertex-xs model="{{item}}"></rlf-vertex-xs><br/></template></template></template><script>'use strict';
+
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   Polymer({
     is: "rlf-vertex-loc",
     properties: {
       model: {
-        type: Object,
-        observer: 'observe'
-      }
+        type: Object
+      },
+      locutions: Array
     },
+    observers: ['observe(model)'],
 
-    observe: function observe(model) {}
+    observe: function observe(model) {
+      var _this = this;
+
+      if (model == null) return;
+
+      var graph = this.model.graph;
+      var vs = this.model.graph.vs;
+      var es = this.model.graph.es;
+
+      var locutions = [];
+
+      model.fetch_neighbors(function (data) {
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+
+          for (var _iterator = data.neighbors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var _step$value = _slicedToArray(_step.value, 3);
+
+            var edge = _step$value[0];
+            var relation = _step$value[1];
+            var node = _step$value[2];
+
+            var _node = vs.get(node.uuid) ? vs.get(node.uuid) : node;
+            var _edge = es.get(edge.uuid) ? es.get(edge.uuid) : edge;
+            var et = graph.get_edge_type(_edge.edgetype);
+            if (et.name == "FormalInclusion") locutions.push(_node);
+          }
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion && _iterator['return']) {
+              _iterator['return']();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
+            }
+          }
+        }
+
+        _this.locutions = locutions;
+      });
+    }
 
   });
 });</script></dom-module><dom-module id="rlf-vertex-card"><style>.rlf {

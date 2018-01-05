@@ -415,14 +415,13 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
             if (!app || graph == null || !graph.vs) return;
             if (this.gviz) return;
 
-            var engines = _.zip([app.layouts, app.clusterings], $("padagraph-engine-control", this));
+            var engines = _.zip([app.engines.layout, app.engines.clustering], $("padagraph-engine-control", this));
 
             _.each(engines, function (e, i, l) {
-                var blocks = e[0];
                 var el = e[1]; // polymer el
                 if (el) {
                     el.app = app;
-                    el.blocks = blocks;
+                    if (e[0].blocks.models.length) el.block = e[0].blocks.models[0];
                 }
             });
 

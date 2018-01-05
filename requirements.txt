@@ -2,11 +2,13 @@ gunicorn
 
 flask
 flask-runner
+flask-cli
+
 flask-login
 flask-cors
-flask-mail
 Flask-Markdown
 Flask-WTF
+wtforms
 # !! ubuntu : requires package libffi-dev
 flask-bcrypt
 
@@ -22,7 +24,5 @@ scipy
 scikit-learn
 
 reliure
-#cello
-#git+ssh://git@git.kodexlab.com/kodexlab/cello.git@no_matplotlib
 https://github.com/ynnk/cello/archive/master.zip
 https://github.com/padagraph/botapi/archive/master.zip

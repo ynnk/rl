@@ -56,11 +56,6 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
             
                 initialize : function(attrs, options){
                     App.Models.Vertex.__super__.initialize.apply(this, arguments);                    
-//                    Cello.get(this, "formatted_definiens");
-                    //var lfs = new Backbone.Collection();
-                    //lfs.comparator = 'position';
-                    //lfs.reset(_(attrs.lfs).toArray());
-                    //this.set('lfs', lfs);
 
                     this.add_flag('form');
                     
@@ -74,6 +69,11 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
                     var self = this;
                     var url_root = this.url() ;
 
+                    if (this._neighbors) {
+                        success(data);
+                        return;
+                    }
+
                     $.ajax({
                       url:`${url_root}/neighbors`,
                       type:"POST",
@@ -82,7 +82,10 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
                           }),
                       contentType:"application/json; charset=utf-8",
                       dataType:"json",
-                      success: success              
+                      success: function(data){
+                        self._neighbors = data;
+                        success(data);    
+                      }
                     })
 
                 },

@@ -107,7 +107,12 @@ def readcsv(path, name, type=dict):
             rows = [ row for row in reader][1:]
         elif type == dict:
             reader = csv.DictReader(csvfile, delimiter='\t', quotechar='"')
-            rows = [ row for row in reader]
+            rows = []
+            _rows = [ row for row in reader  ]
+            for row in _rows :
+                #print row 
+                r = {k:v for k,v in row.items()}
+                rows.append(r)
             
         info(  '   %s rows' % (len(rows) ))
 
@@ -149,6 +154,8 @@ class Parser(object):
         
         WEIGHT_COPO = 1
         WEIGHT_LOC = 1
+        WEIGHT_INC_DEF = 2
+        WEIGHT_INC_FORM = 0
 
         idx = {} 
         
@@ -279,23 +286,24 @@ class Parser(object):
             
             df['actants']     = actants
             df['actantslist'] = actantslist
-            
+
+        # liens d inclusion definitionnelle
+        l_inc_def = {}
+
         for r in readcsv(path, "17-lsdef.csv", type=list):
             id,	def_XML, def_HTML = r
             if id in nodes:
                 df = nodes[id]['df']
                 df['xml'] = def_XML
                 soup = BeautifulSoup(def_HTML, 'html.parser')
+                rlfids = [a.attrs['href'].split('/')[1] for a in  soup("a")]
+                l_inc_def[id] = rlfids
                 df['html'] = soup.body.prettify()
-                
 
             else :
                 self.error( " # 17-lsdef # no def for %s" % id )
 
 
-        self.todo( "17-lsdef.csv  Liens d inclusion définitionnelle " )
-        
-        
 
         # GC + PH LOCUTIONS
 
@@ -325,6 +333,7 @@ class Parser(object):
         pos = handler.parse("%s/05-lsgramcharac-model.xml" % path)
         
         rels = readcsv(path, "06-lsgramcharac-rel.csv", type=list)
+        l_inc_form = {}
         for r in rels:
             id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
             if POS == "":
@@ -354,13 +363,18 @@ class Parser(object):
                 _embededlex = [ e  for e  in  _embededlex[1:-1].split(';') ]
                 _embededlex = [ e[1:-1].split(',') for e in _embededlex ]
                 actants =  node['df']['actants']
+                tokens = [ as_token(_id,form, actants) for _id,form in _embededlex  ]
                 gc['locution'] =  {
-                    'tokens' : [ as_token(id,form, actants) for id,form in _embededlex  ],
+                    'tokens' : tokens,
                     'name' : pos[POS]['name'],
                     'type' : pos[POS]['type']
                 }
-                
-            
+                print "[t]", id, [t['id'] for t in tokens]
+                for t in tokens:
+                    tid = t['id']
+                    if tid and len( tid): 
+                        l_inc_form[tid] = l_inc_form.get(tid, []) + [id]
+                    
             if "$" in embededlex :
                 print "\n\n", node['rlfid']
                 print embededlex
@@ -445,6 +459,60 @@ class Parser(object):
         
         # Relations / edges
 
+        
+        self.info( "17-lsdef.csv [POST] Liens d inclusion définitionnelle " )
+
+        name = "DefinitionalInclusion" 
+        properties = { "weight": Text() }
+        edgetypes[name] = bot.post_edgetype(gid, name, name, properties)
+        
+        info( " * POST edgetype : %s %s" % (name, edgetypes[name]['uuid']) )
+
+        edges = []
+        skipped_weight = 0
+        for target, sources in l_inc_def.iteritems():
+
+            weight = WEIGHT_INC_DEF
+            for source in sources:
+                payload = {
+                            'edgetype': edgetypes[name]['uuid'],
+                            'source': idx[source],
+                            'target': idx[target],
+                            'properties': {
+                                    'weight' : weight,
+                            } 
+                        }
+                edges.append(payload)
+
+
+        
+        self.info( "17-lsdef.csv [POST] Liens d'inclusion formelle " )
+
+        name = "FormalInclusion" 
+        properties = { "weight": Text() }
+        edgetypes[name] = bot.post_edgetype(gid, name, name, properties)
+
+        for target, sources in l_inc_form.iteritems():
+            weight = WEIGHT_INC_FORM
+            
+            for source in sources:
+                payload = {
+                            'edgetype': edgetypes[name]['uuid'],
+                            'source': idx[target],
+                            'target': idx[source],
+                            'properties': {
+                                    'weight' : weight,
+                            } 
+                        }
+                edges.append(payload)
+
+        
+
+        for e in bot.post_edges(gid, iter(edges) ) : 
+            pass
+        
+
+
         """
         ## Liens de co-polysémie
         
@@ -525,7 +593,8 @@ class Parser(object):
             tp = fl['id'] # cop['name']
             name = _name(fl)
             desc = ""
-            properties = { "weight": Text(),
+            properties = {
+                        "weight": Text(),
                         'form': Text(),
                         'separator': Text(),
                         'merged':Text(),
@@ -613,26 +682,28 @@ def main():
     parser = argparse.ArgumentParser()
     
     parser.add_argument("gid", action='store', help="graph id ", default=None)
-    parser.add_argument("path" , action='store', help="export path", default='crop.png')
-    parser.add_argument("sqldb" , action='store', help="path to sqldb to store completions")
+    parser.add_argument("path" , action='store', help="rlf export path", default='')
+    parser.add_argument("--complete" , action='store', help="path to sqldb to store completions", default=None)
 
     parser.add_argument("-s" , action='store', dest="backend", help="backend 'igraph' or 'padagraph'",  choices=('igraph', 'padagraph'), default='igraph')
+    
+    parser.add_argument("-o" , action='store', dest="outgml", help="path to store as graphml", default=None)
 
     # backend padagraph
-    parser.add_argument("--key" , action='store', dest="key", help="path to key", default="../key.txt")
+    parser.add_argument("--key" , action='store', dest="key", help="path to key", default="key.txt")
     parser.add_argument("--host" , action='store', dest="host", help="padagraph host", default="http://localhost:5000")
 
     args = parser.parse_args()
 
-    gid, path, sqldb, backend = args.gid, args.path, args.sqldb, args.backend
+    gid, path, sqldb, backend, outgml = args.gid, args.path, args.complete, args.backend, args.outgml
 
     
     key = open(args.key).read().strip() if args.key else None
     print args.host, args.key 
 
-    parse( gid, path, sqldb, backend, args.host, key )
+    parse( gid, path, sqldb, backend, args.host, key, outgml )
     
-def parse(gid, path, sqldb, backend, host, key):
+def parse(gid, path, sqldb, backend, host, key, outgml):
 
     parser = Parser(gid, path)
 
@@ -642,21 +713,21 @@ def parse(gid, path, sqldb, backend, host, key):
         parser.parse(bot)
         graph = bot.get_igraph()
         graph = prepare_graph(graph)
+        graph.es['weight'] = [ float(e['properties']['weight']) for e in graph.es ]
 
-        print graph.summary()
-        
-        data = export_graph(graph, id_attribute='uuid')
+        parser.info(" %s " % graph['meta'] )
 
-        parser.info("data length %s " % len(json.dumps(data)))
-        parser.info(" %s " % data.keys() )
-        parser.info(" %s " % data['meta'] )
+        if outgml:
+            graph.write(outgml)
 
     if backend == 'padagraph':
         bot = Botagraph(host=host, key=key)
         if bot.has_graph(gid): bot.delete_graph(gid)
         parser.parse(bot)
-    
-    make_complete_db(sqldb, parser.completions)
+
+    if sqldb:
+        parser.info("  ** Writing sql completions db : %s " % sqldb)
+        make_complete_db(sqldb, parser.completions)
     
 
     parser.info("  %s " % bot.get_schema(gid))

@@ -32,7 +32,7 @@ require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
     }
 
   });
-});</script></dom-module><dom-module id="padagraph-engine-control"><template><style></style><div data-content="blocks" class$="{{button_class('blocks ui dropdown', asitem, aslabel)}}" class="blocks ui dropdown"><i class$="{{ icon(engine)}}"></i><div class="menu"><div class="header">{{engine}}</div><div class="divider"></div><template is="dom-repeat" items="[[blocks]]"><div data-value$="{{item.value}}" class="item">{{item.name}}</div></template></div></div></template><script>'use strict';
+});</script></dom-module><dom-module id="padagraph-engine-control"><template><style></style><div data-content="blocks" class$="{{button_class('blocks ui dropdown', asitem, aslabel)}}" class="blocks ui dropdown"><i class$="{{ icon(engine)}}"></i><div class="menu"><div class="header">{{block.name}}</div><div class="divider"></div><template is="dom-repeat" items="[[block.components.models]]"><div data-value$="{{item.name}}" class="item">{{item.name}}</div></template></div></div></template><script>'use strict';
 
 require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
   Polymer({
@@ -41,15 +41,15 @@ require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
     properties: {
 
       app: Object,
-      blocks: Object,
       engine: String,
+      block: Object,
 
       asitem: { type: Boolean, value: false },
       aslabel: { type: Boolean, value: false }
 
     },
 
-    observers: ["setupUI(app, blocks)"],
+    observers: ["setupUI(app, block)"],
 
     button_class: function button_class(css, asitem, aslabel) {
       return css + " " + (this.asitem ? "item" : this.aslabel ? "label" : "");
@@ -62,8 +62,9 @@ require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
       };
       return icons[engine];
     },
-    setupUI: function setupUI(app, blocks) {
-      if (!app || !blocks) return;
+
+    setupUI: function setupUI(app, block) {
+      if (!app || !block) return;
       var app = this.app;
       var engine = this.engine;
 

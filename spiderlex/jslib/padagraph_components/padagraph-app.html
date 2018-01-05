@@ -3,7 +3,7 @@
 }
 </style><template><div id="main" class="ui internally celled grid"><div class="row">  <div id="padagraph-left" style="padding:0px" class="twelve wide column"><div class="ui internally celled grid"><div id="padagraph-top" class="row"><div class="four wide column center aligned"><div class="ui vertically fitted secondary menu"><div class="item left title"><a href="/"><i class="big dore icons"><i class="comment outline icon"></i><i style="left:13px" class="tiny share alternate icon"></i></i>Padagraph</a></div><div class="item left title"><a href="{{report_bug_url}}" target="_blank"><i class="circular bug icon"></i></a><!--a
     i.circular.heart.icon
---></div></div></div><div class="twelve wide column"><div class="ui vertically fitted secondary compact menu"><div class="ui item"><padagraph-graph-button graph="{{graph}}"></padagraph-graph-button></div><div class="ui item"><padagraph-node-search actions="add,explore" placeholder="Find node"></padagraph-node-search></div><div class="ui item"><padagraph-notifications socket_url="{{socketio_host}}" username="{{username}}"></padagraph-notifications></div><div class="ui item"><padagraph-login-btn username="{{username}}" csrf_token="{{ csrf_token }}"></padagraph-login-btn></div></div></div></div><div class="row"><div class="ui divider"></div><div id="padagraph-viz"><padagraph-loading></padagraph-loading><padagraph-messages></padagraph-messages><padagraph-gviz app="{{app}}" graph="{{graph}}" options="{{options}}"><!--padagraph-vertex-popup(graph="{{graph}}" height="{{height}}")--><!--padagraph-mouse-popup(graph="{{graph}}" height="{{height}}")--></padagraph-gviz><padagraph-controls on-toggle-fullscreen="toggle_fullscreen"></padagraph-controls><padagraph-graph-infos graph="{{graph}}" style="display:none"></padagraph-graph-infos><padagraph-edits style="display:none"></padagraph-edits><padagraph-create style="display:none"></padagraph-create></div></div></div></div><div id="padagraph-right" class="four wide column center aligned"><div style="margin-bottom:0px" class="ui secondary fitted pointing menu"><a data-tab="tab-actions" class="item active"><i class="large info circle icon"></i></a><a data-tab="tab-nodes" class="item">Nodes</a><a data-tab="tab-links" class="item">Links</a><div on-click="toggle_fullscreen" class="link right item"><i class="icon close"></i></div></div><div data-tab="tab-actions" class="ui tab active tab-actions"><div class="ui scrollable"><padagraph-app-menu graph="{{graph}}" on-toggle-fullscreen="toggle_fullscreen"></padagraph-app-menu></div></div><div data-tab="tab-nodes" class="ui tab basic segment"><padagraph-collection app="{{app}}" mode="node" graph="{{graph}}"></padagraph-collection></div><div data-tab="tab-links" class="ui tab basic segment"><padagraph-collection app="{{app}}" mode="edge" graph="{{graph}}"></padagraph-collection></div></div></div></div></template><script>"use strict";
+--></div></div></div><div class="twelve wide column"><div class="ui vertically fitted secondary compact menu"><div class="ui item"><padagraph-graph-button graph="{{graph}}"></padagraph-graph-button></div><div class="ui item"><padagraph-node-search actions="add,explore" placeholder="Find node"></padagraph-node-search></div><div class="ui item"><padagraph-notifications socket_url="{{socketio_host}}" username="{{username}}"></padagraph-notifications></div><div class="ui item"><padagraph-login-btn username="{{username}}" csrf_token="{{ csrf_token }}"></padagraph-login-btn></div></div></div></div><div class="row"><div class="ui divider"></div><div id="padagraph-viz"><padagraph-loading></padagraph-loading><padagraph-messages></padagraph-messages><padagraph-gviz app="{{app}}" graph="{{graph}}" options="{{options}}"><div id="pdgmenu" class="ui icon vertical borderless menu"><padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control><padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control></div><!--padagraph-vertex-popup(graph="{{graph}}" height="{{height}}")--><!--padagraph-mouse-popup(graph="{{graph}}" height="{{height}}")--></padagraph-gviz><padagraph-controls on-toggle-fullscreen="toggle_fullscreen"></padagraph-controls><padagraph-graph-infos graph="{{graph}}" style="display:none"></padagraph-graph-infos><padagraph-edits style="display:none"></padagraph-edits><padagraph-create style="display:none"></padagraph-create></div></div></div></div><div id="padagraph-right" class="four wide column center aligned"><div style="margin-bottom:0px" class="ui secondary fitted pointing menu"><a data-tab="tab-actions" class="item active"><i class="large info circle icon"></i></a><a data-tab="tab-nodes" class="item">Nodes</a><a data-tab="tab-links" class="item">Links</a><div on-click="toggle_fullscreen" class="link right item"><i class="icon close"></i></div></div><div data-tab="tab-actions" class="ui tab active tab-actions"><div class="ui scrollable"><padagraph-app-menu graph="{{graph}}" on-toggle-fullscreen="toggle_fullscreen"></padagraph-app-menu></div></div><div data-tab="tab-nodes" class="ui tab basic segment"><padagraph-collection app="{{app}}" mode="node" graph="{{graph}}"></padagraph-collection></div><div data-tab="tab-links" class="ui tab basic segment"><padagraph-collection app="{{app}}" mode="edge" graph="{{graph}}"></padagraph-collection></div></div></div></div></template><script>"use strict";
 
 require(["jquery", "padagrapp"], function ($, App) {
 
@@ -61,12 +61,15 @@ require(["jquery", "padagrapp"], function ($, App) {
         },
 
         startapp: function startapp(routes, current_graph) {
-            var app = this;
+            var _this2 = this;
+
+            var _this = this;
+
             if (_.isString(routes)) {
                 $.ajax({
                     url: routes,
                     success: function success(routes) {
-                        app.set('routes', routes.routes);
+                        _this.set('routes', routes.routes);
                     }
                 });
                 return;
@@ -82,26 +85,28 @@ require(["jquery", "padagrapp"], function ($, App) {
             app.create_user_model();
             app.create_engines();
 
-            app.fetch_engines(function () {
-                app.engines.starred.play();
-            });
-
             var graph = app.models.graph;
             app.listenTo(graph, "change:gid", function () {
                 app.models.query.graph = graph.get('gid');
                 graph.fetch();
             });
-            graph.set('gid', current_graph);
 
-            this.app = app;
-            this.graph = app.models.graph;
+            var complete = function complete() {
+                _this2.app = app;
+                _this2.graph = graph;
 
-            this.async((function () {
                 app.start();
+
+                graph.set('gid', current_graph);
+
+                //Backbone.trigger('engine:starred',
+                //{ graph: current_graph,
+                //});
                 app.setTheme("camouflage");
-                Backbone.trigger('engine:starred', { graph: current_graph
-                });
-            }).bind(this));
+                app.engines.starred.play();
+            };
+
+            app.fetch_engines(complete);
         },
 
         toggle_fullscreen: function toggle_fullscreen() {

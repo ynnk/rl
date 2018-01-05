@@ -24,6 +24,13 @@ print "debug ", app.debug, os.environ.get('APP_DEBUG', None)
 
 logger = get_basic_logger(logging.DEBUG)
 
+
+# Flask-Login
+from flask_login import LoginManager, current_user, login_user, login_required
+   
+login_manager = LoginManager()
+login_manager.init_app(app)
+
 from flask_cors import CORS
 CORS(app)
 
@@ -40,8 +47,8 @@ LANGS = tuple([ lang for lang,v in CONFIG.items()])
 
 CLIENT_CONF =  {
     'sync': "http://localhost:5002/static/rlfr.json",
-    'routes' : "http://localhost:5000/engines",
-    'urlRoot': "http://localhost:5000/graphs/g/",
+    'routes' : "http://localhost:5002/engines",
+    'urlRoot': "http://localhost:5002/graphs/g/",
 }
 
 if PRODUCTION:
@@ -204,6 +211,37 @@ def app_graph(lang, query=None, path = ""):
         ** CLIENT_CONF
         
         )
+
+    
+
+# igraph graphdb
+from graphdb_ig import IGraphDB, engines
+from api import graphedit, explor
+graphdb = IGraphDB({ "rlfr" : "../lnfr.picklez" })
+graphdb.open_database()
+
+## Neo4j graphdb
+#from  graphdb_neo4j import GraphDB
+#from  graphdb_neo4j import graph_engine as engines
+#graphdb = GraphDB(app.config["NEO4J_HOST"])
+#graphdb.open_database()
+
+socketio = None
+ 
+edit_api = graphedit.graphedit_api("graphs", app, graphdb, login_manager, socketio )
+app.register_blueprint(edit_api)
+
+from graphdb_ig import engines
+explor_api = explor.explore_api("xplor", graphdb, engines)
+app.register_blueprint(explor_api)
+
+from api import get_engines_routes
+    
+@app.route('/engines', methods=['GET'])
+def _engines():
+    host = "http://localhost:5002"
+    return jsonify({'routes': get_engines_routes(app, host)})
+
 
 def main():
     

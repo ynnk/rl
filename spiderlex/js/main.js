@@ -44,12 +44,12 @@ require.config({
           'threejs': {
                 exports: 'THREE',
             },
-          'tagsinput': {deps: ["jquery"]},
           'autocomplete': {deps: ["backbone"]},
           
           'json2html': {
                 exports: 'json2html',
             },
+          'tagsinput': {deps: ["jquery"]},
           'semantic': {
               deps: ['jquery']
           },
