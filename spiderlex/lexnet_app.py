@@ -243,6 +243,7 @@ from pdgapi import get_engines_routes
 @app.route('/engines', methods=['GET'])
 def _engines():
     host = "http://localhost:5002"
+    host = ""
     return jsonify({'routes': get_engines_routes(app, host)})
 
 
