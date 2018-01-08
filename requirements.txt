@@ -26,3 +26,5 @@ scikit-learn
 reliure
 https://github.com/ynnk/cello/archive/master.zip
 https://github.com/padagraph/botapi/archive/master.zip
+https://github.com/padagraph/pdglib/archive/master.zip
+https://github.com/padagraph/pdgapi/archive/master.zip

@@ -213,10 +213,12 @@ def app_graph(lang, query=None, path = ""):
         )
 
     
+import sys
+print sys.path
 
 # igraph graphdb
-from graphdb_ig import IGraphDB, engines
-from api import graphedit, explor
+from pdglib.graphdb_ig import IGraphDB, engines
+from pdgapi import graphedit, explor
 graphdb = IGraphDB({ "rlfr" : "../lnfr.picklez" })
 graphdb.open_database()
 
@@ -231,11 +233,12 @@ socketio = None
 edit_api = graphedit.graphedit_api("graphs", app, graphdb, login_manager, socketio )
 app.register_blueprint(edit_api)
 
-from graphdb_ig import engines
+from pdglib.graphdb_ig import engines
+
 explor_api = explor.explore_api("xplor", graphdb, engines)
 app.register_blueprint(explor_api)
 
-from api import get_engines_routes
+from pdgapi import get_engines_routes
     
 @app.route('/engines', methods=['GET'])
 def _engines():

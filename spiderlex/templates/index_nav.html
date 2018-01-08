@@ -499,7 +499,7 @@
         var _window_resized = function(){
             var win = $(this); //this = window
             size =  $(window).height()-$("nav").height() - $("#footer").height() - 50;
-            size =  $(window).height()-$("nav").height() -60 ;
+            size =  $(window).height()-$("nav").height() -64 ;
             size = size < min_height ? min_height : size;
             $(".itemview").height(size);
             $("#vz_graph .bottom.segment").height(size -2);
