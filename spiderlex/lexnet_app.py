@@ -46,17 +46,17 @@ LANGS = tuple([ lang for lang,v in CONFIG.items()])
 
 
 CLIENT_CONF =  {
-    'sync': "http://localhost:5002/static/rlfr.json",
-    'routes' : "http://localhost:5002/engines",
-    'urlRoot': "http://localhost:5002/graphs/g/",
+    'sync': "/static/rlfr.json",
+    'routes' : "/engines",
+    'urlRoot': "/graphs/g/",
 }
 
-if PRODUCTION:
-    CLIENT_CONF =  {
-        'routes': "http://padagraph.io/engines", 
-        'sync': "http://padagraph.io/graphs/g/rlfr",
-        'urlRoot': "http://padagraph.io/graphs/g/",
-    }
+#if PRODUCTION:
+    #CLIENT_CONF =  {
+        #'routes': "http://padagraph.io/engines", 
+        #'sync': "http://padagraph.io/graphs/g/rlfr",
+        #'urlRoot': "http://padagraph.io/graphs/g/",
+    #}
     
 
 def get_db(lang):
