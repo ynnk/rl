@@ -70,7 +70,7 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
                     var url_root = this.url() ;
 
                     if (this._neighbors) {
-                        success(data);
+                        success(this._neighbors);
                         return;
                     }
 

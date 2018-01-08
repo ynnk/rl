@@ -1,0 +1,148 @@
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-keb-sample"><style></style><template><template is="dom-if" if="{{ locutions.length }}"><template is="dom-repeat" items="[[locutions]]">{{item}}</template></template></template><script>'use strict';
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+  Polymer({
+    is: "padagraph-keb-sample",
+
+    properties: {
+
+      app: { type: Object, value: function value() {} },
+      graph: { type: Object, value: function value() {} },
+      options: { type: Object, value: function value() {} }
+
+    },
+
+    observers: ["create_once(app, graph, options)"]
+
+  });
+});</script></dom-module><dom-module id="keb-option"><style></style><template><template is="dom-if" if="{{ isBoolean(option) }}"><div class="ui checkbox"><input type="checkbox" on-change="bool_changed" checked="{{value::input}}"/><label>{{option.name}}</label></div></template><template is="dom-if" if="{{ isEditable(option) }}"><label>{{option.name}} {{option.otype.help}}</label><input value="{{value::input}}"/></template></template><script>'use strict';
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+  Polymer({
+    is: "keb-option",
+
+    properties: {
+      comp: Object,
+      option: Object,
+      value: String
+    },
+
+    observers: ["observe(comp, option)", "observe_input(value)"],
+
+    observe: function observe(comp, option) {
+      console.log(comp, option, this.value);
+      this.value = option.value;
+    },
+
+    observe_input: function observe_input(value) {
+      if (this.option.value != value) {
+
+        console.log("setting ", this.option.name, value);
+        this.option.value = value;
+      }
+    },
+
+    isBoolean: function isBoolean(option) {
+      return option.otype.type == 'Boolean';
+    },
+    bool_changed: function bool_changed() {
+      this.option.value = !this.option.value;
+    },
+
+    isEditable: function isEditable(option) {
+      return this.isText(this.option) || this.isNumeric(this.option);
+    },
+    isText: function isText(option) {
+      return option.otype.type == 'Text';
+    },
+    isNumeric: function isNumeric(option) {
+      return option.otype.type == 'Numeric';
+    }
+
+  });
+});</script></dom-module><dom-module id="keb-optionable"><style>.options_form_menu {
+    margin: 4px;
+}
+.optionable.item {
+    cursor:pointer;
+    padding: 5px;
+    margin-top: 12px;
+    background: #FAFAFA;
+}
+.optionable.selected.item {
+    background: #EAEAEA;
+    border: 1px solid #CCC;
+}
+  </style><template><div class$="{{optionable_css(comp.selected)}}" on-tap="select_component" class="optionable item"><template is="dom-if" if="{{ !comp.selected }}"><a> <i class="caret right icon"></i>{{comp.name}}</a></template><template is="dom-if" if="{{ comp.selected }}"><a class="selected"><i class="checkmark icon"></i>{{comp.name}}</a><template is="dom-if" if="{{comp.options.models.length}}"><div class="options_form_menu"><form><fieldset><template is="dom-repeat" items="[[comp.options.models]]" as="opt"><template is="dom-if" if="{{ comp.selected }}"><keb-option comp="{{comp}}" option="{{opt}}"></keb-option><br/></template><template is="dom-if" if="{{ !comp.selected }}"><label>{{ opt.name }} : </label><span>{{opt.value}}</span><br/></template></template></fieldset></form></div></template></template></div></template><script>'use strict';
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+  Polymer({
+    is: "keb-optionable",
+
+    properties: {
+      engine: Object,
+      block: Object,
+      comp: Object
+    },
+
+    observers: ["observe(comp)"],
+
+    created: function created() {
+      this._listener = {};
+      _.extend(this._listener, Backbone.Events);
+    },
+
+    observe: function observe(comp) {
+      var _this = this;
+
+      this._listener.stopListening();
+      this._listener.listenTo(comp, 'change:selected', function () {
+        _this.notifyPath('comp.selected');
+      });
+      this._listener.listenTo(comp, 'change', function () {
+        _this.engine.play();
+      });
+    },
+
+    optionable_css: function optionable_css(selected) {
+      var classes = 'optionable item';
+      if (selected) classes += ' selected';
+      return classes;
+    },
+
+    select_component: function select_component(e, detail) {
+      this.block.select(this.comp);
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-keb"><style>.options_form_menu {
+    margin: 4px;
+}
+
+a {
+    color:#333;
+
+}
+
+a.selected {
+    color:teal;
+}
+
+
+</style><template><div class="ui segment"> <template is="dom-repeat" items="[[engines]]" as="engine"><h2 class="header"><a>{{engine.name}}</a></h2><div class="menu"></div><template is="dom-if" if="{{ engine.blocks.models.length }}"><template is="dom-repeat" items="[[engine.blocks.models]]" as="block"><div class="block item"><!--a {{block.name}}--><div class="menu"> </div><template is="dom-repeat" items="[[block.components.models]]" as="optionable"><keb-optionable engine="[[engine]]" block="[[block]]" comp="[[optionable]]"></keb-optionable></template></div></template></template></template></div></template><script>'use strict';
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+  Polymer({
+    is: "padagraph-keb",
+
+    properties: {
+
+      engines: Object
+
+    },
+
+    observers: ["observe_model(engines)"],
+
+    observe_model: function observe_model(engines) {}
+  });
+});</script></dom-module>

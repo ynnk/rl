@@ -24,6 +24,16 @@ html, body{
     padding-right: 15px;
 }
 
+#keb {
+    min-width:350px;
+}
+
+#keb .close{
+    background: #EEE;
+    text-align:right;
+    padding: 4px ;
+}
+
 #footer {
     margin: 0px;
     padding: 2px 0px 2px 0px;
@@ -31,6 +41,8 @@ html, body{
     color: #AAA;
     border: none;
 }
+
+nav.ui.menu>.item { padding : 12px }
 
 #keb_btn_0 {
     top: 40px;

@@ -303,9 +303,11 @@ define([
             $(searchdiv).show();
             
             // Configuration view for Cello engine
-            app.views.keb = new Cello.ui.engine.Keb({
-                model:app.engines.explore,
-            });
+            app.keb = {
+                'explore':app.engines.explore,
+                'layout':app.engines.layout,
+                'clustering':app.engines.clustering,
+            };
             
         },
         
@@ -518,11 +520,9 @@ define([
                     model.add_flag("pzero");
 
                     var card = document.createElement("rlf-vertex-xs");
-                    card.asLabel = true;
-                    card.over = "intersect";
-                    card.clicked = "select";
+                    card.css = "ui label";
+                    card.graph = app.models.graph;
                     card.model = model;
-                    
                     ln[0].appendChild(card);
                 }
             });
@@ -599,7 +599,9 @@ define([
  
             // create views
             app.create_query_engine_views(explore);
-            app.views.keb.install_on_body({});
+            for (var i in app.views.keb ){
+                //app.views.keb[i].install_on_body({});
+            }
             app.create_results_views();
 
         },

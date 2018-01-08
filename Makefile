@@ -1,7 +1,9 @@
-.phony : build
+.phony : build rlfcomp pdg deploy
 
-build:
-	echo
+build: rlfcomp pdg deploy
+
+rlfcomp:
+	cd ../padagraph/application/src && make rlf
 
 pdg:
 	cp ../padagraph/application/src/static/embed.* ./spiderlex/jslib/

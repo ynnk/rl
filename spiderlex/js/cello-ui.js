@@ -1128,12 +1128,9 @@
                 .css("z-index", '80')
                 .css("padding", '0.5em');
             // add "pusher" div an mv body in it
-            var pusher = $("<div class='pusher'></div>")
-            $("body").children().detach().appendTo(pusher);
             // add sidebar to body and  pusher (containt)
             $("body").append(this.$el);
             $("body").append(open_btn);
-            $("body").append(pusher);
             this.$el
                 .sidebar('setting', 'transition', 'overlay')
                 .sidebar('attach events', '#' + btn_id);

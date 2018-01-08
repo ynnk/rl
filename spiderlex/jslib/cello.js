@@ -681,8 +681,8 @@ Cello.Doc = Backbone.Model.extend({
             Cello.get(this, 'otype');
             Cello.get(this, 'value');
             Cello.set(this, 'value', function(val){
-                _this.validate(val);
-                _this.set('value', val);
+                var _val = _this.validate(val);
+                _this.set('value', _val);
             });
             // check data
             Cello.assert(this.name !== null, "Option should have a name");

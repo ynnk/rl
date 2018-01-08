@@ -27,6 +27,7 @@
     <link rel="import" href="{{polymer_path}}/padagraph-controls.html"/>
     <link rel="import" href="{{polymer_path}}/padagraph-gviz.html"/>
     <link rel="import" href="{{polymer_path}}/padagraph-rlf-vertex.html"/>
+    <link rel="import" href="{{polymer_path}}/padagraph-engines.html"/>
 
 
     <!-- templates -->
@@ -59,10 +60,19 @@
     </script>
 
 </head>
-<body>
-            
+<body class='pushable'>
+
+  <div id="keb" class="ui left vertical visible sidebar">
+      <div class="close">
+        <a class="ui link icon">
+          <i class="close icon"></i>
+        </a>
+      </div>
+  </div>
+
+  <div class="pusher"> 
     <div id='main' class="ui grid">
-        <div class="row" style="padding-bottom:2px">
+        <div class="row" style="padding-bottom:2px;padding-top:2px">
         <div class="column center aligned">
             
             <nav class="ui menu navbar ">
@@ -74,11 +84,12 @@
             </nav>
     
             <div id="maintabs" class="ui bottom attached  teal  menu">
-                  <a class="ui item left active" data-tab='tab-graph'>
-                      <i class="cube icon"></i>
-                      <span class='hidden-xs'>Graph</span>
-                  </a>
-            <nav class="ui right menu navbar">
+                <a class="ui item left active" data-tab='tab-graph'>
+                  <i class="cube icon"></i>
+                  <span class='hidden-xs'>Graph</span>
+                </a>
+                
+                <nav class="ui right menu navbar">
                   <a id='lexlinks_menu_item' class="ui item" data-tab="tab-lexlinks">
                       <i class="list layout icon"></i>
                       Lexical links
@@ -92,7 +103,7 @@
                       <i class="book icon"></i>
                       Dictionary
                   </a>
-            </nav>
+                </nav>
             </div>
             
 
@@ -123,7 +134,6 @@
             </div>
 
             
-            <div class="pusher">
                 <div class="ui bottom attached segment">
                     <div id='vz_button0' class="ui left aligned attached fixed button">
                         <i class="angle double right icon" style="display:none"></i>
@@ -132,6 +142,10 @@
 
                           <padagraph-gviz options="{{options}}">
                             <div id="pdgmenu" class="ui icon vertical borderless menu">
+                              <a  id="keb_settings" class="ui item">
+                                  <i class="settings icon"></i>
+                              </a>
+                                
                               <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
                               <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
                             </div>
@@ -143,18 +157,18 @@
 
                 </div>
             </div>
-            </div>
             
-            <div id="footer" class="ui center aligned attached top segment">
+<!--
+            <div id="footer" class="ui center aligned attached top segment">            </div>
+-->
+            
+        </div>
+            
+        </div>
+        </div>
+        </div>
 
-            </div>
-            
-        </div>
-            
-        </div>
-        </div>
-
-<script>
+  <script>
 
 
     /*
@@ -308,7 +322,7 @@
             
             app.create_query_model();
             app.models.query.graph = app.models.graph.id;
-            
+
         }
         else {
             app.create_graph_model({});
@@ -361,6 +375,23 @@
             comp = $("padagraph-engine-control")[1];
             comp.engine = "clustering"
             comp.blocks = app.engines.clustering.blocks.models;
+
+            var engines = [];
+            for (var k in app.keb){
+                var engine = app.keb[k]
+                engine.name = k;
+                engines.push(engine);
+            }
+            
+            var keb = document.createElement("padagraph-keb")
+            keb.engines = engines;
+            $("#keb")
+                .sidebar('setting', 'dimPage', false)
+                .sidebar('setting', 'transition', 'overlay')
+            $("#keb").append(keb)
+
+            $("#keb .close").click( ()=>{ $("#keb").sidebar('hide') } )
+            $("#keb_settings").click( ()=>{ $("#keb").sidebar('show') } )
             
             var viz = $("padagraph-gviz")[0];
             viz.graph = graph;
@@ -378,6 +409,9 @@
             
             var comp = $("rlf-lexfunc-filter", "#lexlinks")[0];
             comp.app = app;
+            comp.graph = graph;
+            
+            var comp = $("rlf-vertex-card")[0];
             comp.graph = graph;
 
             var map_position = {
@@ -464,7 +498,8 @@
         
         var _window_resized = function(){
             var win = $(this); //this = window
-            size =  $(window).height()-$("nav").height() - $("#footer").height() - 88;
+            size =  $(window).height()-$("nav").height() - $("#footer").height() - 50;
+            size =  $(window).height()-$("nav").height() -60 ;
             size = size < min_height ? min_height : size;
             $(".itemview").height(size);
             $("#vz_graph .bottom.segment").height(size -2);
@@ -499,7 +534,7 @@
         _window_resized();
 
 
-    }, function(){console.log( "ERROR",  arguments)})();
+    }, function(){console.error( "ERROR",  arguments)})();
 </script>
 
 </body>
