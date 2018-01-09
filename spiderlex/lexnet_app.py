@@ -79,9 +79,11 @@ def close_sqlite_connection(exception):
 
 # index page
 @app.route("/")
+@app.route("/home")
 def index():
-    return "IndexPage, TODO"
-
+    return render_template(
+        'home.html'
+    )
 
 
 # completion 
@@ -218,7 +220,6 @@ print sys.path
 
 # igraph graphdb
 from pdglib.graphdb_ig import IGraphDB, engines
-from pdgapi import graphedit, explor
 graphdb = IGraphDB({ "rlfr" : "../lnfr.picklez" })
 graphdb.open_database()
 
@@ -229,20 +230,23 @@ graphdb.open_database()
 #graphdb.open_database()
 
 socketio = None
+
+from pdgapi import graphedit
  
 edit_api = graphedit.graphedit_api("graphs", app, graphdb, login_manager, socketio )
 app.register_blueprint(edit_api)
 
+from lexnetapi import explore_api
 from pdglib.graphdb_ig import engines
+api = explore_api(engines, graphdb)
 
-explor_api = explor.explore_api("xplor", graphdb, engines)
-app.register_blueprint(explor_api)
+app.register_blueprint(api)
+
 
 from pdgapi import get_engines_routes
     
 @app.route('/engines', methods=['GET'])
 def _engines():
-    host = "http://localhost:5002"
     host = ""
     return jsonify({'routes': get_engines_routes(app, host)})
 
