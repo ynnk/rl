@@ -1046,12 +1046,15 @@ App.Base = Backbone.View.extend({
         if ( routes.explore ){
             var explore = Engine({url: routes.explore.url});
             explore.register_input("request", app.models.query);
+            
             app.listenTo( Backbone,"engine:explore", function(params){
                 app.models.query.reset_from_models(params)
                 explore.play();
             });
             app.listenTo(explore, 'play:success', app.explore_reset);
+            
             app.engines.explore = explore;
+        
         }
         
         // Starred  engine
