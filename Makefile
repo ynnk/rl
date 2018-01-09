@@ -3,7 +3,7 @@
 build: rlfcomp pdg deploy
 
 rlfcomp:
-	cd ../padagraph/application/src && make rlf
+	cd ../padagraph/application/src && make polymer
 
 pdg:
 	cp ../padagraph/application/src/static/embed.* ./spiderlex/jslib/

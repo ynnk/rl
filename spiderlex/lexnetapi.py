@@ -28,7 +28,7 @@ def explore_engine(graphdb):
 
     ## Search
     
-    def subgraph(query, cut=50, weighted=True, length=3):
+    def subgraph(query, cut=50, weighted=True, length=3, mode=ALL):
 
         print (query, cut, weighted, length)
 
@@ -41,7 +41,7 @@ def explore_engine(graphdb):
         extract = ProxExtract()
         vs = []
         for u in pz:
-            s = extract(graph, pzeros=[u], weighted=weighted, cut=cut, length=length)
+            s = extract(graph, pzeros=[u], weighted=weighted,mode=mode, cut=cut, length=length)
             vs = vs + s.keys()
 
         return graph.subgraph(vs)
@@ -49,14 +49,15 @@ def explore_engine(graphdb):
     from cello.graphs.transform import VtxAttr
     
     searchs = []
-    for k,w,l,n  in [
-              (u"Espaces_sémantiques", True, 3, 30 ),
-              (u"Espaces_sémantiques_élargis", True, 4, 50 ),
-              (u"Espaces_lexicaux", False, 3, 30 ),
-              (u"Espaces_élargis", False, 4, 50 )]:
+    for k,w,l,m,n  in [
+              (u"Espaces_sémantiques", True, 3, OUT,30 ),
+              (u"Espaces_sémantiques_élargis", True, 4, OUT,50 ),
+              (u"Espaces_lexicaux", False, 3, OUT, 30 ),
+              (u"Espaces_élargis", False, 4, OUT, 50 )]:
         search = Optionable("GraphSearch")
         search._func = Composable(subgraph)
         search.add_option("weighted", Boolean( default=w))
+        search.add_option("mode", Numeric(choices=[ IN, OUT, ALL], default=m, help="edge directions"))
         search.add_option("length", Numeric( vtype=int, min=1, default=l))
         search.add_option("cut", Numeric( vtype=int, min=2, default=n))
         

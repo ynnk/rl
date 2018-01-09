@@ -700,12 +700,25 @@ Cello.Doc = Backbone.Model.extend({
 
         /** Validate one value
         */
-        _validate_one: function(val){
-            if(this.otype.type === "Boolean"){
-                val = [true, "true", "True", "TRUE", "1", "yes"].indexOf(val) >= 0;
-                //console.log(this.otype.type, val);
+        parse: function(val){
+            if (this.otype) {
+                if(this.otype.type === "Boolean"){
+                    val = [1, true, "true", "True", "TRUE", "1", "yes"].indexOf(val) >= 0;
+                }
+                if(this.otype.vtype === "float"){
+                    val = parseFloat(val);
+                }
+                if(this.otype.vtype === "int"){
+                    val = parseInt(val);
+                }
             }
+            return val;
+        },    
             
+        /** Validate one value
+        */
+        _validate_one: function(val){
+            val = this.parse(val)
             // check enum
             var choices = this.otype.choices;
             if(choices && _.indexOf(choices, val) < 0){
@@ -721,8 +734,7 @@ Cello.Doc = Backbone.Model.extend({
         validate: function(val){
             var _this = this;
             // TODO; run validators !
-            var multi = _this.otype.multi;
-            if(multi){
+            if(this.is_multi()){
                 var nval = [];
                 _.each(val, function(one_val){
                     nval.push(_this._validate_one(one_val));

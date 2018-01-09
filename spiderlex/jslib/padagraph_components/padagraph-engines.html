@@ -15,7 +15,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
     observers: ["create_once(app, graph, options)"]
 
   });
-});</script></dom-module><dom-module id="keb-option"><style></style><template><template is="dom-if" if="{{ isBoolean(option) }}"><div class="ui checkbox"><input type="checkbox" on-change="bool_changed" checked="{{value::input}}"/><label>{{option.name}}</label></div></template><template is="dom-if" if="{{ isEditable(option) }}"><label>{{option.name}} {{option.otype.help}}</label><input value="{{value::input}}"/></template></template><script>'use strict';
+});</script></dom-module><dom-module id="keb-option"><style></style><template><template is="dom-if" if="{{ isBoolean(option) }}"><div class="ui checkbox"><input type="checkbox" on-change="bool_changed" checked="{{value::input}}"/><label>{{option.name}}</label></div></template><template is="dom-if" if="{{ isEditable(option) }}"><label>{{option.name}} {{option.otype.help}}</label><input value="{{value::input}}"/><br/></template><template is="dom-if" if="{{ isChoice(option) }}"><label>{{option.name}} {{option.otype.help}}</label><select value="{{value::input}}"><template is="dom-repeat" items="[[option.otype.choices]]"><option selected$="{{selected(option, item)}}" value="{{item}}">{{item}} </option></template></select></template></template><script>'use strict';
 
 require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
   Polymer({
@@ -36,7 +36,6 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
     observe_input: function observe_input(value) {
       if (this.option.value != value) {
-
         console.log("setting ", this.option.name, value);
         this.option.value = value;
       }
@@ -49,8 +48,15 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
       this.option.value = !this.option.value;
     },
 
+    isChoice: function isChoice(option) {
+      return option.otype.choices != null;
+    },
+    isSelected: function isSelected(option, item) {
+      return option.value == option.parse(item);
+    },
+
     isEditable: function isEditable(option) {
-      return this.isText(this.option) || this.isNumeric(this.option);
+      return !this.isChoice(option) && (this.isText(this.option) || this.isNumeric(this.option));
     },
     isText: function isText(option) {
       return option.otype.type == 'Text';
@@ -73,7 +79,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
     background: #EAEAEA;
     border: 1px solid #CCC;
 }
-  </style><template><div class$="{{optionable_css(comp.selected)}}" on-tap="select_component" class="optionable item"><template is="dom-if" if="{{ !comp.selected }}"><a> <i class="caret right icon"></i>{{comp.name}}</a></template><template is="dom-if" if="{{ comp.selected }}"><a class="selected"><i class="checkmark icon"></i>{{comp.name}}</a><template is="dom-if" if="{{comp.options.models.length}}"><div class="options_form_menu"><form><fieldset><template is="dom-repeat" items="[[comp.options.models]]" as="opt"><template is="dom-if" if="{{ comp.selected }}"><keb-option comp="{{comp}}" option="{{opt}}"></keb-option><br/></template><template is="dom-if" if="{{ !comp.selected }}"><label>{{ opt.name }} : </label><span>{{opt.value}}</span><br/></template></template></fieldset></form></div></template></template></div></template><script>'use strict';
+  </style><template><div class$="{{optionable_css(comp.selected)}}" on-tap="select_component" class="optionable item"><template is="dom-if" if="{{ !comp.selected }}"><a> <i class="caret right icon"></i>{{comp.name}}</a></template><template is="dom-if" if="{{ comp.selected }}"><a class="selected"><i class="checkmark icon"></i>{{comp.name}}</a><template is="dom-if" if="{{comp.options.models.length}}"><div class="options_form_menu"><div class="ui small form"><fieldset><template is="dom-repeat" items="[[comp.options.models]]" as="opt"><template is="dom-if" if="{{ comp.selected }}"><div class="inline field"><keb-option comp="{{comp}}" option="{{opt}}"></keb-option></div></template><template is="dom-if" if="{{ !comp.selected }}"><label>{{ opt.name }} : </label><span>{{opt.value}}</span><br/></template></template></fieldset></div></div></template></template></div></template><script>'use strict';
 
 require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
   Polymer({
