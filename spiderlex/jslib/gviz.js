@@ -930,7 +930,7 @@ gviz.DEFAULTS = {
     show_text  : true,
     show_images  : true,
 
-    background_color : 0xFF11FF,
+    background_color : 0xAAAAAA,
     user_font_size : 0, // range -5,5
     user_vtx_size : 0, // range -5,5
     initial_size : 10, // 

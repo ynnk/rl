@@ -1,4 +1,4 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-m.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><link rel="import" href="./padagraph-edge-card-xl.html"/><link rel="import" href="./padagraph-card-property.html"/><!--dom-module(id='padagraph-gviz-label')--><dom-module id="padagraph-model-popup"><style>.card { width:400px}
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-m.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><link rel="import" href="./padagraph-edge-card-xl.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="padagraph-model-popup"><style>.card { width:400px}
 .card .intersected { margin:4px; padding: 2px; border:none; }
 a.more { padding-right:12px; margin-top: -12px; }
 
@@ -415,13 +415,11 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
             if (!app || graph == null || !graph.vs) return;
             if (this.gviz) return;
 
-            var engines = _.zip([app.engines.layout, app.engines.clustering], $("padagraph-engine-control", this));
-
-            _.each(engines, function (e, i, l) {
-                var el = e[1]; // polymer el
+            _.each($("padagraph-engine-control", this), function (el, i, l) {
                 if (el) {
+                    var engine = app.engines[el.engine];
                     el.app = app;
-                    if (e[0].blocks.models.length) el.block = e[0].blocks.models[0];
+                    if (engine.blocks.models.length) el.block = engine.blocks.models[0];
                 }
             });
 

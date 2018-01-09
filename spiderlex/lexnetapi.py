@@ -47,18 +47,26 @@ def explore_engine(graphdb):
         return graph.subgraph(vs)
 
     from cello.graphs.transform import VtxAttr
-    graph_search = Optionable("GraphSearch")
-    graph_search._func = Composable(subgraph)
-    graph_search.add_option("weighted", Boolean( default=True))
-    graph_search.add_option("length", Numeric( vtype=int, min=1, default=3))
-    graph_search.add_option("cut", Numeric( vtype=int, min=2, default=50))
     
-    graph_search |= VtxAttr(color=[(45, 200, 34), ])
-    graph_search |= VtxAttr(type=1)
+    searchs = []
+    for k,w,l,n  in [
+              (u"Espaces_sémantiques", True, 3, 30 ),
+              (u"Espaces_sémantiques_élargis", True, 4, 50 ),
+              (u"Espaces_lexicaux", False, 3, 30 ),
+              (u"Espaces_élargis", False, 4, 50 )]:
+        search = Optionable("GraphSearch")
+        search._func = Composable(subgraph)
+        search.add_option("weighted", Boolean( default=w))
+        search.add_option("length", Numeric( vtype=int, min=1, default=l))
+        search.add_option("cut", Numeric( vtype=int, min=2, default=n))
+        
+        search |= VtxAttr(color=[(45, 200, 34), ])
+        search |= VtxAttr(type=1)
 
-    graph_search.name = u"Espaces_sémantiques"
-
-    engine.graph.set(graph_search)
+        search.name = k
+        searchs.append(search)
+        
+    engine.graph.set( *searchs )
     return engine
 
 

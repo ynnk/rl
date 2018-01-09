@@ -146,6 +146,7 @@
                                   <i class="settings icon"></i>
                               </a>
                                 
+                              <padagraph-engine-control engine="explore" asitem="asitem" ></padagraph-engine-control>
                               <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
                               <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
                             </div>
@@ -368,13 +369,13 @@
             // !!!!! to be removed !!!!!
             graph.vs.on("add"  , function(e){e.properties.set('lfs', "{}")});
 
-            var comp = $("padagraph-engine-control")[0];
-            comp.engine = "layout"
-            comp.blocks = app.engines.layout.blocks.models;
+            //var comp = $("padagraph-engine-control")[0];
+            //comp.engine = "layout"
+            //comp.blocks = app.engines.layout.blocks.models;
             
-            comp = $("padagraph-engine-control")[1];
-            comp.engine = "clustering"
-            comp.blocks = app.engines.clustering.blocks.models;
+            //comp = $("padagraph-engine-control")[1];
+            //comp.engine = "clustering"
+            //comp.blocks = app.engines.clustering.blocks.models;
 
             var engines = [];
             for (var k in app.keb){
@@ -479,6 +480,20 @@
                         var params = app.models.userquery.map( function(e) { return { 'query':  e.get('uuid')}  });
                         Backbone.trigger('engine:explore', params);
                     }
+                });
+
+                app.on('engine:explore', function(name){
+                    console.log('engine:explore', name);
+                    var blocks = app.engines.explore.blocks
+                    if ( !blocks.length) return;
+                    var comps = blocks.at(0).components;
+                    comps.each( function(e){ e.set('selected', false) } );
+                    
+                    var comp = comps.get(name);
+                    if (! comp) comp = comps.at(0);
+                    comp.set('selected', true);
+
+                    app.engines.explore.play();
                 });
 
                 // dict

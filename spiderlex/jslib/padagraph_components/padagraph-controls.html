@@ -32,7 +32,7 @@ require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
     }
 
   });
-});</script></dom-module><dom-module id="padagraph-engine-control"><template><style></style><div data-content="blocks" class$="{{button_class('blocks ui dropdown', asitem, aslabel)}}" class="blocks ui dropdown"><i class$="{{ icon(engine)}}"></i><div class="menu"><div class="header">{{block.name}}</div><div class="divider"></div><template is="dom-repeat" items="[[block.components.models]]"><div data-value$="{{item.name}}" class="item">{{item.name}}</div></template></div></div></template><script>'use strict';
+});</script></dom-module><dom-module id="padagraph-engine-control"><style></style><template><div data-content="blocks" class$="{{button_class('blocks ui dropdown', asitem, aslabel)}}" class="blocks ui dropdown"><i class$="{{ icon(engine)}}"></i><div class="menu"><div class="header">{{block.name}}</div><div class="divider"></div><template is="dom-repeat" items="[[block.components.models]]"><div data-value$="{{item.name}}" class="item">{{item.name}}</div></template></div></div></template><script>'use strict';
 
 require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
   Polymer({
@@ -40,8 +40,8 @@ require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
 
     properties: {
 
-      app: Object,
       engine: String,
+      app: Object,
       block: Object,
 
       asitem: { type: Boolean, value: false },
@@ -57,6 +57,7 @@ require(['backbone', 'cello', 'pdgconst'], function (Backbone, Cello, Const) {
 
     icon: function icon(engine) {
       var icons = {
+        'explore': 'share icon',
         'layout': 'cube icon',
         'clustering': 'block layout icon'
       };
