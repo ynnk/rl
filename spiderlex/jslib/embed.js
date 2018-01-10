@@ -543,14 +543,12 @@ var GvizShortcuts = function(gviz){ return [
         ],
         [
             '+', "increase vertex size", function(){
-                gviz.user_vtx_size = Math.min(25, gviz.user_vtx_size + 1 );
-                gviz.request_animation();
+                gviz.increase_vertex_size();
             }
         ],
         [
             '-', "decrease vertex size", function(){
-                gviz.user_vtx_size = Math.max(-5, gviz.user_vtx_size - 1 );
-                gviz.request_animation();
+                gviz.decrease_vertex_size();
             }
         ],
         [

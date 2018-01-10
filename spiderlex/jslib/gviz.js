@@ -1596,6 +1596,16 @@ gviz.ThreeViz = Backbone.View.extend({
         }
     },
 
+    increase_vertex_size :  function(){
+                this.user_vtx_size = Math.min(25 , this.user_vtx_size * 1.5 );
+                this.request_animation();
+    },
+
+    decrease_vertex_size :  function(){
+                this.user_vtx_size = Math.max(0.1 , this.user_vtx_size / 1.5 );
+                this.request_animation();
+    },
+
     collapse : function(delay, easing, complete){
         /**
          * tween back vertices and edges to 0
@@ -1968,7 +1978,7 @@ gviz.ThreeVizHelpers = {
     wnode_scale : function(vtx){
         
         var v = vtx.get('SIZE'); // [0,1]
-        return  ( 3 + this.user_vtx_size  ) * v ; 
+        return  ( this.user_vtx_size  ) * v ; 
     },
         
     // optimizations
@@ -2152,12 +2162,14 @@ gviz.ThreeVizHelpers = {
                 context.save();
 
                 var x = 0,
-                y = 0,
-                
-                text_width = 0, //compute the text width
-                paddingX = material.textPaddingX | 0,
-                paddingY1 = (material.textPaddingY | 0) +  ((text_lines.length-1) * -12)/text_lines.length + 9 * (i);
-                
+                    y = 0,
+                    
+                    text_width = 0, //compute the text width
+                    userPaddingX = material.textPaddingX | 0,
+                    userPaddingY = material.textPaddingY | 0,
+                    paddingX = 0, paddingY = 0;
+                    
+                    
                 var fontsize = 1;
                 _.each(text_lines[i], function (token){
                     var font = _this.node_materials[token.css].font;
@@ -2218,8 +2230,8 @@ gviz.ThreeVizHelpers = {
                     var text_height = dimension.actualBoundingBoxDescent - dimension.actualBoundingBoxAscent;
 
                     //update of padding
-                    var xi = x + paddingRelX;
-                    var yi = y - paddingY - (i)*(  paddingRelY + (text_height | 0));
+                    var xi = x + userPaddingX + paddingRelX;
+                    var yi = y - userPaddingY - paddingY - (i)*(  paddingRelY + (text_height | 0));
 
                     /* : TODO : text background */  
                     //maxX = Math.max(maxX, dimension.width + letter_width/2);

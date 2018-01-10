@@ -10,34 +10,45 @@
     
     <!--  SemUI CSS    -->
     <link rel="stylesheet" href="{{url_for('static', filename='bower_components/semantic-ui/dist/semantic.min.css')}}" type="text/css" />
+    <style>
+        body {
+            background: #FAFAFA;
+
+        }
+    </style>
 </head>
 <body>
     <div class="ui text container">
         <nav class="ui text menu navbar">
             <div class="left menu">
-                <a href="" class="item">Project Name</a>
+                <a href="" class="item">RL/spiderlex</a>
             </div>
             <div class="right menu">
-                <a href="" class="item">Home</a>
-                <a href="" class="item">About</a>
-                <a href="" class="item">Contact</a>
+                <a href="#resp" class="item">Responsable</a>
+                <a href="#contact" class="item">Contact</a>
+                <a href="#legal" class="item">Mentions légales</a>
             </div>
         </nav>
         <div class="ui divider"></div>
         <div class="ui grid">
             <div class="row">
-                <div class="column">
-                    <div class="ui huge message center aligned">
-                        <h1 class="ui huge header">RL/spiderlex</h1>
+                <div class=" center aligned column">
+                    <div class="ui huge message">
+                        <h1 class="ui center aligned huge header">RL/spiderlex</h1>
                         <p>résumé du contenu</p>
-                        <a class="ui green button">RL/en</a>
-                        <a class="ui green button" href="/fr">RL/fr</a>
+                        <div class="ui hidden divider"></div>
+                        <a class="ui blue button">RL/en</a>
+                        <a class="ui blue button" href="/fr">RL/fr</a>
+                        <div class="ui hidden divider"></div>
                     </div>
+                    
                 </div>
             </div>
         </div>
         <div class="ui hidden divider"></div>
         <div class="ui grid">
+            <a name="legal"></a>
+            <a name="resp"></a>
             <div class="two column row">
                 <div class="column">
                     <h2>responsables</h2>
@@ -59,7 +70,8 @@
 
                 </div>
             </div>
-        
+
+            <a name="legal"></a>
             <div class="one column row">
                 <div class="column">
                  <h2>mentions légales</h2>

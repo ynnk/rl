@@ -1375,6 +1375,8 @@
 
         events: {
             "click": "clicked",
+            "mouseover": "clicked",
+            "mouseout": "clicked",
         },
 
         initialize: function(options){

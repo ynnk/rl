@@ -105,7 +105,7 @@
         {
         "font" : "normal 10px sans",
         "fontFillStyle" : "#333",  
-        "paddingRelY" : 4,
+        "paddingRelY" : -4,
         "paddingRelX" : 2,
         "fontStrokeWidth": 0.2
         }
@@ -205,7 +205,7 @@
         //'fontStrokeStyle'  : 'black',
         //'fontStrokeWidth' : 0.6,
 
-        'textPaddingY'  : 3,
+        'textPaddingY'  : -4,
         'textPaddingX'  : 0.5,
     }},
 

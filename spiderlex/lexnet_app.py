@@ -202,7 +202,7 @@ def app_graph(lang, query=None, path = ""):
             'show_images': 0 if args.get("no_images", None ) else 1, # removes vertex images
 
             'user_font_size' : 5,# range -5,5
-            'user_vtx_size' : -1.5, # range -5,5
+            'user_vtx_size' : 2. , # [1, 25 ]
     
             'auto_rotate': 0,
             'adaptive_zoom': 1,
