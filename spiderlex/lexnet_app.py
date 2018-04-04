@@ -41,6 +41,8 @@ app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET
 CONFIG = { 'fr' :{ 
            'db' : '../completedb_fr.sqlite'}
          }
+         
+GRAPHS_CONF = { "rlfr" : "../lnfr.picklez" }
 
 LANGS = tuple([ lang for lang,v in CONFIG.items()])
 
@@ -219,8 +221,9 @@ print sys.path
 
 # igraph graphdb
 from pdglib.graphdb_ig import IGraphDB, engines
-graphdb = IGraphDB(graphs={}, conf={ "rlfr" : "../lnfr.picklez" })
+graphdb = IGraphDB(graphs={}, conf=GRAPHS_CONF)
 graphdb.open_database()
+for k in GRAPHS_CONF : graphdb.get_graph(k)
 
 ## Neo4j graphdb
 #from  graphdb_neo4j import GraphDB
