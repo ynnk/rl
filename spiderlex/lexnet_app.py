@@ -219,7 +219,7 @@ print sys.path
 
 # igraph graphdb
 from pdglib.graphdb_ig import IGraphDB, engines
-graphdb = IGraphDB({ "rlfr" : "../lnfr.picklez" })
+graphdb = IGraphDB(graphs={}, conf={ "rlfr" : "../lnfr.picklez" })
 graphdb.open_database()
 
 ## Neo4j graphdb
