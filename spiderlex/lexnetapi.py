@@ -16,7 +16,8 @@ from cello.graphs.prox import ProxSubgraph, ProxExtract
 from cello.layout import export_layout
 from cello.clustering import export_clustering
 
-from pdgapi.explor import ComplexQuery, AdditiveNodes, NodeExpandQuery, export_graph, layout_api, clustering_api
+from botapad.utils import export_graph
+from pdgapi.explor import ComplexQuery, AdditiveNodes, NodeExpandQuery, layout_api, clustering_api
 
 
 
@@ -27,17 +28,21 @@ def explore_engine(graphdb):
     engine.graph.setup(in_name="request", out_name="graph")
 
     ## Search
-    
-    def subgraph(query, cut=50, weighted=True, length=3, mode=ALL):
-
-        print (query, cut, weighted, length)
-
+    @Composable
+    def get_graph(query, **kwargs):
         gid = query['graph']
         graph = graphdb.get_graph(gid)
+        return graph
+        
+    @Composable
+    def subgraph(query, cut=50, weighted=True, length=3, mode=ALL, add_loops=False, ):
+
+        graph = get_graph(query)
+
         uuids = { v['uuid'] : v.index for v in graph.vs }
         pz = [ q for q in query['units']]
         pz = [ uuids[p] for p in pz ]
-
+        
         extract = ProxExtract()
         vs = []
         for u in pz:
@@ -53,10 +58,11 @@ def explore_engine(graphdb):
               (u"Espaces_sémantiques", True, 3, OUT,30 ),
               (u"Espaces_sémantiques_élargis", True, 4, OUT,50 ),
               (u"Espaces_lexicaux", False, 3, OUT, 30 ),
-              (u"Espaces_élargis", False, 4, OUT, 50 )]:
+              (u"Espaces_lexicaux_élargis", False, 4, OUT, 50 )]:
         search = Optionable("GraphSearch")
-        search._func = Composable(subgraph)
-        search.add_option("weighted", Boolean( default=w))
+        search._func = subgraph
+        search.add_option("weighted", Boolean(default=w))
+        search.add_option("add_loops", Boolean(default=True, help="add loops on vertices"))
         search.add_option("mode", Numeric(choices=[ IN, OUT, ALL], default=m, help="edge directions"))
         search.add_option("length", Numeric( vtype=int, min=1, default=l))
         search.add_option("cut", Numeric( vtype=int, min=2, default=n))
@@ -66,7 +72,12 @@ def explore_engine(graphdb):
 
         search.name = k
         searchs.append(search)
-        
+
+    sglobal = Composable(get_graph) | ProxSubgraph()
+    sglobal.name = "Global"
+    searchs.append(sglobal)
+
+
     engine.graph.set( *searchs )
     return engine
 

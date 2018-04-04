@@ -176,7 +176,7 @@ Models.Vertex = Cello.Vertex.extend({
           error: function(){}
         });
 
-
+        
     },
 
     
@@ -230,6 +230,32 @@ Models.Vertex = Cello.Vertex.extend({
         return props;
     },
 
+    fetch_neighbors: function(success){
+
+        var self = this;
+        var url_root = this.url() ;
+
+        if (this._neighbors) {
+            success(this._neighbors);
+            return;
+        }
+
+        $.ajax({
+          url: url_root + "/neighbors",
+          type:"POST",
+          data:JSON.stringify({
+                  start:0
+              }),
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+          success: function(data){
+            self._neighbors = data;
+            success(data);    
+          }
+        })
+
+    },
+
     toCard: function(){
         return {
                     uuid : this.id,
@@ -253,6 +279,38 @@ Models.Vertex = Cello.Vertex.extend({
 },{ // !! static not in the same brackets !!
     active_flags : ['intersected', 'faded', 'selected']
 });
+
+Models.EdgeType = Cello.EdgeType.extend({
+
+    parse_label: function(){
+
+            var label = this.label;
+            
+            var token = label.substring(label.indexOf('/') + 1);
+            var splitted_token = token.split("_");
+            
+            var e = {};
+            e.family = label.indexOf('/') >= 0 ? label.substring(0,label.indexOf('/')) : "";
+            e.name =  splitted_token[0].trim();
+            e.subscript = "";
+            e.superscript = "";
+            e.combination = "";
+
+            if (splitted_token.length > 1){
+                splitted_token = splitted_token[1].split("^");
+                if (splitted_token.length >= 1) e.subscript = splitted_token[0].trim();
+                if (splitted_token.length > 1) e.superscript = splitted_token[1].trim();
+            }
+
+            //if ( (index + 1) < label_combination.length )
+                //e.combination = "&";  
+
+            return e;
+        }
+
+    });
+
+
 
 Models.Edge = Cello.Edge.extend({
 
@@ -593,12 +651,12 @@ var GvizShortcuts = function(gviz){ return [
         ],
         [
             'd', "increases autorotate speed", function(){
-                gviz.controls.autoRotateSpeed += 0.001;
+                gviz.controls.autoRotateSpeed = gviz.controls.autoRotateSpeed  * 1.5;
             }
         ],
         [
             's', "decreases autorotate speed", function(){
-                gviz.controls.autoRotateSpeed -= 0.001;
+                gviz.controls.autoRotateSpeed = gviz.controls.autoRotateSpeed  / 1.5;
             }
         ],
         [
@@ -931,6 +989,7 @@ App.Base = Backbone.View.extend({
         attrs = _.extend( {
             vertex_model: Models.Vertex,
             edge_model: Models.Edge,
+            edgetype_model: Models.EdgeType,
             
         }, attrs ? attrs : {} )
         var graph = new Cello.Graph(attrs);
@@ -1176,8 +1235,16 @@ App.Base = Backbone.View.extend({
 
         var engine_fetched = function(engine){
             pending.count -=1;
+            console.log(' engine_fetched ', pending.count )
             //pending[]
-            if( pending.count == 0 && pending.complete ) pending.complete(app);
+            if( pending.count == 0 ) {
+                
+                if ( pending.complete ) pending.complete(app);
+                else {
+                    var event = new Event("app_engines_fetched", {"bubbles":true, "cancelable":false});
+                    document.dispatchEvent(event);
+                }
+            };
         };
 
         
@@ -1576,9 +1643,6 @@ App.Simple = App.Base.extend({
         // --- webcomponents graph model ---
         $('padagraph-node-search')[0].graph = graph;
         $('padagraph-notifications')[0].setGraphModel(graph);
-
-
-
 
         //- chelou 
         $('#newNodeType').click(function(){Backbone.trigger('edit:nodetype', false)})

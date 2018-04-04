@@ -103,7 +103,6 @@ def complete(lang, text=None):
     buff = ""
     for c in array:
         filters = [ c.get(k, None) not in ('', None) for k in ("num", "subscript", "superscript") ]
-        print filters
         if any( filters ):
             if buff != c['name'] :
                 lex = {
@@ -207,7 +206,7 @@ def app_graph(lang, query=None, path = ""):
             'auto_rotate': 0,
             'adaptive_zoom': 1,
             'use_material_transitions': True,
-            'raycaster_precision' : 2
+            'raycaster_precision' : 3
         }),
         
         ** CLIENT_CONF

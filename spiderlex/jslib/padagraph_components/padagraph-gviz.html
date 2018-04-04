@@ -1,4 +1,352 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-m.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><link rel="import" href="./padagraph-edge-card-xl.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="padagraph-model-popup"><style>.card { width:400px}
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-m.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><link rel="import" href="./padagraph-edge-card-xl.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="padagraph-vertex-xs"><style>a { cursor: pointer; }
+a.link:hover {text-decoration: underline}
+</style><template><template is="dom-if" if="{{form.length}}"><a on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout" class="link">{{form}}</a></template><template is="dom-if" if="{{ labelOrItem(vertex, form) }}"><a class$="{{css}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><template is="dom-if" if="{{vertex.icon}}"><i style$="{{vertex.fontcolor}}" class="ui circle icon"></i></template><template is="dom-if" if="{{!vertex.icon}}"><i class="ui small black circle thin icon"></i></template><template is="dom-if" if="{{vertex.label}}"><span class="normal-font">{{vertex.label}} </span></template></a></template></template><script>'use strict';
+
+require(['backbone', 'pdgconst'], function (Backbone, Const) {
+    Polymer({
+        is: "padagraph-vertex-xs",
+        properties: {
+            graph: Object,
+            model: Object,
+            lnid: String,
+            form: { type: String, value: "" },
+            css: String,
+
+            complete: String
+
+        },
+        observers: ["observe_lnid(graph, lnid, form)", "observe(graph, model)"],
+
+        created: function created() {
+
+            var listener = {};
+            _.extend(listener, Backbone.Events);
+            this._listener = listener;
+        },
+
+        detached: function detached() {
+            this._listener.stopListening();
+        },
+
+        observe_lnid: function observe_lnid(graph, lnid, form) {
+
+            if (!graph || !lnid) return;
+            if (lnid) {
+                var _this = this;
+                var vertex = this.graph.vs.filter(function (e) {
+                    return e.properties.get('rlfid') == lnid;
+                });
+
+                if (vertex.length) {
+                    this.set('model', vertex[0]);
+                } else {
+                    $.ajax({
+                        url: "../complete/id/" + lnid,
+                        success: function success(r) {
+                            var complete = r.results.response.complete;
+                            if (complete.length) {
+                                var model = complete[0];
+                                model.vocable = model.name;
+                                model.id = model.uuid;
+                                _this.model = model;
+                            }
+                        }
+                    });
+                }
+            }
+        },
+
+        observe: function observe(graph, model) {
+            var _this2 = this;
+
+            this._listener.stopListening();
+
+            if (this.model && this.ismodel()) {
+                this._listener.listenTo(this.model, 'change', function () {
+                    _this2.compute_properties();
+                });
+            }
+
+            //if(this.model && this.model.graph){
+            //this._listener.listenTo(this.model.graph.vs, 'add', (v) => {
+            //if (this.model && v.properties.get('rlfid') == this.model.id) {
+            //this._listener.stopListening();
+            //this.model = v;
+            //return;
+            //}
+            //});
+            //}
+            if (model && !model.graph) {
+                this._listener.listenTo(this.graph.vs, 'add', function (v) {
+                    if (model) {
+                        var match = v.id == model.id || v.id == model.uuid;
+                        if (match) _this2.set("model", v);
+                    }
+                });
+            }
+
+            this.compute_properties();
+        },
+
+        labelOrItem: function labelOrItem(vertex, form) {
+            return vertex.id && !form.length;
+        },
+
+        ismodel: function ismodel() {
+            var _ismodel = this.model.properties != null && this.model.id != null;
+            return _ismodel;
+        },
+
+        compute_properties: function compute_properties() {
+            var model = this.model;
+            var vertex = null;
+
+            if (!model) return;
+
+            var keys = ['id', 'prefix', 'num', 'vocable', 'subscript', 'superscript'];
+
+            if (model.properties) {
+                if (model.id) {
+                    vertex = keys.map(function (e) {
+                        return [e, model.properties.get(e)];
+                    });
+                } else {
+                    vertex = keys.map(function (e) {
+                        return [e, model.properties[e]];
+                    });
+                }
+            }
+
+            if (!vertex && model.vocable) {
+                vertex = keys.map(function (e) {
+                    return [e, model[e]];
+                });
+            }
+
+            vertex = _.object(vertex);
+            vertex.fontcolor = "color:rgb(" + (this.ismodel() ? model.color : [0, 0, 0]) + ")";
+            vertex.icon = this.ismodel();
+
+            this.vertex = vertex;
+        },
+
+        mouseout: function mouseout(event) {
+            this.do_action("mouseout", event, this.model);
+        },
+        mouseover: function mouseover(event) {
+            this.do_action("intersect", event, this.model);
+        },
+
+        mouseclicked: function mouseclicked(event) {
+            var ismodel = this.model.properties != null && this.model.id != null;
+            this.do_action(ismodel ? "select" : "add", event, this.model);
+        },
+
+        do_action: function do_action(action, event, model) {
+
+            if (!model) return;
+
+            var ismodel = this.ismodel();
+
+            if (action == 'add') {
+                if (model.uuid) {
+                    Backbone.trigger('engine:additive_nodes', [model.uuid]);
+                } else {
+                    $.ajax({
+                        url: "../complete/id/" + model.id,
+                        success: function success(r) {
+                            var complete = r.results.response.complete;
+                            if (complete.length) {
+                                Backbone.trigger('engine:additive_nodes', [complete[0].uuid]);
+                            }
+                        }
+                    });
+                }
+            } else if (action == 'mouseout') {
+                if (ismodel) Backbone.trigger('vertex:mouseout', model, event);
+            } else if (action == 'intersect') {
+                if (ismodel) Backbone.trigger('vertex:mouseover', model, event);
+            } else if (action == 'select') {
+                if (ismodel) Backbone.trigger('select_node', model);
+            } else if (action == 'explore') {
+                if (ismodel) {
+                    var params = { graph: this.model.graph.id, query: this.model.id };
+                    Backbone.trigger('engine:explore', params);
+                }
+            } else if (action == 'expand') {
+                var params = { graph: this.model.graph.id, nodes: [this.model.id], weights: [] };
+                Backbone.trigger('engine:expand_prox', params);
+            }
+        }
+
+    });
+});</script></dom-module><dom-module id="padagraph-vtx-neighbors"><style></style><template><div id="neighbourhood" class="item"><h4>neighbors   </h4><template is="dom-repeat" items="[[by_edgetypes]]" as="item"><template is="dom-if" if="{{ item.neighbors.length }}"><div class="content"><rlf-edge-type model="{{item.edgetype}}" class="stdslf"></rlf-edge-type><div class="neighbors"><template is="dom-repeat" items="[[item.neighbors]]" as="edge"><div class="neighbor"><template is="dom-if" if="{{edge.node.id}}"><padagraph-vertex-xs graph="{{graph}}" model="{{edge.node}}"></padagraph-vertex-xs></template><template is="dom-if" if="{{!edge.node.id}}"><padagraph-vertex-xs graph="{{graph}}" model="{{edge.node}}"></padagraph-vertex-xs></template></div></template></div></div></template></template></div></template><script>'use strict';
+
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+    Polymer({
+        is: "padagraph-vtx-neighbors",
+        properties: {
+            graph: Object,
+            model: Object
+        },
+
+        observers: ['observe(graph, model)'],
+
+        observe: function observe(graph, model) {
+            var _this = this;
+
+            //this.lfs = model ? Object.values(JSON.parse(model.properties.get('lfs'))) : []
+
+            if (!this._listener) {
+                this._listener = {};
+                _.extend(this._listener, Backbone.Events);
+            }
+
+            this._listener.stopListening();
+
+            if (!graph || !model) return;
+
+            var fetch = function fetch() {
+
+                var success = function success(data) {
+                    _this._update_neighbors(data);
+                };
+
+                if (model.graph) model.fetch_neighbors(success);
+            };
+
+            this._listener.listenTo(this.model.graph.vs, 'add', function (m) {
+                return fetch(m);
+            });
+
+            fetch(model);
+        },
+
+        _update_neighbors: function _update_neighbors(data) {
+
+            if (this.model == null || this.model.graph == null) return;
+            if (data == null || data.neighbors == null) return;
+
+            var neighbors = data.neighbors;
+            var nodetypes = _.chain(neighbors).map(function (d) {
+                return d[2].nodetype;
+            }).uniq().map(function (d) {
+                return [d, []];
+            }).object().value();
+
+            var edgetypes = _.chain(neighbors).map(function (d) {
+                return d[0].edgetype;
+            }).uniq().map(function (d) {
+                return [d, []];
+            }).object().value();
+
+            var graph = this.model.graph;
+            var vs = this.model.graph.vs;
+            var es = this.model.graph.es;
+
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = neighbors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var _step$value = _slicedToArray(_step.value, 3);
+
+                    var edge = _step$value[0];
+                    var relation = _step$value[1];
+                    var node = _step$value[2];
+
+                    var _node = vs.get(node.uuid) ? vs.get(node.uuid) : node;
+                    var _edge = es.get(edge.uuid) ? es.get(edge.uuid) : edge;
+
+                    //or 'resize horizontal icon' the day we have undirected links
+                    var direction_icon = relation == "IN" ? 'long arrow left icon' : 'long arrow right icon';
+
+                    var edgetype = graph.edgetypes.get(edge.edgetype);
+                    var nodetype = graph.nodetypes.get(node.nodetype);
+
+                    nodetypes[nodetype.id].push({ 'edgetype': edgetype.name, // name
+                        'model': _edge, // bb model or dict
+                        'relation': relation, // str
+                        'node': _node, //- bb model or dict
+                        'icon': direction_icon
+                    });
+
+                    edgetypes[edgetype.id].push({ 'edgetype': edgetype.name, //name
+                        'model': _edge, // bb model or dict
+                        'relation': relation, // str
+                        'node': _node, //- bb model or dict
+                        'icon': direction_icon
+                    });
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator['return']) {
+                        _iterator['return']();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            this.by_nodetypes = _.chain(nodetypes).pairs().sortBy(function (_ref) {
+                var _ref2 = _slicedToArray(_ref, 2);
+
+                var k = _ref2[0];
+                var e = _ref2[1];
+                return e.length;
+            }).map(function (_ref3) {
+                var _ref32 = _slicedToArray(_ref3, 2);
+
+                var k = _ref32[0];
+                var e = _ref32[1];
+                return {
+                    nodetype: graph.nodetypes.get(k),
+                    neighbors: e
+                };
+            }).value();
+
+            var edgetype_filter = function edgetype_filter(e) {
+                return true;
+            };
+
+            var sort_neighbors = function sort_neighbors(a, b) {
+                return 1;
+            };
+
+            this.by_edgetypes = _.chain(edgetypes).pairs().sortBy(function (_ref4) {
+                var _ref42 = _slicedToArray(_ref4, 2);
+
+                var k = _ref42[0];
+                var e = _ref42[1];
+                return e.length;
+            }).reverse().map(function (_ref5) {
+                var _ref52 = _slicedToArray(_ref5, 2);
+
+                var k = _ref52[0];
+                var e = _ref52[1];
+
+                var family = graph.edgetypes.get(k).parse_label()['family'];
+                return {
+                    uuid: k,
+                    edgetype: graph.edgetypes.get(k),
+                    family: family,
+                    neighbors: e.sort(sort_neighbors)
+                };
+            }).filter(edgetype_filter).sort(function (a, b) {
+                return a.position - b.position;
+            }).value();
+        }
+
+    });
+});</script></dom-module><dom-module id="padagraph-model-popup"><style>.card { width:400px}
 .card .intersected { margin:4px; padding: 2px; border:none; }
 a.more { padding-right:12px; margin-top: -12px; }
 
@@ -17,7 +365,7 @@ span.name {
    //overflow-y: auto;
    //z-index:1;
 //}
-</style><template><template is="dom-if" if="{{ model }}"> <div class="ui card"><template is="dom-if" if="{{ is_edge }}"><div class="item"><padagraph-edge-card-xl model="{{model}}"></padagraph-edge-card-xl></div></template><template is="dom-if" if="{{ is_vertex }}"> <div class="intersected"><padagraph-vertex-card-m model="{{model}}"></padagraph-vertex-card-m><div style="overflow-y:auto;" class="content"><template is="dom-if" if="{{image}}"> <img src="{{image}}" class="ui small centered image"/><div class="ui divider"></div></template><template is="dom-repeat" items="[[props]]"> <div class="comment"><div class="content"><span class="name">{{item.name}}</span><padagraph-card-property prop="{{item}}" class="value"></padagraph-card-property></div></div></template></div></div></template></div></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{ model }}"> <div class="ui card"><template is="dom-if" if="{{ is_edge }}"><div class="item"><padagraph-edge-card-xl model="{{model}}"></padagraph-edge-card-xl></div></template><template is="dom-if" if="{{ is_vertex }}"> <div class="intersected"><padagraph-vertex-card-m model="{{model}}"></padagraph-vertex-card-m><div style="overflow-y:auto;" class="content"><template is="dom-if" if="{{image}}"> <img src="{{image}}" class="ui small centered image"/><div class="ui divider"></div></template><template is="dom-repeat" items="[[props]]"> <div class="comment"><div class="content"><span class="name">{{item.name}}</span><padagraph-card-property prop="{{item}}" class="value"></padagraph-card-property></div></div></template><padagraph-vtx-neighbors graph="{{graph}}" model="{{model}}"></padagraph-vtx-neighbors></div></div></template></div></template></template><script>'use strict';
 
 require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
   Polymer({
@@ -243,7 +591,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
   });
 });</script></dom-module><dom-module id="padagraph-gviz-json"><template><content></content></template><script>'use strict';
 
-require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst', 'embed'], function (Backbone, Cello, Gviz, Materials, Const, App) {
+require(['backbone', 'jquery', 'semantic', 'cello', 'gviz', 'materials', 'pdgconst', 'embed'], function (Backbone, $, S, Cello, Gviz, Materials, Const, App) {
   Polymer({
     is: "padagraph-gviz-json",
 
@@ -373,6 +721,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst', 'embed'], functio
 
         parse.completed = true;
         parse.onComplete();
+        parse.fire('engines-complete', { app: app, engines: app.engines });
       };
 
       app.create_engines();
@@ -431,6 +780,18 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
                 });
             }
 
+            graph.on('reset', function () {
+                _(filters).forEach(function (f) {
+                    f.reset_filters();
+                });
+            });
+
+            var search = $("padagraph-node-search");
+            if (search.length) {
+                search = search[0];
+                search.graph = graph;
+            }
+
             var popup = $("padagraph-model-popup", this);
             if (popup.length) {
                 popup = popup[0];
@@ -470,7 +831,17 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
             app.set_viz(gviz);
 
+            var ctrl = $("padagraph-gviz-control");
+            if (ctrl.length) {
+                ctrl = ctrl[0];
+                ctrl.app = app;
+                ctrl.gviz = gviz;
+            }
+
             this.gviz = gviz;
+
+            var event = new Event("gviz_ready", { "bubbles": true, "cancelable": false });
+            document.dispatchEvent(event);
         }
 
     });

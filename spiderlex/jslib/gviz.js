@@ -931,8 +931,8 @@ gviz.DEFAULTS = {
     show_images  : true,
 
     background_color : 0xAAAAAA,
-    user_font_size : 0, // range -5,5
-    user_vtx_size : 0, // range -5,5
+    user_font_size : 3, //[0, 25]
+    user_vtx_size : 1, // 
     initial_size : 10, // 
     initial_z    : 1400,
 
@@ -1598,12 +1598,22 @@ gviz.ThreeViz = Backbone.View.extend({
 
     increase_vertex_size :  function(){
                 this.user_vtx_size = Math.min(25 , this.user_vtx_size * 1.5 );
-                this.request_animation();
+                this.request_animation(100);
     },
 
     decrease_vertex_size :  function(){
                 this.user_vtx_size = Math.max(0.1 , this.user_vtx_size / 1.5 );
-                this.request_animation();
+                this.request_animation(100);
+    },
+        
+    increase_font_size : function(){
+        this.user_font_size = Math.min(25, this.user_font_size + 1 );
+        this.request_animation(100);
+    },
+    
+    decrease_font_size : function(){
+        this.user_font_size = Math.max(-5, this.user_font_size - 1 );
+        this.request_animation(100);
     },
 
     collapse : function(delay, easing, complete){

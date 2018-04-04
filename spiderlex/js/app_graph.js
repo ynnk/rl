@@ -280,7 +280,6 @@ define([
             app.models.completion = new CompleteCollection({});
 
             // --- Clustering model ---
-            // Clustering model and view
             app.models.clustering = new Cello.Clustering({ClusterModel:Cluster});
             
         },
@@ -599,14 +598,12 @@ define([
  
             // create views
             app.create_query_engine_views(explore);
-            for (var i in app.views.keb ){
-                //app.views.keb[i].install_on_body({});
-            }
             app.create_results_views();
 
         },
         
         set_routes: function(){
+            var app = this;
             var AppRouter = Backbone.Router.extend({
                 routes: {
                     ':gkey': 'index',

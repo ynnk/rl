@@ -682,7 +682,8 @@ Cello.Doc = Backbone.Model.extend({
             Cello.get(this, 'value');
             Cello.set(this, 'value', function(val){
                 var _val = _this.validate(val);
-                _this.set('value', _val);
+                if (_this.value != _val)
+                    _this.set('value', _val);
             });
             // check data
             Cello.assert(this.name !== null, "Option should have a name");
@@ -787,7 +788,7 @@ Cello.Doc = Backbone.Model.extend({
 
         set_option: function(name, new_value){
             var opt = this.get_option(name);
-            opt.value = new_value;
+            opt.value = new_value;  
         },
 
         parse: function(data, options){ 

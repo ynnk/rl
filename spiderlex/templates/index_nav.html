@@ -31,44 +31,28 @@
     <link rel="import" href="{{polymer_path}}/padagraph-engines.html"/>
 
 
-    <!-- templates -->
-    <script type="text/template" id="KebButton">
-        <div class='head'><%=name%></div>
-        <div class='value'>...</div>
-    </script>
-
-    <script type="text/template" id="KebComponentPane">
-            <h3><%=name%></h3>
-    </script>
-
-    <script type="text/template" id="KebOptionable">
-            <h1><%=name%></h1>
-    </script>
-    
     <script id="ClusterLabel" type="text/template">
         <a href='#' class='clabel'><%= label %></a>
     </script>
-    
-    <!--script id="ListLabel" type="text/template">
-            <div class='puce' style='background-color:rgb(<%=color%>);'></div>
-            <a draggable="true"  href="#" class=''><%=rank %>. <%=form %></a>
-    </script-->
-
-    
+       
     <script id="query_form_tmpl" type="text/template">
               <input type='text' id="searchQueryInput" class="prompt " placeholder="<%= placeholder %>" required="" />
               <i class="search icon"></i>
     </script>
 
 </head>
+
 <body class='pushable'>
 
-  <div id="keb" class="ui left vertical sidebar">
+  <div id="keb" class="ui left vertical sidebar " style="background:#FAFAFA">
       <div class="close">
-        <a class="ui link icon">
-          <i class="close icon"></i>
-        </a>
+            <a class="ui link icon">
+              <i class="close icon"></i>
+            </a>
       </div>
+
+      <padagraph-gviz-control></padagraph-gviz-control>
+
   </div>
 
   <div class="pusher"> 
@@ -355,31 +339,13 @@
         var isurl = (e)=> _.isString(e) && e.length;
                
         var complete = function(){
+
+            console.log("ENGINES COMPLETE")
             
-            if( isurl(data) ){
-              $.ajax({
-                url: data ,
-                success: function(r){
-                    parse.data =  r;
-                    if (sync && parse.sync == true)
-                        reset();
-                }
-              });
-            }
-     
             graph.fetch({parse: true});
-
-            // !!!!! to be removed !!!!!
+     
             graph.vs.on("add"  , function(e){e.properties.set('lfs', "{}")});
-
-            //var comp = $("padagraph-engine-control")[0];
-            //comp.engine = "layout"
-            //comp.blocks = app.engines.layout.blocks.models;
             
-            //comp = $("padagraph-engine-control")[1];
-            //comp.engine = "clustering"
-            //comp.blocks = app.engines.clustering.blocks.models;
-
             var engines = [];
             for (var k in app.keb){
                 var engine = app.keb[k]
@@ -410,7 +376,7 @@
 
             var gviz = viz.gviz;
             app.gviz = viz.gviz;
-            
+
             var comp = $("rlf-lexfunc-filter", "#lexlinks")[0];
             comp.app = app;
             comp.graph = graph;
@@ -431,8 +397,21 @@
                 }
                 return position(a) - position(b);
             };
-            
 
+
+             
+            if( isurl(data) ){
+              $.ajax({
+                url: data ,
+                success: function(r){
+                    parse.data =  r;
+                    if (sync && parse.sync == true)
+                        reset();
+                }
+              });
+              app.set_routes();
+            }
+            
         };
 
 
@@ -442,8 +421,14 @@
             success: function(routes){
                 app.routes = routes.routes;              
                 app.create_engines();
-                app.fetch_engines(complete);
-
+                //app.fetch_engines(complete);
+                app.fetch_engines();
+                document.addEventListener("app_engines_fetched",
+                        function() { setTimeout( complete, 10 ) } 
+                );
+                
+                
+                
                 app.listenTo(app.engines.explore, 'play:loading', function() {
                     app.search_loading();
                 });
@@ -461,14 +446,13 @@
                         if (e.graph) e.reset_filters();
                     });                    
                 });
-                
+
                app.models.graph.on('sync', function(){
                     $("rlf-lexfunc-filter").each(
                     function(i,e) {
                         if (e.graph) e.reset_filters();
                     });                    
                 });
-                    
                 app.start(graph, app.engines.explore);
 
                 app.listenTo(Backbone, "explore", function(model){
@@ -503,14 +487,21 @@
                 app.listenTo(app.models.graph.vs, 'addflag:selected', function(model) { $('rlf-vertex-card')[0].model = model } );
                 app.listenTo(app.models.graph.vs, 'rmflag:selected', function(model) { $('rlf-vertex-card')[0].model = null } );
 
-                app.set_routes();
 
+                document.addEventListener("gviz_ready",
+                        function(){
+                            app.set_routes();
+                            console.log("gviz_is now ready ")
+
+                            }
+                );
+                
             }
           });
         }
 
         console.log("root: {{ root_url }}, gkey : {{ gkey }}, complete_url: {{ complete_url }}");
-        
+   
         // resize window event 
         var min_height = 250;
         
