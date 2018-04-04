@@ -1,6 +1,22 @@
 .phony : build rlfcomp pdg deploy
 
+
+install:
+
+	npm install jade --save
+ 
+
+
 build: rlfcomp pdg deploy
+
+
+jade:
+	@echo "\n ---------------------------"
+	@echo " * Building flask templates"
+	@echo " ---------------------------\n"
+
+	#cd ./templates && pypugjs  *.jade
+	cd ./spiderlex/templates && node ../../node_modules/jade/bin/jade.js -P *.jade
 
 rlfcomp:
 	cd ../padagraph/application/src && make polymer

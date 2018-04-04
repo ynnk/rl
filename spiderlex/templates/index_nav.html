@@ -121,27 +121,27 @@
             </div>
 
             
-                <div class="ui bottom attached segment">
-                    <div id='vz_button0' class="ui left aligned attached fixed button">
-                        <i class="angle double right icon" style="display:none"></i>
-                        <i class="angle double left icon" style=""></i>
-                    </div>
+            <div class="ui bottom attached segment">
+                <div id='vz_button0' class="ui left aligned attached fixed button">
+                    <i class="angle double right icon" style="display:none"></i>
+                    <i class="angle double left icon" style=""></i>
+                </div>
 
-                          <padagraph-gviz options="{{options}}">
-                            <div id="pdgmenu" class="ui icon vertical borderless menu">
-                              <a  id="keb_settings" class="ui item">
-                                  <i class="settings icon"></i>
-                              </a>
-                                
-                              <padagraph-engine-control engine="explore" asitem="asitem" ></padagraph-engine-control>
-                              <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
-                              <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
-                            </div>
-<!--
-                            <padagraph-model-popup id="vpopup"></padagraph-model-popup>
--->
-                            <rlf-mouse-popup id="gvizpopup"></rlf-mouse-popup>
-                          </padagraph-gviz>
+                <padagraph-gviz options="{{options}}">
+                    <div id="pdgmenu" class="ui icon vertical borderless menu">
+                      <a  id="keb_settings" class="ui item">
+                          <i class="settings icon"></i>
+                      </a>
+                        
+                      <padagraph-engine-control engine="explore" asitem="asitem" ></padagraph-engine-control>
+                      <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
+                      <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
+                    </div>
+    <!--
+                    <padagraph-model-popup id="vpopup"></padagraph-model-popup>
+    -->
+                    <rlf-mouse-popup id="gvizpopup"></rlf-mouse-popup>
+                </padagraph-gviz>
 
                 </div>
             </div>
@@ -159,64 +159,6 @@
   <script>
 
 
-    /*
-    require.config({
-          waitSeconds: 0,
-          paths: {
-
-            //underscore : path + 'underscore/underscore-min',
-            //backbone   : path + 'backbone/backbone-min',
-            //jquery     : path + 'jquery/dist/jquery.min',
-            
-            app_graph     : 'app_graph',
-            cello     : 'cello',
-            gviz      : 'gviz',
-            embed     : 'embed',
-            
-            //cello     : 'cello',
-            cello_core     : 'cello',
-            celloui     : 'cello-ui',
-            //gviz      : 'gviz',
-            //embed     : 'embed',     
-            
-            threejs   : 'three',
-            numeric   : 'numeric-1.2.6',
-            //tween     : 'tween',
-            //materials : 'materials',
-            //pdgconst  : 'pdgconst',
-
-            //mousetrap : 'mousetrap',
-            moment    : 'moment',
-            json2html    : 'json2html',
-
-            autocomplete : 'backbone.autocomplete',
-            bootbox : 'bootbox.min',
-            tagsinput: 'semui-tagsinput',
-            backbone_forms: 'backbone-forms.min',
-          },
-          
-          shim: {
-              // threejs not require compatible...
-              'materials': {deps: ["gviz"]},
-              'celloui': {deps: ["cello"]},
-              'threejs': {
-                    exports: 'THREE',
-                },
-              'tagsinput': {deps: ["jquery"]},
-              'autocomplete': {deps: ["backbone"]},
-              
-              'json2html': {
-                    exports: 'json2html',
-                },
-              'semantic': {
-                  deps: ['jquery']
-              },
-            }
-        });
-
-    */
-
-
 
     require(["jquery", "underscore", "backbone",
         "app_graph", "cello", "embed",  "gviz", "models", "semantic"
@@ -226,14 +168,6 @@
         // UI
         // panel tabs
         $('#maintabs .item').tab();
-        
-        //// cubes dropdown 
-        //$('.dropdown')
-          //.dropdown({
-            //// you can use any ui transition
-            //transition: 'drop'
-          //})
-        //;
         
         $('#clusters_menu_item').click(function(){
             $('#clusters_content_item').transition('slide right', '1000ms');

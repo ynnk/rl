@@ -1,0 +1,117 @@
+doctype html
+html
+ head
+    // Standard Meta
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge,chrome=1')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0, maximum-scale=1.0')
+    // Site Properties
+
+    title RL/Spiderlex 
+
+    <!--  SemUI CSS    -->
+    link(rel='stylesheet' href="{{url_for('static',  filename='bower_components/semantic-ui/dist/semantic.min.css')}}")
+
+    <!--  our CSS    -->
+    link( rel="stylesheet" href="{{url_for('static', filename='css/app_graph.css')}}" type="text/css" )
+    link( rel="stylesheet" href="{{url_for('static', filename='css/engine.css')}}" type="text/css" )
+
+    <!--  require JS    -->
+    script( data-main="{{url_for('static', filename='main')}}" src="{{url_for('static', filename='require.js')}}")
+
+
+    <!-- web components-->
+    
+    script( src="/static/webcomponents-lite.min.js" )
+
+    link( rel="import" href="/static/bower_components/polymer/polymer.html")
+
+    link( rel="import" href="{{polymer_path}}/padagraph-collection.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-vertex-card-xs.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-controls.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-gviz.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-rlf-vertex.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-engines.html")
+
+    script( id="ClusterLabel" type="text/template").
+      <a href='#' class='clabel'><%= label %></a>
+       
+    script( id="query_form_tmpl" type="text/template").
+      <input type='text' id="searchQueryInput" class="prompt " placeholder="<%= placeholder %>" required="" />
+      <i class="search icon"></i>
+
+
+ body.pushable
+
+  include spiderlex-app.html  
+
+
+  #keb.ui.left.vertical.sidebar(style='background:#FAFAFA')
+      .close
+        a.ui.link.icon
+          i.close.icon
+      padagraph-gviz-control
+
+  .pusher
+      #main.ui.grid
+        .row(style='padding-bottom:2px;padding-top:2px')
+          .column.center.aligned
+            nav.ui.menu.navbar
+              .item.left.title
+                a(href='/') RL/spiderlex&nbsp;
+                | : {{gid}}
+
+              .item.right(style='margin-top:0px')
+                #query_form.ui.input.icon
+                #query_complete
+
+              .item
+                a.ui.basic.button
+                    i.undo.button.icon
+                
+            #maintabs.ui.bottom.attached.teal.menu
+              a.ui.item.left.active(data-tab='tab-graph')
+                i.cube.icon
+                span.hidden-xs Graph
+
+              nav.ui.right.menu.navbar
+                a#lexlinks_menu_item.ui.item(data-tab='tab-lexlinks')
+                  i.list.layout.icon
+                  | Lexical links
+
+                a#clusters_menu_item.ui.item(data-tab='tab-clusters')
+                  i.block.layout.icon
+                  | Clusters
+
+                a#dic_menu_item.ui.item.active(data-tab='tab-def')
+                  i.book.icon
+                  | Dictionary
+
+            #vz_graph.ui.tab.itemview.active(data-tab='tab-graph')
+              .ui.right.sidebar
+                .vz-tab-content
+                  .ui.tab.subitem(data-tab='tab-lexlinks')
+                    #lexlinks
+                      rlf-lexfunc-filter#lexlinksfilter(mode='edge', asitem='asitem', filters='types')
+
+                  .ui.tab.subitem(data-tab='tab-clusters')
+                    #clustering_items
+                      ul
+
+                  .ui.tab.subitem.active(data-tab='tab-def')
+                    #lndic
+                      nav.ui.menu.teal.navbar
+
+                      .dic-content
+                        rlf-vertex-card(lang='{{lang}}', complete='{{complete_url}}')
+
+              .ui.bottom.attached.segment
+                #vz_button0.ui.left.aligned.attached.fixed.button
+                  i.angle.double.right.icon(style='display:none')
+                  i.angle.double.left.icon(style='')
+
+                spiderlex-app
+            
+               
+
+    

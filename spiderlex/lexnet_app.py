@@ -174,7 +174,7 @@ def app_graph(lang, query=None, path = ""):
     args = request.args
 
     return render_template(
-        'index_nav.html',
+        'spiderlex.html',
         polymer_path = "%s/static/padagraph_components" % path,
         debug=  app.debug,
         lang = lang,
@@ -223,7 +223,7 @@ print sys.path
 from pdglib.graphdb_ig import IGraphDB, engines
 graphdb = IGraphDB(graphs={}, conf=GRAPHS_CONF)
 graphdb.open_database()
-for k in GRAPHS_CONF : graphdb.get_graph(k)
+#for k in GRAPHS_CONF : graphdb.get_graph(k)
 
 ## Neo4j graphdb
 #from  graphdb_neo4j import GraphDB

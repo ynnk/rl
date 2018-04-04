@@ -1,0 +1,305 @@
+
+<script>
+  // resize window event
+  var min_height = 250;
+  
+  var window_resized = function(app){
+      var win = $(this); //this = window
+      size =  $(window).height()-$("nav").height() - $("#footer").height() - 50;
+      size =  $(window).height()-$("nav").height() -64 ;
+      size = size < min_height ? min_height : size;
+  
+      $(".itemview").height(size);
+      $("#vz_graph .bottom.segment").height(size -2);
+      $("#vz-tab-content").height($('#lexlinks').height());
+      if ( app && app.gviz ) app.gviz.resize_rendering();
+  };
+  
+  var _canvas_resized = function(sb_visible){
+    var segment_size = $("#vz_graph").width();
+    if (sb_visible){
+      sidebar_size = $('#vz_graph .sidebar').width();
+      segment_size = segment_size - sidebar_size;
+    }
+    $("#vz_graph .bottom.segment").width(segment_size);
+  };
+  
+  var _canvas_resized_moins = function(){
+      var segment_size = $("#vz_graph .bottom.segment").width();
+      var sidebar_size = $('#vz_graph .sidebar').width();
+      $("#vz_graph .bottom.segment").width(segment_size+sidebar_size);
+  };
+  
+  
+</script>
+<dom-module id="spiderlex-app">
+  <template>
+    <padagraph-gviz options="{{options}}">
+      <div id="pdgmenu" class="ui icon vertical borderless menu"><a id="keb_settings" class="ui item"><i class="settings icon"></i></a>
+        <padagraph-engine-control engine="explore" asitem="asitem"></padagraph-engine-control>
+        <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
+        <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
+      </div>
+      <rlf-mouse-popup id="gvizpopup"></rlf-mouse-popup>
+    </padagraph-gviz>
+  </template>
+  <script>
+    require(["jquery", "underscore", "backbone", 
+        "app_graph", "cello", "embed",  "gviz", "models", "semantic"
+        ],  function( $, _, Backbone, App, Cello, Embed, Gviz, Models, SEMUI){
+    
+      Polymer({
+        is: "spiderlex-app",
+    
+        properties : {
+            display_card : Boolean,
+            display_list : Boolean,
+        },
+        
+      // UI
+      // panel tabs
+        setupUI(){
+          $('#maintabs .item').tab();
+          $('#clusters_menu_item').click(function(){
+            $('#clusters_content_item').transition('slide right', '1000ms');
+          });
+    
+          $('#vz_tabs .item').tab({ context: $('.vz-tab-content')});
+          $('#vz_graph .sidebar')
+              .sidebar({ context: $('#vz_graph') })
+              .sidebar('setting', 'transition', 'overlay')
+              .sidebar('attach events', '#vz_button0')
+              .sidebar('setting', 'dimPage', false)
+              .sidebar('setting', 'closable', false)
+              .sidebar('setting', 'scrollLock', true)
+              .sidebar('setting', 'onShow', function(){
+                  $('#vz_button0').addClass('teal')
+                  $('#vz_button0>.right').show();
+                  $('#vz_button0>.left').hide();
+                  _canvas_resized(true);
+                  _window_resized();
+              })
+              .sidebar('setting', 'onHide', function(){
+                  $('#vz_button0').removeClass('teal')
+                  $('#vz_button0>.right').hide();
+                  $('#vz_button0>.left').show();
+                  _canvas_resized(false);
+                  _window_resized();
+              });
+              
+          $('#vz_graph .sidebar')
+            .sidebar('hide');
+    
+          $('#maintabs>nav .item').click(function(){
+              $('#vz_graph .sidebar').sidebar('show');
+            });
+    
+          var _window_resized = function(){  window_resized(this.app) }
+    
+          $('#maintabs .item').click(() => window_resized(this.app));
+    
+          
+          $(window).on('resize', function(){
+            _window_resized();
+            if ($('#vz_graph .sidebar').hasClass('visible'))
+            _canvas_resized(true);
+          });
+    
+          _window_resized();
+    
+        },
+    
+        ready(){
+          // The "app" dependency is passed in as "App"
+          var path = "../static/bower_components/";
+          var lang = "{{lang}}"
+          var gid = "{{gid}}";
+          var urlRoot = "{{urlRoot}}";
+          var sync = "{{sync}}";
+          var routes = "{{routes}}";
+          var data = "{{data}}";
+          var complete_url = "{{ complete_url }}";
+          var app_params = {
+              debug: {{ 'true' if debug else 'false' }},
+              complete_url : complete_url,
+              $el : $(this),
+            };
+            
+          var app = new App(app_params);
+          this.app = app;
+          app.lang = lang;
+          var parse = {data:false, sync:false};
+          if (sync){
+              app.create_graph_model({
+                  'urlRoot': urlRoot,'url' : sync, 'gid': gid,
+                  vertex_model: Models.Vertex,
+                  edgetype_model: Models.EdgeType,
+                  edge_model: Models.Edge,
+              });
+    
+              app.models.graph.on('sync', function(){
+                  reset();
+                  parse.sync = true;
+              });
+    
+              app.create_query_model();
+              app.models.query.graph = app.models.graph.id;
+          }
+          else {
+              app.create_graph_model({});
+              app.models.graph.attributes['gid'] = "g" + this.id;
+              parse.sync = true;
+          }
+    
+          // tagsinput
+          app.models.userquery = new Models.LexnetQueryUnits( [] , { } )
+          app.models.userquery.url = complete_url ;
+          // app, models & engines
+          var graph = app.models.graph;
+          var reset = function(){
+          console.log( "reset", !parse.data)
+          if ( !parse.data) return;
+              app.set_auto_compute(false);
+              graph.reset(parse.data, {silent:true})
+              app.set_auto_compute(true);
+              app.auto_compute();
+          }
+    
+          var isurl = (e)=> _.isString(e) && e.length;
+          var complete = function(){
+              console.log("ENGINES COMPLETE")
+              graph.fetch({parse: true});
+              graph.vs.on("add"  , function(e){e.properties.set('lfs', "{}")});
+              var engines = [];
+              for (var k in app.keb){
+                  var engine = app.keb[k]
+                  engine.name = k;
+                  engines.push(engine);
+              }
+    
+              var keb = document.createElement("padagraph-keb")
+              keb.engines = engines;
+              $("#keb")
+                .sidebar('setting', 'dimPage', false)
+                .sidebar('setting', 'transition', 'overlay')
+              $("#keb").append(keb)
+              $("#keb .close").click( ()=>{ $("#keb").sidebar('hide') } )
+              $("#keb_settings").click( ()=>{ $("#keb").sidebar('show') } )
+    
+              var viz = $("padagraph-gviz")[0];
+              viz.graph = graph;
+              viz.app = app;
+              viz.options = Gviz.DEFAULTS;
+    
+              var popup = $("rlf-mouse-popup");
+              if (popup.length){
+                  popup = popup[0]
+                  popup.graph = graph;
+              }
+    
+              var gviz = viz.gviz;
+              app.gviz = viz.gviz;
+    
+              var comp = $("rlf-lexfunc-filter", "#lexlinks")[0];
+              comp.app = app;
+              comp.graph = graph;
+    
+              var comp = $("rlf-vertex-card")[0];
+              comp.graph = graph;
+    
+              var map_position = {
+              "Co-polysemy" : 1,
+              "DefinitionalInclusion" : 2,
+              "LexicalFunction" : 3,
+              "FormalInclusion" : 4
+              };
+              comp.groups_sort = (a,b) => {
+                var position = function(e){ return map_position[e.label]; }
+                return position(a) - position(b);
+              };
+    
+              if( isurl(data) ){
+                $.ajax({
+                  url: data ,
+                  success: function(r){
+                    parse.data =  r;
+                    if (sync && parse.sync == true) reset();
+                  }
+                });
+                app.set_routes();
+              }
+          };
+          
+          if( isurl(routes) ) {
+            $.ajax({
+              url: routes ,
+              success: function(routes){
+                app.routes = routes.routes;
+                app.create_engines();
+                //app.fetch_engines(complete);
+                app.fetch_engines();
+                document.addEventListener("app_engines_fetched", function() { setTimeout( complete, 10 ) });
+                  app.listenTo(app.engines.explore, 'play:loading', function() {
+                  app.search_loading();
+                });
+                app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
+                    app.engine_play_completed(response, args, state)
+    
+                    $("rlf-lexfunc-filter").each( function(i,e) {
+                      if ( e.graph && e.reset_filters ) e.reset_filters();
+                    });
+                });
+                app.listenTo(app.engines.additive_nodes, 'play:success', function(response, args, state) {
+                    $("rlf-lexfunc-filter").each( function(i,e) { if (e.graph) e.reset_filters(); });
+                });
+    
+                app.models.graph.on('sync', function(){
+                  $("rlf-lexfunc-filter").each(function(i,e) { if (e.graph) e.reset_filters(); });
+                });
+                app.start(graph, app.engines.explore);
+                app.listenTo(Backbone, "explore", function(model){
+                    app.navigate_to_label(model.toString());
+                });
+                app.listenTo(app.views.userquery, "submited", function(){
+                  console.log(" === submited", arguments);
+                  if(app.models.userquery.validate()){
+                    var params = app.models.userquery.map( function(e) { return { 'query':  e.get('uuid')} });
+                    Backbone.trigger('engine:explore', params);
+                  }
+                });
+    
+                app.on('engine:explore', function(name){
+                  console.log('engine:explore', name);
+                  var blocks = app.engines.explore.blocks
+                  if ( !blocks.length) return;
+                  var comps = blocks.at(0).components;
+                  comps.each( function(e){ e.set('selected', false) } );
+                  var comp = comps.get(name);
+                  if (! comp) comp = comps.at(0);
+                  comp.set('selected', true);
+                  app.engines.explore.play();
+                });
+                // dict
+                app.listenTo(app.models.graph.vs, 'addflag:selected', function(model) {
+                    $('rlf-vertex-card')[0].model = model
+                });
+                app.listenTo(app.models.graph.vs, 'rmflag:selected', function(model) {
+                    $('rlf-vertex-card')[0].model = null
+                });
+    
+                document.addEventListener("gviz_ready", function(){
+                  app.set_routes();
+                  console.log("gviz_is now ready ")
+                });
+              }
+            });
+          } // routes:
+          
+          console.log("root: {{ root_url }}, gkey : {{ gkey }}, complete_url: {{ complete_url }}");
+          this.setupUI();
+          
+        },
+      })
+    });
+  </script>
+</dom-module>
