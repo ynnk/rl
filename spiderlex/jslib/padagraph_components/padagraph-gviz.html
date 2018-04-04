@@ -1,6 +1,40 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-m.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><link rel="import" href="./padagraph-edge-card-xl.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="padagraph-vertex-xs"><style>a { cursor: pointer; }
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-vertex-card-m.html"/><link rel="import" href="./padagraph-vertex-card-xs.html"/><link rel="import" href="./padagraph-edge-card-xl.html"/><link rel="import" href="./padagraph-card-property.html"/><dom-module id="padagraph-edge-type"><style>.family {
+    font-weight: bold;
+    color: #333;
+}
+
+.edgetypelabel {
+    margin-left: 1em;
+}
+
+.inline {
+  display: inline;
+}
+</style><template><div class="inline"><span class="family normal-font">{{edgetype.name}}</span></div></template><script>'use strict';
+
+require(['backbone', 'pdgconst'], function (Backbone, Const) {
+  Polymer({
+    is: "padagraph-edge-type",
+    properties: {
+      model: {
+        type: Object
+      },
+      family: { type: Boolean, value: false }
+    },
+
+    observers: ["parse(model)"],
+
+    parse: function parse(model) {
+
+      if (!model) return;
+
+      this.edgetype = model.parse_label();
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-vertex-xs"><style>a { cursor: pointer; }
 a.link:hover {text-decoration: underline}
-</style><template><template is="dom-if" if="{{form.length}}"><a on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout" class="link">{{form}}</a></template><template is="dom-if" if="{{ labelOrItem(vertex, form) }}"><a class$="{{css}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><template is="dom-if" if="{{vertex.icon}}"><i style$="{{vertex.fontcolor}}" class="ui circle icon"></i></template><template is="dom-if" if="{{!vertex.icon}}"><i class="ui small black circle thin icon"></i></template><template is="dom-if" if="{{vertex.label}}"><span class="normal-font">{{vertex.label}} </span></template></a></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{ vertex }}"><a class$="{{css}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><template is="dom-if" if="{{vertex.icon}}"><i style$="{{vertex.fontcolor}}" class="ui circle icon"></i></template><template is="dom-if" if="{{!vertex.icon}}"><i class="ui small black circle thin icon"></i></template><template is="dom-if" if="{{vertex.label}}"><span class="normal-font">{{vertex.label}} </span></template></a></template></template><script>'use strict';
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {
     Polymer({
@@ -8,14 +42,14 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
         properties: {
             graph: Object,
             model: Object,
-            lnid: String,
+            id: String,
             form: { type: String, value: "" },
             css: String,
 
             complete: String
 
         },
-        observers: ["observe_lnid(graph, lnid, form)", "observe(graph, model)"],
+        observers: ["observe_id(graph, id, form)", "observe(graph, model)"],
 
         created: function created() {
 
@@ -28,25 +62,24 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
             this._listener.stopListening();
         },
 
-        observe_lnid: function observe_lnid(graph, lnid, form) {
+        observe_id: function observe_id(graph, id, form) {
 
-            if (!graph || !lnid) return;
-            if (lnid) {
+            if (!graph || !id) return;
+            if (id) {
                 var _this = this;
                 var vertex = this.graph.vs.filter(function (e) {
-                    return e.properties.get('rlfid') == lnid;
+                    return e.get('uuid') == id;
                 });
 
                 if (vertex.length) {
                     this.set('model', vertex[0]);
                 } else {
                     $.ajax({
-                        url: "../complete/id/" + lnid,
+                        url: "/graphs/" + id,
                         success: function success(r) {
                             var complete = r.results.response.complete;
                             if (complete.length) {
                                 var model = complete[0];
-                                model.vocable = model.name;
                                 model.id = model.uuid;
                                 _this.model = model;
                             }
@@ -61,22 +94,13 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
             this._listener.stopListening();
 
-            if (this.model && this.ismodel()) {
+            if (this.is_model()) {
                 this._listener.listenTo(this.model, 'change', function () {
                     _this2.compute_properties();
                 });
             }
 
-            //if(this.model && this.model.graph){
-            //this._listener.listenTo(this.model.graph.vs, 'add', (v) => {
-            //if (this.model && v.properties.get('rlfid') == this.model.id) {
-            //this._listener.stopListening();
-            //this.model = v;
-            //return;
-            //}
-            //});
-            //}
-            if (model && !model.graph) {
+            if (this.is_model() == false) {
                 this._listener.listenTo(this.graph.vs, 'add', function (v) {
                     if (model) {
                         var match = v.id == model.id || v.id == model.uuid;
@@ -88,12 +112,8 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
             this.compute_properties();
         },
 
-        labelOrItem: function labelOrItem(vertex, form) {
-            return vertex.id && !form.length;
-        },
-
-        ismodel: function ismodel() {
-            var _ismodel = this.model.properties != null && this.model.id != null;
+        is_model: function is_model() {
+            var _ismodel = this.model && this.model.graph;
             return _ismodel;
         },
 
@@ -103,7 +123,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
             if (!model) return;
 
-            var keys = ['id', 'prefix', 'num', 'vocable', 'subscript', 'superscript'];
+            var keys = ['label'];
 
             if (model.properties) {
                 if (model.id) {
@@ -117,15 +137,15 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
                 }
             }
 
-            if (!vertex && model.vocable) {
+            if (!vertex) {
                 vertex = keys.map(function (e) {
                     return [e, model[e]];
                 });
             }
 
             vertex = _.object(vertex);
-            vertex.fontcolor = "color:rgb(" + (this.ismodel() ? model.color : [0, 0, 0]) + ")";
-            vertex.icon = this.ismodel();
+            vertex.fontcolor = "color:rgb(" + (this.is_model() ? model.color : [0, 0, 0]) + ")";
+            vertex.icon = this.is_model();
 
             this.vertex = vertex;
         },
@@ -138,7 +158,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
         },
 
         mouseclicked: function mouseclicked(event) {
-            var ismodel = this.model.properties != null && this.model.id != null;
+            var ismodel = this.is_model();
             this.do_action(ismodel ? "select" : "add", event, this.model);
         },
 
@@ -146,18 +166,18 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
             if (!model) return;
 
-            var ismodel = this.ismodel();
+            var ismodel = this.is_model();
 
             if (action == 'add') {
                 if (model.uuid) {
                     Backbone.trigger('engine:additive_nodes', [model.uuid]);
                 } else {
                     $.ajax({
-                        url: "../complete/id/" + model.id,
+                        url: "../complete/uuid/" + model.id,
                         success: function success(r) {
-                            var complete = r.results.response.complete;
-                            if (complete.length) {
-                                Backbone.trigger('engine:additive_nodes', [complete[0].uuid]);
+                            var node = r.results.response.node;
+                            if (node) {
+                                Backbone.trigger('engine:additive_nodes', [node.uuid]);
                             }
                         }
                     });
@@ -174,13 +194,16 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
                     Backbone.trigger('engine:explore', params);
                 }
             } else if (action == 'expand') {
-                var params = { graph: this.model.graph.id, nodes: [this.model.id], weights: [] };
+                var params = { graph: this.model.graph.id, expand: [this.model.id], weights: [] };
                 Backbone.trigger('engine:expand_prox', params);
+            } else if (action == 'remove') {
+                Backbone.trigger(Const.remove_node, this.model);
             }
         }
 
     });
-});</script></dom-module><dom-module id="padagraph-vtx-neighbors"><style></style><template><div id="neighbourhood" class="item"><h4>neighbors   </h4><template is="dom-repeat" items="[[by_edgetypes]]" as="item"><template is="dom-if" if="{{ item.neighbors.length }}"><div class="content"><rlf-edge-type model="{{item.edgetype}}" class="stdslf"></rlf-edge-type><div class="neighbors"><template is="dom-repeat" items="[[item.neighbors]]" as="edge"><div class="neighbor"><template is="dom-if" if="{{edge.node.id}}"><padagraph-vertex-xs graph="{{graph}}" model="{{edge.node}}"></padagraph-vertex-xs></template><template is="dom-if" if="{{!edge.node.id}}"><padagraph-vertex-xs graph="{{graph}}" model="{{edge.node}}"></padagraph-vertex-xs></template></div></template></div></div></template></template></div></template><script>'use strict';
+});</script></dom-module><dom-module id="padagraph-vtx-neighbors"><style>h4 { color : #333; }
+</style><template><div id="neighbourhood" class="item"><template is="dom-repeat" items="[[by_edgetypes]]" as="item"><template is="dom-if" if="[[ item.neighbors.length ]]"><div class="content"><padagraph-edge-type model="[[item.edgetype]]"></padagraph-edge-type><div class="neighbors"><template is="dom-repeat" items="[[item.neighbors]]" as="neighbor"><div class="neighbor"><i class$="[[neighbor.icon]]" title="{{neighbor.direction}}"></i><padagraph-vertex-xs graph="[[graph]]" model="{{neighbor.node}}"></padagraph-vertex-xs></div></template></div></div></template></template></div></template><script>'use strict';
 
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
@@ -189,7 +212,8 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
         is: "padagraph-vtx-neighbors",
         properties: {
             graph: Object,
-            model: Object
+            model: Object,
+            mode: { type: String, value: "OUT" }
         },
 
         observers: ['observe(graph, model)'],
@@ -211,10 +235,10 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
             var fetch = function fetch() {
 
                 var success = function success(data) {
-                    _this._update_neighbors(data);
+                    _this._update_neighbors();
                 };
 
-                if (model.graph) model.fetch_neighbors(success);
+                if (model.fetch_neighbors) model.fetch_neighbors(_this.mode, success);
             };
 
             this._listener.listenTo(this.model.graph.vs, 'add', function (m) {
@@ -224,12 +248,11 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
             fetch(model);
         },
 
-        _update_neighbors: function _update_neighbors(data) {
+        _update_neighbors: function _update_neighbors() {
 
             if (this.model == null || this.model.graph == null) return;
-            if (data == null || data.neighbors == null) return;
 
-            var neighbors = data.neighbors;
+            var neighbors = this.model._neighbors;
             var nodetypes = _.chain(neighbors).map(function (d) {
                 return d[2].nodetype;
             }).uniq().map(function (d) {
@@ -268,14 +291,14 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
                     var nodetype = graph.nodetypes.get(node.nodetype);
 
                     nodetypes[nodetype.id].push({ 'edgetype': edgetype.name, // name
-                        'model': _edge, // bb model or dict
+                        'edge': _edge, // bb model or dict
                         'relation': relation, // str
                         'node': _node, //- bb model or dict
                         'icon': direction_icon
                     });
 
                     edgetypes[edgetype.id].push({ 'edgetype': edgetype.name, //name
-                        'model': _edge, // bb model or dict
+                        'edge': _edge, // bb model or dict
                         'relation': relation, // str
                         'node': _node, //- bb model or dict
                         'icon': direction_icon
@@ -341,12 +364,12 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
                     neighbors: e.sort(sort_neighbors)
                 };
             }).filter(edgetype_filter).sort(function (a, b) {
-                return a.position - b.position;
+                return 1;
             }).value();
         }
 
     });
-});</script></dom-module><dom-module id="padagraph-model-popup"><style>.card { width:400px}
+});</script></dom-module><dom-module id="padagraph-cluster-popup"><style>.card { width:400px}
 .card .intersected { margin:4px; padding: 2px; border:none; }
 a.more { padding-right:12px; margin-top: -12px; }
 
@@ -365,7 +388,74 @@ span.name {
    //overflow-y: auto;
    //z-index:1;
 //}
-</style><template><template is="dom-if" if="{{ model }}"> <div class="ui card"><template is="dom-if" if="{{ is_edge }}"><div class="item"><padagraph-edge-card-xl model="{{model}}"></padagraph-edge-card-xl></div></template><template is="dom-if" if="{{ is_vertex }}"> <div class="intersected"><padagraph-vertex-card-m model="{{model}}"></padagraph-vertex-card-m><div style="overflow-y:auto;" class="content"><template is="dom-if" if="{{image}}"> <img src="{{image}}" class="ui small centered image"/><div class="ui divider"></div></template><template is="dom-repeat" items="[[props]]"> <div class="comment"><div class="content"><span class="name">{{item.name}}</span><padagraph-card-property prop="{{item}}" class="value"></padagraph-card-property></div></div></template><padagraph-vtx-neighbors graph="{{graph}}" model="{{model}}"></padagraph-vtx-neighbors></div></div></template></div></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{ clusters }}"> <div class="ui card"></div></template></template><script>'use strict';
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+  Polymer({
+    is: "padagraph-cluster-popup",
+
+    properties: {
+      clustering: { type: Object, value: function value() {}, observer: 'clusters_changed' }
+    },
+
+    created: function created() {
+      this._listener = {};
+      _.extend(this._listener, Backbone.Events);
+    },
+
+    clusters_changed: function clusters_changed(clustering) {
+
+      this._listener.stopListening();
+      if (!clustering) return;
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-collection-popup"><style>.card { width:360px !important}
+     </style><template><template is="dom-if" if="{{ graph }}"> <div class="ui card"><padagraph-collection app="{{app}}" mode="node" graph="{{graph}}"></padagraph-collection></div></template></template><script>'use strict';
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+  Polymer({
+    is: "padagraph-collection-popup",
+
+    properties: {
+      app: Object,
+      graph: Object
+    },
+
+    created: function created() {
+      this._listener = {};
+      _.extend(this._listener, Backbone.Events);
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-model-popup"><style>:host([hidden]) {
+   display: none !important;
+ }   
+.ui.card {
+   width: 360px !important;
+   margin: 4px 0px 4px 0px !important;
+   height: calc(100% - 15px);
+}
+.card .intersected {
+   margin: 6px 0px 0px 4px;
+   padding-bottom: 16px;
+}
+a.more { padding-right:12px; margin-top: -12px; }
+
+span.name {
+       display: inline-block;
+       color: #333;
+       font-weight: bold;
+       font-size: 1em;
+       margin-right: 6px;
+   }
+
+.sub.header {
+   padding-top: 7px;
+   padding-left: 40px;
+   margin-bottom: -5px;
+}
+</style><template><template is="dom-if" if="{{ model }}"> <div class="ui card"><template is="dom-if" if="{{ is_edge }}"><div class="item"><padagraph-edge-card-xl model="{{model}}"></padagraph-edge-card-xl></div></template><template is="dom-if" if="{{ is_vertex }}"> <div class="intersected"><padagraph-vertex-card-m model="{{model}}"></padagraph-vertex-card-m><div class="sub header"><a href="#expand" on-click="expand" class="ui small basic label">+10 </a><a href="#explore" on-click="explore" class="ui small basic label">explore </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui small basic label">neighbors</a><a href="{{ geturl(model) }}" target="_blank" title="{{ model.id }}" class="ui small basic label">{{ shortuuid(model) }}</a></div></div><div style="overflow: auto; height: calc(100% - 128px ); overflow-x: hidden" class="content"><template is="dom-if" if="{{image}}"> <img src="{{image}}" class="ui small centered image"/><div class="ui divider"></div></template><template is="dom-repeat" items="[[props]]"> <div class="comment"><div class="content"><span class="name">{{item.name}}</span><padagraph-card-property prop="{{item}}" class="value"></padagraph-card-property></div></div></template><padagraph-vtx-neighbors graph="{{graph}}" model="{{model}}"></padagraph-vtx-neighbors></div></template></div></template></template><script>'use strict';
 
 require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
   Polymer({
@@ -383,12 +473,22 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
       _.extend(this._listener, Backbone.Events);
     },
 
+    geturl: function geturl() {
+      return this.model ? this.model.url() : "";
+    },
+
     graph_changed: function graph_changed(graph) {
       var _this = this;
 
       this._listener.stopListening();
       if (!graph || !_.size(graph)) return;
 
+      this._listener.listenTo(this.graph.vs, 'remove', (function (model) {
+        if (_this.model == model) _this.model = null;
+      }).bind(this));
+      this._listener.listenTo(this.graph.es, 'remove', (function (model) {
+        if (_this.model == model) _this.model = null;
+      }).bind(this));
       this._listener.listenTo(this.graph.vs, 'addflag:selected', (function (model) {
         _this.model = model;
       }).bind(this));
@@ -415,6 +515,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
     modelChanged: function modelChanged(model) {
 
+      this.hidden = model == null;
       if (!model) return;
 
       this.image = model.properties.get('image');
@@ -439,6 +540,27 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
     rmflag: function rmflag(model) {
       this.model = null;
+    },
+
+    expand: function expand() {
+      var graph = this.model.graph;
+      var params = { graph: graph.id, expand: [this.model.id], weights: [] };
+      Backbone.trigger('engine:expand_prox', params);
+    },
+
+    explore: function explore() {
+      var graph = this.model.graph;
+      var params = { graph: graph.id, query: this.model.id };
+      Backbone.trigger('engine:explore', params);
+    },
+
+    shortuuid: function shortuuid(model) {
+      var uuid = null;
+      if (model) {
+        uuid = "" + model.id;
+        if (uuid.length > 6) return uuid.substring(0, 6) + '...' + uuid.substring(uuid.length - 4);
+      }
+      return uuid;
     }
 
   });
@@ -716,7 +838,7 @@ require(['backbone', 'jquery', 'semantic', 'cello', 'gviz', 'materials', 'pdgcon
 
         if (sync) {
           graph.on('sync', reset);
-          graph.fetch({ parse: false });
+          graph.fetch({ parse: true });
         } else reset();
 
         parse.completed = true;
@@ -733,9 +855,8 @@ require(['backbone', 'jquery', 'semantic', 'cello', 'gviz', 'materials', 'pdgcon
       var _window_resized = function _window_resized() {
         if (app.gviz) app.gviz.resize_rendering();
       };
-      $(window).on('resize', _window_resized);
 
-      // setuo callback
+      $(window).on('resize', _window_resized);
     }
   });
 });</script></dom-module><dom-module id="padagraph-gviz"><template><div id="gviz_model_imgs" style="display:none"></div><canvas id="gviz_imgs_cache_canvas" style="display:none"></canvas><content> </content></template><script>'use strict';
@@ -780,11 +901,11 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
                 });
             }
 
-            graph.on('reset', function () {
-                _(filters).forEach(function (f) {
-                    f.reset_filters();
-                });
-            });
+            //graph.on('reset', ()=>{
+            //_(filters).forEach((f) => {
+            //f.reset_filters()
+            //});
+            //});
 
             var search = $("padagraph-node-search");
             if (search.length) {
@@ -827,6 +948,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
             var gviz = Gviz.SimpleViz(graph, options);
             gviz.enable();
+            gviz.clustering = app.models.clustering;
             gviz.animate();
 
             app.set_viz(gviz);

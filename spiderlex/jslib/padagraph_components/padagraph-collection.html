@@ -6,7 +6,7 @@
 .ui.groupfilter.checkbox {
     margin-top: 12px;
 }
-</style><template><template is="dom-if" if="{{asmenu}}"><div class="ui vertical menu"><template is="dom-if" if="{{ filter_visible('all') }}"> <div on-click="reset_filters" class="link item">All</div></template><template is="dom-if" if="[[ filter_visible('selected') ]]"> <div on-click="set_selected_label" class="item"><padagraph-vertex-card-xs model="[[selected_node]]"></padagraph-vertex-card-xs></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible('label') }}"> <template is="dom-if" if="{{ filter_visible('headers') }}"> <h4 class="ui header">Label</h4></template><div class="ui form"><div style="margin: 0 1em 0.3em 0em;" class="field"><div class="ui small icon input"><i class="search icon"></i><input type="text" placeholder="Label filter" value="{{filter_label::input}}"/></div></div><template is="dom-if" if="{{is_mode_node}}"> <div class="field"><div class="ui labelfilter checkbox"><input type="checkbox" on-click="click_filter_label_chk"/><label>include neighbors</label></div></div></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible('types') }}"> <template is="dom-if" if="{{ filter_visible('headers') }}"><h4 class="ui header">Types</h4></template><div class="ui form groups"><template is="dom-repeat" items="{{filter_groups}}" as="group"><div class="field"><div class="ui groupfilter checkbox"><input id="chkgroup{{group.label}}" on-click="set_group_filter" type="checkbox" checked="checked"/><label for$="chkgroup{{group.label}}">{{group.label}} ({{group.count}}) </label></div></div><template is="dom-repeat" items="{{group.items}}" as="item"><div class="field"><div class="ui typefilter checkbox"><input id="type{{item.label}}" on-click="set_type_filter" type="checkbox" checked="checked"/><label for$="type{{item.label}}">{{item.name}} ({{item.count}})</label></div></div></template></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible('headers') }}"> <h4 class="ui header">Layout</h4></template><template is="dom-if" if="{{ filter_visible('layout') }}"> <div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></template></div></template><template is="dom-if" if="{{!asmenu}}"> <div on-click="filter_count" class$="{{button_class('ui dropdown', asitem, aslabel)}}" class="ui dropdown"><template is="dom-if" if="{{is_mode_node}}"> <i class="ui circle thin icon"></i></template><template is="dom-if" if="{{is_mode_edge}}"> <i class="ui minus icon"></i></template><span>{{ filtered_count }} </span><div class="menu"><div on-click="set_type_filter" class="item">All</div><template is="dom-if" if="{{ selected_node }}"> <div on-click="set_selected_label" class="item"><padagraph-vertex-card-xs model="[[selected_node]]"></padagraph-vertex-card-xs></div></template><div class="divider"></div><h4 class="ui header">Label</h4><div class="ui form"><div style="margin: 0 1em 0.3em 0em;" class="field"><div class="ui small icon input"><i class="search icon"></i><input type="text" placeholder="Label filter" value="{{filter_label::input}}"/></div></div><template is="dom-if" if="{{is_mode_node}}"> <div class="field"><div class="ui labelfilter checkbox"><input type="checkbox" on-click="click_filter_label_chk"/><label>include neighbors</label></div></div></template></div><div class="divider"></div><h4 class="ui header">Types</h4><div class="ui form groups"><template is="dom-repeat" items="{{filter_groups}}" as="group"><div class="field"><div class="ui groupfilter checkbox"><input id="chkgroup{{group.label}}" on-click="set_group_filter" type="checkbox" checked="checked"/><label for$="chkgroup{{group.label}}"><span class="name">{{group.label}}</span><span class="count">({{group.count}})</span></label></div></div><template is="dom-repeat" items="{{group.items}}" as="item"><div class="field"><div class="ui typefilter checkbox"><input id="type{{item.label}}" on-click="set_type_filter" type="checkbox" checked="checked"/><label for$="type{{item.label}}"><span class="name">{{item.name}}</span><span class="count">({{item.count}})</span></label></div></div></template></template></div><div class="divider"></div><h4 class="ui header">Layout</h4><div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></div></div></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{asmenu}}"><div class="ui vertical menu"><template is="dom-if" if="{{ filter_visible('all') }}"> <div on-click="reset_filters" class="link item">All</div></template><template is="dom-if" if="[[ filter_visible('selected') ]]"> <div on-click="set_selected_label" class="item"><padagraph-vertex-card-xs model="[[selected_node]]"></padagraph-vertex-card-xs></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible('label') }}"> <template is="dom-if" if="{{ filter_visible('headers') }}"> <h4 class="ui header">Label</h4></template><div class="ui form"><div style="margin: 0 1em 0.3em 0em;" class="field"><div class="ui small icon input"><i class="search icon"></i><input type="text" placeholder="Label filter" value="{{filter_label::input}}"/></div></div><template is="dom-if" if="{{is_mode_node}}"> <div class="field"><div class="ui labelfilter checkbox"><input type="checkbox" on-click="click_filter_label_chk"/><label>include neighbors</label></div></div></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible('types') }}"> <template is="dom-if" if="{{ filter_visible('headers') }}"><h4 class="ui header">Types</h4></template><div class="ui form groups"><template is="dom-repeat" items="{{filter_groups}}" as="group"><div class="field"><div class="ui groupfilter checkbox"><input id="chkgroup{{group.label}}" on-click="set_group_filter" type="checkbox" checked="checked"/><label for$="chkgroup{{group.label}}">{{group.label}} ({{group.count}}) </label></div></div><template is="dom-repeat" items="{{group.items}}" as="item"><div class="field"><div class="ui typefilter checkbox"><input id="type{{item.label}}" on-click="set_type_filter" type="checkbox" checked="checked"/><label for$="type{{item.label}}">{{item.name}} ({{item.count}})</label></div></div></template></template></div><div class="divider"></div></template><template is="dom-if" if="{{ filter_visible('headers') }}"> <h4 class="ui header">Layout</h4></template><template is="dom-if" if="{{ filter_visible('layout') }}"> <div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></template></div></template><template is="dom-if" if="{{!asmenu}}"> <div on-click="filter_count" class$="{{button_class('ui dropdown', asitem, aslabel)}}" class="ui dropdown"><template is="dom-if" if="{{is_mode_node}}"> <i class="ui circle thin icon"></i></template><template is="dom-if" if="{{is_mode_edge}}"> <i class="ui minus icon"></i></template><span>{{ filtered_count }} </span><div class="menu"><div on-click="reset_filters" class="item">All</div><template is="dom-if" if="{{ selected_node }}"> <div on-click="set_selected_label" class="item"><padagraph-vertex-card-xs model="[[selected_node]]"></padagraph-vertex-card-xs></div></template><div class="divider"></div><h4 class="ui header">Label</h4><div class="ui form"><div style="margin: 0 1em 0.3em 0em;" class="field"><div class="ui small icon input"><i class="search icon"></i><input type="text" placeholder="Label filter" value="{{filter_label::input}}"/></div></div><template is="dom-if" if="{{is_mode_node}}"> <div class="field"><div class="ui labelfilter checkbox"><input type="checkbox" on-click="click_filter_label_chk"/><label>include neighbors</label></div></div></template></div><div class="divider"></div><h4 class="ui header">Types</h4><div class="ui form groups"><template is="dom-repeat" items="{{filter_groups}}" as="group"><div class="field"><div class="ui groupfilter checkbox"><input id="chkgroup{{group.label}}" on-click="set_group_filter" type="checkbox" checked="checked"/><label for$="chkgroup{{group.label}}"><span class="name">{{group.label}}</span><span class="count">({{group.count}})</span></label></div></div><template is="dom-repeat" items="{{group.items}}" as="item"><div class="field"><div class="ui typefilter checkbox"><input id="type{{item.label}}" on-click="set_type_filter" type="checkbox" checked="checked"/><label for$="type{{item.label}}"><span class="name">{{item.name}}</span><span class="count">({{item.count}})</span></label></div></div></template></template></div><div class="divider"></div><h4 class="ui header">Layout</h4><div class="form"><div class="field"><div on-click="update_layout" class="ui primary compact button">update</div></div></div></div></div></template></template><script>'use strict';
 
 require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
 
@@ -61,7 +61,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
         },
 
         setGraphModel: function setGraphModel(app, graph) {
-
+            var _this = this;
             if (!app || !graph) return;
 
             $('.dropdown', this).dropdown();
@@ -88,6 +88,12 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
 
             this._listener.listenTo(this.collection, 'addflag:selected', this.add_selected.bind(this));
             this._listener.listenTo(this.collection, 'rmflag:selected', this.rm_selected.bind(this));
+
+            this._listener.listenTo(this.collection.graph, 'merge', this.update_filtering.bind(this));
+            this._listener.listenTo(this.collection.graph, 'reset', function () {
+                _this.reset_filters();
+                _this.filter_count();
+            });
 
             this._listener.listenTo(this.collection, 'filter:changed', this.filter_count.bind(this));
             if (this.is_mode_edge) {
@@ -131,20 +137,37 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
             return visible;
         },
 
-        set_type_filters: function set_type_filters() {
+        set_type_filters: function set_type_filters(old) {
+            var selected = {};
+
+            if (old && old.length) {
+                selected = _.chain(old.map(function (e, i) {
+                    var items = e.items.map(function (ee, j) {
+                        return [ee.group + ee.name, ee.selected];
+                    });
+                    return items;
+                })).flatten(true).union(old.map(function (e, i) {
+                    return [e.label, e.selected];
+                })).object().value();
+            }
+
             var types = this.mode == "node" ? this.graph.nodetypes : this.graph.edgetypes;
             var collection = this.mode == "node" ? this.graph.vs : this.graph.es;
 
             var ls = _.map(types.models, function (e) {
+
                 var filter = function filter(m) {
                     return e.get('uuid') == m.type.get('uuid');
                 };
                 var count = collection.filter(filter).length;
-
                 var group = e.label.indexOf('/') > 0 ? e.label.substr(0, e.label.indexOf('/')) : "*";
                 var name = e.label.substr(e.label.indexOf('/') + 1);
 
-                return { group: group, name: name, label: e.label, selected: true, count: count, model: e };
+                return { 'group': group,
+                    'name': name,
+                    'label': e.label,
+                    'selected': old ? group + name in selected ? selected[group + name] : true : true,
+                    'count': count, model: e };
             });
 
             var fs = _.filter(ls, function (e) {
@@ -158,7 +181,10 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
                 var count = _.reduce(v, function (memo, e) {
                     return memo + e.count;
                 }, 0);
-                return { label: k, selected: true, items: v, count: count };
+                return { 'label': k,
+                    'selected': old ? k in selected ? selected[k] : true : true,
+                    'items': v,
+                    'count': count };
             });
             if (this.groups_sort) groups.sort(this.groups_sort);
 
@@ -234,11 +260,13 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
         },
 
         update_filtering: function update_filtering() {
+            this.set_type_filters(this.filter_groups);
             this.apply_filters(this.elements, this.filter_types, this.filter_label, this.filter_label_chk);
+            this.filter_count();
         },
 
         apply_filters: function apply_filters(elements, groups, label, _chk) {
-            var _this = this;
+            var _this2 = this;
 
             if (!groups || !groups.length) return;
 
@@ -247,15 +275,15 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
 
             _.each(groups, function (g, i) {
                 _.each(g.items, function (e, j) {
-                    var filter = _this.filtered([{ label: e.label, selected: true }], label);
+                    var filter = _this2.filtered([{ label: e.label, selected: true }], label);
                     e.count = elements.filter(filter).length;
                     //this.notifyPath('filter_types.'+i+'.count' )
-                    _this.notifyPath('filter_groups.' + i + '.items.' + j + '.count');
+                    _this2.notifyPath('filter_groups.' + i + '.items.' + j + '.count');
                 });
                 g.count = _.reduce(g.items, function (memo, e) {
                     return memo + e.count;
                 }, 0);
-                _this.notifyPath('filter_groups.' + i + '.count');
+                _this2.notifyPath('filter_groups.' + i + '.count');
             });
 
             var types = _.flatten(_.map(groups, function (e) {
@@ -387,17 +415,17 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
         }
 
     });
-});</script></dom-module><dom-module id="padagraph-collection"><template><style>.menu .form {
+});</script></dom-module><dom-module id="padagraph-collection"><template><style>.ui.card { width:100% }
+.menu .form {
     padding-left: 12px;
     padding-top: 6px;
 }
 
 .dropdown.item .menu {
     left:-50px !important;
-}
-</style><div style="margin:0px" class="ui fluid secondary menu"><padagraph-collection-filter app="{{app}}" graph="{{graph}}" mode="{{mode}}"></padagraph-collection-filter><div class="hidden divider"></div><div class="ui right dropdown item"><i class="sort icon"></i>{{orderBy}}<div class="menu"><template is="dom-repeat" items="[[sorters]]"><div on-click="set_sort" class="item">{{item}}</div></template></div></div></div><div id="contentpan" style="max-height: calc(100% - 22px); margin-top:0px; overflow-x: hidden;" class="ui scrollable"><template is="dom-if" if="{{is_mode_node}}"> <template is="dom-repeat" items="[[elements]]" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(needs_update)}}"><padagraph-vertex-card-m model="{{item}}" intersects="intersects" actions="actions"></padagraph-vertex-card-m><div class="ui divider"></div></template></template><template is="dom-if" if="{{is_mode_edge}}"><template is="dom-repeat" items="[[elements]]" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(elements, needs_update)}}"><padagraph-edge-card-xs model="{{item}}" class="ui item comments"></padagraph-edge-card-xs><div class="ui divider"></div></template></template></div></template><script>'use strict';
+}</style><div class="ui card"><div style="margin:6px; margin-bottom: -1rem;" class="ui secondary menu"><padagraph-collection-filter app="{{app}}" graph="{{graph}}" mode="{{mode}}" class="item"></padagraph-collection-filter><div class="hidden divider"></div><div class="ui right dropdown item"><i class="sort icon"></i>{{orderBy}}<div class="menu"><template is="dom-repeat" items="[[sorters]]"><div on-click="set_sort" class="item">{{item}}</div></template></div></div></div><div class="ui divider"></div><div id="contentpan" style="max-height: calc(100% - 22px); margin-top:0px; overflow-x: hidden;" class="ui scrollable"><template is="dom-if" if="{{is_mode_node}}"> <template is="dom-repeat" items="[[elements]]" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(needs_update)}}"><padagraph-vertex-card-m model="{{item}}" intersects="intersects" actions="actions"></padagraph-vertex-card-m><div class="ui divider"></div></template></template><template is="dom-if" if="{{is_mode_edge}}"><template is="dom-repeat" items="[[elements]]" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(elements, needs_update)}}"><padagraph-edge-card-xs model="{{item}}" class="ui item comments"></padagraph-edge-card-xs><div class="ui divider"></div></template></template></div></div></template><script>'use strict';
 
-require(['backbone', 'jquery'], function (Backbone, $) {
+require(['backbone', 'jquery', 'semantic'], function (Backbone, $, semantic) {
 
     var sort = function sort(collection, keyf, reverse) {
 
@@ -441,15 +469,10 @@ require(['backbone', 'jquery'], function (Backbone, $) {
             _.extend(this._listener, Backbone.Events);
         },
 
-        attached: function attached() {
-            var _this = this;
-
-            this.async(function () {
-                $('.dropdown.item', _this).dropdown();
-            });
-        },
+        attached: function attached() {},
 
         setGraphModel: function setGraphModel(app, graph) {
+            var _this = this;
 
             this.is_mode_edge = this.mode == "edge";
             this.is_mode_node = this.mode == "node";
@@ -478,6 +501,10 @@ require(['backbone', 'jquery'], function (Backbone, $) {
             this._listener.listenTo(this.collection, 'reset', this.remove_all.bind(this));
 
             this._listener.listenTo(this.collection, 'filter:changed', this.need_update.bind(this));
+
+            this.async(function () {
+                $('.dropdown.item', _this).dropdown();
+            });
         },
 
         need_update: function need_update() {

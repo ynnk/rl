@@ -1,4 +1,5 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-gviz-control"><style>a i.icon { margin: 0px}</style><template><div class="ui segment"><h2 class="header">Visualisation</h2><div class="ui small form"><fieldset><div class="inline field"><a id="vtx_size_inc" class="link icon"><i class="large zoom icon"></i></a><a id="vtx_size_dec" class="link icon"><i class="large zoom out icon"></i></a><a id="font_size_inc" class="link icon"><i class="large fitted font icon"></i><i class="small fitted add icon"></i></a><a id="font_size_dec" class="link icon"><i class="large fitted font icon"></i><i class="small fitted minus icon"></i></a></div></fieldset></div></div></template><script>"use strict";
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-gviz-control"><style>a.link.icon { padding: 4px; }
+a i.icon { margin: 0px; }</style><template><div class="ui segment"><h2 class="header">Visualisation</h2><div class="ui small form"><fieldset><div class="field"><a id="vtx_size_inc" class="link icon"><i class="large zoom icon"></i></a><a id="vtx_size_dec" class="link icon"><i class="large zoom out icon"></i></a><a id="font_size_inc" class="link icon"><i class="large fitted font icon"></i><i class="small fitted add icon"></i></a><a id="font_size_dec" class="link icon"><i class="large fitted font icon"></i><i class="small fitted minus icon"></i></a></div></fieldset></div></div></template><script>"use strict";
 
 require(['jquery'], function ($) {
   Polymer({
@@ -29,40 +30,92 @@ require(['jquery'], function ($) {
       });
     }
   });
-});</script></dom-module><dom-module id="padagraph-labels-control"><template><style></style><template is="dom-if" if="{{props.name}}"><div style="display:none" class="markdown description"><a name="desc">       </a>{{props.description}}</div><div id="labelsAndButtons" class="ui grid"> <div on-click="desc" class="ui basic label"> 
-{{props.name}}</div><template is="dom-if" if="{{meta.node_count}}"><div class="ui label"> <i class="circle thin icon"></i>{{meta.node_count}}</div></template><template is="dom-if" if="{{meta.edge_count}}"><div class="ui label"> <i class="minus icon"></i>{{meta.edge_count}}</div></template><template is="dom-if" if="{{meta.star_count}}"><div class="ui label"> <i class="star thin icon"></i>{{meta.star_count}}</div></template><template is="dom-if" if="{{meta.owner}}"><div class="ui label">  <i class="user icon"></i>{{meta.owner}}</div></template><template is="dom-if" if="{{meta.date}}"><div class="ui label">  <i class="calendar icon"></i>{{meta.date}}</div></template><content></content></div></template></template><script>'use strict';
+});</script></dom-module><dom-module id="padagraph-labels-control"><template><style>.ui.tab {
+    height : 400px;
+    width : 600px;
+    overflow: auto;
+    } 
+fieldset {
+    background-color: #eee; }
+fieldset .segment{
+    margin-left: -16px;
+    margin-bottom: 20px;}
+  
+#labelsAndButtons {
+      margin-top: 6px;
+}
+  </style><template is="dom-if" if="{{props}}"><template is="dom-if" if="{{show}}"><div class="ui segment"><fieldset><div class="ui secondary pointing menu"><div data-tab="tab-desc" class="active item">Description</div><div data-tab="tab-schema" class="item">Schema</div><div data-tab="tab-pedigree" class="item">Pedigree</div><div on-tap="desc" class="right floated item"><i class="close icon"></i></div></div><div data-tab="tab-desc" class="ui active tab"><div class="markdown"><a name="desc">       </a><p>{{props.description}}</p></div></div><div data-tab="tab-schema" class="ui tab"><a name="schema">       </a><div class="markdown"><div class="ui basic label">{{props.name}}</div><div class="ui label"> <i class="circle thin icon"></i>{{meta.node_count}}</div><div class="ui label"> <i class="minus icon"></i>{{meta.edge_count}}</div><h3>nodetypes</h3><div class="ui list"><template is="dom-repeat" items="[[schema.nodetypes]]"><div class="item"><div class="content"><div class="header">{{item.name}} : {{item.count}}</div><div class="description">{{item.properties}}</div></div></div></template></div><h3>edgetypes</h3><div class="ui list"><template is="dom-repeat" items="[[schema.edgetypes]]"><div class="item"><div class="content"><div class="header">{{item.name}} : {{item.count}}</div><div class="description">{{item.properties}}</div></div></div></template></div></div></div><div data-tab="tab-pedigree" class="ui tab"><div class="ui list"><template is="dom-repeat" items="[[meta.pedigree]]"><div class="item"><div class="content"><a class="header">{{item.0}} : {{item.2}} </a><div class="description">{{item.1}} </div></div></div></template></div></div></fieldset></div></template><div id="labelsAndButtons"><div on-tap="desc" class="ui basic label"> 
+{{props.name}}</div><div class="ui label"> <i class="circle thin icon"></i>{{meta.node_count}}</div><div class="ui label"> <i class="minus icon"></i>{{meta.edge_count}}</div><template is="dom-if" if="{{meta.star_count}}"><div class="ui label"> <i class="star thin icon"></i>{{meta.star_count}}</div></template><template is="dom-if" if="{{meta.owner}}"><div class="ui label">  <i class="user icon"></i>{{meta.owner}}</div></template><template is="dom-if" if="{{meta.date}}"><div class="ui label">  <i class="calendar icon"></i>{{meta.date}}</div></template><content></content></div></template></template><script>'use strict';
 
 require(['backbone', 'jquery', 'semantic', 'cello', 'pdgconst'], function (Backbone, $, S, Cello, Const) {
-  Polymer({
-    is: "padagraph-labels-control",
+    Polymer({
+        is: "padagraph-labels-control",
 
-    properties: {
-      // engine for parameters ?  
-      app: Object,
-      graph: Object,
+        properties: {
+            // engine for parameters ?  
+            app: Object,
+            graph: Object,
 
-      meta: { type: Object },
-      props: { type: Object }
-    },
+            meta: { type: Object },
+            props: { type: Object },
+            schema: { type: Object }
+        },
 
-    observers: ["setupUI(app, graph)"],
+        observers: ["setupUI(app, graph)"],
 
-    setupUI: function setupUI(app, graph) {
-      var _this = this;
+        setupUI: function setupUI(app, graph) {
+            var _this = this;
 
-      if (!app || !graph) return;
-      graph.on('reset', function () {
-        _this.meta = _this.graph.meta.attributes;
-        _this.props = _this.graph.properties.attributes;
-      });
-    },
+            if (!app || !graph) return;
 
-    desc: function desc() {
-      var $el = $(".markdown", this)[0];
-      $el.style.display = $el.style.display == "block" ? "none" : "block";
-    }
+            var f = function f() {
+                _this.set("meta", graph.meta.attributes);
+                for (var k in graph.meta.attributes) _this.notifyPath("meta." + k, _this.meta[k]);
 
-  });
+                var stats = graph.meta.get('stats');
+                var schema = {
+                    vcount: graph.meta.get('node_count'),
+                    ecount: graph.meta.get('edge_count'),
+
+                    nodetypes: graph.nodetypes.models.map(function (e) {
+                        return {
+                            model: e, name: e.name,
+                            count: stats && 'nodetypes' in stats ? stats.nodetypes[e.id] | 0 : "-",
+                            properties: e.properties.models.map(function (e) {
+                                return (e.otype.multi ? "+" : "") + e.name + (e.otype['default'] ? "[" + e.otype['default'] + "]" : "");
+                            }).join(', ')
+                        };
+                    }),
+
+                    edgetypes: graph.edgetypes.models.map(function (e) {
+                        return {
+                            model: e, name: e.name,
+                            count: stats && 'edgetypes' in stats ? stats.edgetypes[e.id] | 0 : "-",
+                            properties: e.properties.models.map(function (e) {
+                                return e.name;
+                            }).join(' - ')
+                        };
+                    })
+                };
+                _this.set("schema", schema);
+
+                _this.set("props", graph.properties.attributes);
+                for (var k in _this.graph.properties.attributes) _this.notifyPath("props." + k, _this.props[k]);
+            };
+
+            for (var event in { 'reset': 1, 'merge': 1 }) graph.on(event, f);
+        },
+
+        desc: function desc() {
+            var _this2 = this;
+
+            this.show = !this.show;
+            this.async(function () {
+                $('.secondary.pointing.menu .item', _this2).tab();
+            });
+        }
+
+    });
 });</script></dom-module><dom-module id="padagraph-engine-control"><style></style><template><div data-content="blocks" class$="{{button_class('blocks ui dropdown', asitem, aslabel)}}" class="blocks ui dropdown"><i class$="{{ icon(engine)}}" title="{{block.name}}"></i><div class="menu"><div class="header">{{block.name}}</div><div class="divider"></div><template is="dom-repeat" items="[[block.components.models]]"><div data-value$="{{item.name}}" class="item">{{item.name}}</div></template></div></div></template><script>'use strict';
 
 require(['backbone', 'jquery', 'semantic', 'cello', 'pdgconst'], function (Backbone, $, S, Cello, Const) {

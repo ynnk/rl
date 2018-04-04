@@ -139,6 +139,9 @@ Models.Vertex = Cello.Vertex.extend({
         this.on("change:cl_color", function(vtx){
             vtx.set('color', vtx.get('cl_color')) ;
         });
+        this.on("change", function(vtx){
+            vtx._neighbors = null;
+        });
     },
     
     defaults: {
@@ -179,11 +182,14 @@ Models.Vertex = Cello.Vertex.extend({
         
     },
 
-    
-     _format_label : function(){
+    format_label : function(length){
          // css should be in materials
         var font = ".form"
-        return [ {form : this.label, css : font} ];
+        var label = this.label
+        if (length) {
+            label = label.substring(0,length)
+        }
+        return [ {form : label, css : font} ];
     },
 
     to_str : function(){
@@ -230,7 +236,7 @@ Models.Vertex = Cello.Vertex.extend({
         return props;
     },
 
-    fetch_neighbors: function(success){
+    fetch_neighbors: function(mode, success){
 
         var self = this;
         var url_root = this.url() ;
@@ -244,13 +250,27 @@ Models.Vertex = Cello.Vertex.extend({
           url: url_root + "/neighbors",
           type:"POST",
           data:JSON.stringify({
-                  start:0
+                  start:0,
+                  mode: this.mode
               }),
           contentType:"application/json; charset=utf-8",
           dataType:"json",
           success: function(data){
-            self._neighbors = data;
-            success(data);    
+
+            var es = {};
+            if ( data.neighbors ) {
+                for ( var i in data.neighbors ){
+                    var neighbor = data.neighbors[i]
+                    var eid = neighbor[0].uuid;
+                    es[eid] = neighbor
+                }
+                var vs = [];
+                for ( var k in es )
+                    vs.push(es[k])
+                self._neighbors =  vs ; 
+            }
+            
+            success(self._neighbors);    
           }
         })
 
@@ -287,24 +307,12 @@ Models.EdgeType = Cello.EdgeType.extend({
             var label = this.label;
             
             var token = label.substring(label.indexOf('/') + 1);
-            var splitted_token = token.split("_");
             
             var e = {};
+            e.label =  label;
             e.family = label.indexOf('/') >= 0 ? label.substring(0,label.indexOf('/')) : "";
-            e.name =  splitted_token[0].trim();
+            e.name = label.indexOf('/') > 0  ? label.substring(label.indexOf('/')) : label;
             e.subscript = "";
-            e.superscript = "";
-            e.combination = "";
-
-            if (splitted_token.length > 1){
-                splitted_token = splitted_token[1].split("^");
-                if (splitted_token.length >= 1) e.subscript = splitted_token[0].trim();
-                if (splitted_token.length > 1) e.superscript = splitted_token[1].trim();
-            }
-
-            //if ( (index + 1) < label_combination.length )
-                //e.combination = "&";  
-
             return e;
         }
 
@@ -458,13 +466,37 @@ Models.ExpandNodesQuery = Backbone.Model.extend({
     defaults : {
         graph : null,
         nodes: [], // uuids
+        expand: [], // uuids
         weights: [],
     },
     
     export_for_engine: function(){
+        var nodes = _.map( this.get('graph').vs.models, function(e){ return e.get('uuid') } );
         return { graph: this.get('graph').get('gid'),
-                 nodes: this.get('nodes'),
+                 nodes: nodes,
+                 expand: this.get('expand'),
                  weights: this.get('weights'),
+               };
+    },
+
+});
+
+Models.ClustersLabelsQuery = Backbone.Model.extend({
+    defaults : {
+        graph : null,
+        clustering: [], // clustering model
+    },
+    
+    export_for_engine: function(){
+        var model = this.get('clustering')
+        var cls = model.clusters.models;
+        var clusters = cls.map( function(e){
+            var uuids = e.members.vs.models.map(function(v){ return v.id });
+            return uuids;
+        });
+        
+        return { graph: this.get('graph').get('gid'),
+                 clusters: clusters,
                };
     },
 
@@ -642,6 +674,7 @@ var GvizShortcuts = function(gviz){ return [
                 console.log("toggle image display", gviz.show_images)
             }
         ],
+       
         "* Rendering ",
         [
             'r', "toggles autorotate", function(){
@@ -721,17 +754,23 @@ function install_edit_shortcuts(context, graph, prefix){
                 }
             }
         ],
+    ];
+    bindAllKeyboardShortcuts(context, actions, prefix);
+}
+
+function install_navigation_shortcuts(context, graph, prefix){
+    var actions  = [
         [
-            'space', "Expands node relations",function(){
+            'enter', "Expands node relations",function(){
                 var vs = graph.vs.by_flag('selected');
                 if( vs.length == 1)
                 {
-                    var params = { graph: graph.id, nodes: [vs[0].id], weights:[] };
+                    var params = { graph: graph.id, expand: [vs[0].id], weights:[] };
                     Backbone.trigger('engine:expand_prox', params);
                 }
             }
         ],
-        [   'o', "Explore", function(){
+        [   'shift+enter', "Explore", function(){
                 var vs = graph.vs.by_flag('selected');
                 if( vs.length == 1)
                 {
@@ -741,7 +780,7 @@ function install_edit_shortcuts(context, graph, prefix){
             }
         ],
         [
-            'r', "Removes node from view", function(){
+            'backspace', "Removes node from view", function(){
                 var vs = graph.vs.by_flag('selected');
                 if( vs.length == 1)
                 {
@@ -759,7 +798,7 @@ function install_edit_shortcuts(context, graph, prefix){
 function install_gviz_shortcuts(gviz, prefix){
 
     //- global no prefix
-    bindAllKeyboardShortcuts( gviz.$el, GvizShortcuts(gviz) , "");
+    bindAllKeyboardShortcuts( gviz.$el, GvizShortcuts(gviz) , prefix);
 
     
 };
@@ -962,6 +1001,7 @@ App.Base = Backbone.View.extend({
         this.ALLOW_AUTO_COMPUTE = true;
         this._auto_compute_delay = false
 
+        this.Models = Models;
         this.models  = _.clone({});
         this.engines = _.clone({});
     },
@@ -1044,6 +1084,7 @@ App.Base = Backbone.View.extend({
         app.listenTo( Backbone, Const.remove_node, function(vertex){
             app.set_auto_compute(false);
             if( vertex ){
+                graph.vs.set_selected([]);
                 graph.vs.remove(vertex);
             }
             app.set_auto_compute(true);
@@ -1068,8 +1109,6 @@ App.Base = Backbone.View.extend({
             graph.vs.set([]);
             app.set_auto_compute(true);
         });
-        
-
     },
 
     create_clustering_model: function(){
@@ -1149,7 +1188,7 @@ App.Base = Backbone.View.extend({
             app.engines.expand_prox.register_input("request", expand_query);
             app.listenTo(Backbone, 'engine:expand_prox', function(data){
                 console.log('engine:expand_prox', data);
-                expand_query.set('nodes', data.nodes);
+                expand_query.set('expand', data.expand);
                 expand_query.set('weights', data.weights);
                 app.engines.expand_prox.play();
             });
@@ -1211,11 +1250,18 @@ App.Base = Backbone.View.extend({
 
                 clustering.play();
             });
-            
         
             app.listenTo(clustering, 'play:success', app.apply_clustering);
             app.engines.clustering = clustering;
         }
+
+        // extra routes
+        for (var k in routes){
+            if (app.engines[k]) continue;
+            var e = Engine({url: routes[k].url});
+            app.engines[k] = e;
+        }
+
         //when engine failed
         app.listenTo(Backbone, 'play:error', app.engine_play_error);
         app.on('engine:auto_compute', app.auto_compute);
@@ -1305,19 +1351,13 @@ App.Base = Backbone.View.extend({
         }});
 
 
-        if (app.engines.additive_nodes)
-          app.engines.additive_nodes.fetch({ success: engine_fetched });
-          
-        if (app.engines.starred)
-          app.engines.starred.fetch({ success: engine_fetched });
-          
-        if (app.engines.expand_prox)
-          app.engines.expand_prox.fetch({ success: engine_fetched });
-        
-        if (app.engines.explore)
-          app.engines.explore.fetch({ success: function(){
-            engine_fetched();
-        }});
+        for ( var k in app.engines){
+            console.log(" FETCH ENGINES "+ k);
+            if ( k == "clustering" || k == "layout"  ) continue;
+            app.engines[k].fetch({ success: engine_fetched });
+            
+        }
+              
     },
 
 /* engines callbalcks */
@@ -1335,7 +1375,7 @@ App.Base = Backbone.View.extend({
         if(this.engines.layout) this.engines.layout.play();
     },
 
-
+    noop: function(){},
 
     additive_nodes: function(uuids, options){
         this._additive_nodes_uuids = _.union(this._additive_nodes_uuids , uuids)
@@ -1356,7 +1396,6 @@ App.Base = Backbone.View.extend({
     explore_reset: function(response){
         Backbone.trigger(Const.unselect_nodes);
         Backbone.trigger(Const.unselect_edges);
-
         
         var app = this;
         app.response = response;
@@ -1367,6 +1406,7 @@ App.Base = Backbone.View.extend({
         // parse and reset graph
         if (response.results.graph){
             app.models.graph.reset(response.results.graph);
+            app.models.graph.set("gid", response.results.graph.properties.name )
 
             app.models.graph.vs.each(function(vtx){
                 vtx.add_flag("form");
@@ -1381,7 +1421,8 @@ App.Base = Backbone.View.extend({
     },
 
     expand_graph: function(response){
-
+        // gets 10 first high score
+        // force uuid when scores== 1.
         console.log('expand_graph', response.results)
 
         if ( !response | !('results' in response)  )
@@ -1391,15 +1432,19 @@ App.Base = Backbone.View.extend({
         var uuids = [];
         
         var r = _.pairs(response.results.scores)
-        r.sort( function(a,b){ return (a[1]<b[1]) ?1 : -1 } )
+        r.sort( function(a,b){ return (a[1]<b[1]) ? 1 : -1 } )
 
         for ( var i in r ){
             var k = r[i][0];
             var v = r[i][1];
             
             if ( graph.vs.get(k) == null ){
+                if(uuids.length >= 10 )
+                    if (v < 1.)
+                        break;
+                        
+                console.log('expand_graph adding vertex : ' + k , v)
                 uuids.push(k);
-                if(uuids.length >= 10 ) break;
             }
         } 
 
@@ -1408,8 +1453,11 @@ App.Base = Backbone.View.extend({
         
     },
 
-    merge_graph: function(response, options){
+    clusters_labels: function(response, options){
+        this.models.clustering.set_labels(response.results, options);
+    },
 
+    merge_graph: function(response, options){
                     
         if ( !response | !('results' in response)  | !('graph' in response.results))
             return;
@@ -1420,22 +1468,23 @@ App.Base = Backbone.View.extend({
         //Backbone.trigger( Const.unselect_edges );
         //Backbone.trigger('engine:request_animation');
 
-        // merge graph
-        this.models.graph.merge(response.results.graph);
+        options || (options = {});
+        // merge/reset graph
+        if (options && options.reset)
+            this.models.graph.reset(response.results.graph);
+        else
+            this.models.graph.merge(response.results.graph);
+        
         this.models.graph.vs.each(function(vtx){
             vtx.add_flag("form");
         });
 
-        options || (options = {});
         if ( options.callback )
             options.callback();
 
-        this.set_auto_compute( true );
         // and compute layout & clustering
-          
-
+        this.set_auto_compute( true );
         this.auto_compute();
-        
         
     },
 
@@ -1506,20 +1555,16 @@ App.Base = Backbone.View.extend({
             var text;
 
             if(!_.isEmpty(response)){
-                // There is a cello response
-                // so we can get the error messages
                 text = response.meta.errors.join("<br />");
             } else {
                 // HTTP error, just map the anwser
                 text = $(xhr.responseText);
                 // HACK:
-                $("body").css("margin", "0"); //note: the Flask debug has some css on body that fucked the layout
+                $("body").css("margin", "0"); 
             }
 
             $("body").after(text);
         }
-
-        //stop waiting
 
     },
 
@@ -1547,8 +1592,9 @@ App.Base = Backbone.View.extend({
 
         /** === Keyboard shortcuts === */
         install_shortcuts();
-        install_gviz_shortcuts(gviz, "!");
-        install_edit_shortcuts(this.$el, this.models.graph, ":");
+        install_gviz_shortcuts(gviz, "");
+        install_navigation_shortcuts(this.$el, this.models.graph, "");
+        install_edit_shortcuts(this.$el, this.models.graph, "");
         
         gviz.animate();
     },

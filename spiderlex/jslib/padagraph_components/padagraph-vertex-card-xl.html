@@ -2,10 +2,13 @@
 
 require(['backbone'], function (Backbone) {
   Polymer({
+
     is: "padagraph-vertex-card-xl-vtx",
+
     properties: {
       edge: Object
     },
+
     add_vertex: function add_vertex() {
       Backbone.trigger('engine:additive_nodes', [this.edge.node.uuid]);
     }
@@ -15,7 +18,9 @@ require(['backbone'], function (Backbone) {
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {
   Polymer({
+
     is: "padagraph-vertex-card-xl-edge",
+
     properties: {
       edge: Object
     },
@@ -23,6 +28,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
     intersect: function intersect(event) {
       if (this.edge.model.id) Backbone.trigger('edge:mouseover', this.edge.model, event);
     },
+
     intersectOff: function intersectOff(event) {
       if (this.edge.model.id) Backbone.trigger('edge:mouseout', this.edge.model, event);
     },

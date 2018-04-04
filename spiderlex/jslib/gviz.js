@@ -786,8 +786,11 @@ var get_text_lines = function(node, material){
         token = {},
         form = "",
         end_line = false,
-        label = node.formatted_label;
+        label = [ {form : node.label, css : ".normal-font"} ];
 
+    if ( node.format_label)
+        label = node.format_label(material.textLength);
+        
     if ( label === undefined ) return [];
 
     //init of the first token and form if next token exists
@@ -1180,7 +1183,6 @@ gviz.ThreeViz = Backbone.View.extend({
         this.renderer.setClearColor(clear_color.getHex());
         $(this.renderer.domElement).css("background-color", clear_color.getStyle() );
         this.clear_color = clear_color;
-
     },
 
     /** Called when the window is resized */
@@ -1344,7 +1346,7 @@ gviz.ThreeViz = Backbone.View.extend({
         return this.set_material(otype, name, material)
     },
 
-    set_material: function (otype, name, material){
+    set_material: function (otype, name, material) {
         /* set a material TODO: desc font, ...
          * otype : 'node' or 'edge'
          * name  : material name matching a flag
@@ -1404,7 +1406,7 @@ gviz.ThreeViz = Backbone.View.extend({
 
         var flags = obj.flags || {};
         var names = _.filter(_.keys(materials), function(name) { return name.substring(0,1) == "." });
-        var material = _.extend({},materials.default);
+        var material = _.extend({}, materials.default );
         var apply = true;
 
         // sort names from the more generic to the more specific
@@ -1448,7 +1450,8 @@ gviz.ThreeViz = Backbone.View.extend({
         }
 
         // precomputed text lines
-        material.text_lines = get_text_lines( obj, material);
+        if (obj.nodetype)
+            material.text_lines = get_text_lines( obj, material );
         
         if (material.shape == null) material.shape='circle';
         
@@ -1700,6 +1703,7 @@ gviz.ThreeViz = Backbone.View.extend({
         // render frame
         this.render();
         
+        
         // determine if tween animation are curently running
         var has_tweens = TWEEN.getAll().length > 0;
 
@@ -1721,7 +1725,6 @@ gviz.ThreeViz = Backbone.View.extend({
             }, 5000);
         }
 
-        this.re
         return this;
     },
 
@@ -1748,6 +1751,7 @@ gviz.ThreeViz = Backbone.View.extend({
         this.renderer.ENABLE_FOG = this.ENABLE_FOG;
 
         this.renderer.render( this.scene, this.camera );
+        this.renderClustersLabels(ctx);
 
         if (this.debug)
         {
@@ -1757,6 +1761,70 @@ gviz.ThreeViz = Backbone.View.extend({
         return this;
     },
 
+    renderClustersLabels: function (context){
+        
+        if (! this.clustering){ return ;}
+        
+        var gviz = this;
+
+        for (var i in this.clustering.clusters.models) {
+
+            var cluster = this.clustering.clusters.models[i];
+            
+            var members = cluster.members.vs.models;
+            var n = 0,
+                point = {x:0, y:0, minX:100000, maxX:0, minY:100000, maxY:0};
+
+            members.forEach( function(e,j){
+                var v = gviz.wnidx[e.id];
+                if ( !v || v.screenX < 0 ) return;
+
+                var x = v.screenX;
+                var y = v.screenY;
+                n ++;
+                point.y += y
+                point.x += x
+                point.minX = Math.min( x, point.minX )
+                point.maxX = Math.max( x, point.maxX )
+                //point.minY = Math.min( y, point.minY )
+                //point.maxY = Math.max( y, point.maxY )
+                //v.screenX = -1; 
+            } );
+            
+            var label = "Cluster " + i;
+            if ( cluster.labels || cluster.labels.length) {
+                var labels = cluster.labels.map( function(e){ return e.label } )
+                label = labels.join( ", " );
+            }
+            if ( !label.length ) continue ;
+            
+            context.font =  Math.min(25, 14 + n ) +  "px Arial";
+            context.lineWidth = 3;
+            
+            var width = context.measureText(label).width;
+            var height = context.measureText("M").width;
+            
+            point.y = point.y / n;
+            if ( n == 1 ){
+                point.x = point.x - width/2;
+            }
+            else {
+                point.x = point.minX  +  ( point.maxX - point.minX - width)/2 ;
+            }
+        
+            context.beginPath();
+            context.rect(point.x - 8, point.y - 5 - height , width + 16, height + 16 );
+            context.fillStyle = "rgba(200,200,200, 0.5)";
+            context.fill();
+
+            var color = "rgb(" + cluster.color.join(',') + ")";
+            context.fillStyle = color;
+            context.strokeStyle = "#333";
+            context.strokeText(label ,point.x, point.y);
+            context.fillText(label ,point.x, point.y);
+        }
+        
+    },
 
     print_debug: function (){
         var $debug =$(".gviz-debug", this.$el);
@@ -2156,7 +2224,7 @@ gviz.ThreeVizHelpers = {
 
         /*  Text */
         // if ((viz.show_text && (!viz.MOUSEHASMOVED|| !viz.MOUSEDOWN ))  ){
-        if ( viz.show_text ){
+        if ( viz.show_text && material.textVisible ){
             context.save();
 
             //var text_lines = get_text_lines(node, material);                       
@@ -2192,20 +2260,15 @@ gviz.ThreeVizHelpers = {
                 /* vertical text alignement */
                  if (material.textVerticalAlign == 'center'){
                     y = 1; 
-                    paddingY = y - i * + fontsize;                    
                 }
                 else if (material.textVerticalAlign == 'bottom'){
                     y = 0; 
-                    paddingY = y - i * -fontsize;
                 }
                 else //if (material.textVerticalAlign == 'top')
                 {
                     y = 0.5;
-                    paddingY = y - (i * -fontsize) / 2;
                 }
                 
-                // context.translate(0,y*material.scale);
-
                 /* horizontal text alignement */
                 if (material.textAlign == 'left'){
                     context.translate(1*material.scale,0);
@@ -2223,26 +2286,24 @@ gviz.ThreeVizHelpers = {
                 // text scale
                 context.scale(material.fontScale, material.fontScale);
 
+                var token = text_lines[0][0];
+                var css = _this.node_materials[token.css];
+                var paddingRelX = css.paddingRelX | 0;
+                var paddingRelY = css.paddingRelY | 0;
+
+                // position & draw
+                var font = get_font(css.font, viz.user_font_size)
+                var fontsize = parseInt(/([0-9]*)px/.exec(font)[1])
+                context.font = font ;
+        
+                var text_height = context.measureText('M').width;
+
+                y = y - ( (text_lines.length - 1) * text_height / 2. ) + ( i * text_height )
+                
                 _.each(text_lines[i], function (token, j){
-
-                    var css = _this.node_materials[token.css];
-
-                    // position & draw
-                    var font = get_font(css.font, viz.user_font_size)
-                    var fontsize = parseInt(/([0-9]*)px/.exec(font)[1])
-                    context.font = font ;
-                    
-                    var paddingRelX = css.paddingRelX | 0;
-                    var paddingRelY = css.paddingRelY | 0;
-
-                    var dimension = context.measureText(token.form);
-                    var text_width = dimension.width;
-                    var text_height = dimension.actualBoundingBoxDescent - dimension.actualBoundingBoxAscent;
-
-                    //update of padding
                     var xi = x + userPaddingX + paddingRelX;
-                    var yi = y - userPaddingY - paddingY - (i)*(  paddingRelY + (text_height | 0));
-
+                    var yi = y - userPaddingY;
+                    
                     /* : TODO : text background */  
                     //maxX = Math.max(maxX, dimension.width + letter_width/2);
                     //context.fillStyle = "#F00";
@@ -2252,7 +2313,6 @@ gviz.ThreeVizHelpers = {
                     // text style
                     if (css.fontFillStyle){
                         set_context_style(context, "fillStyle", css.fontFillStyle);
-                        //set_context_style(context, "fillStyle", material.fillStyle);
                         context.fillText(token.form , xi, yi);
                     }
                     if (css.fontStrokeStyle && css.fontStrokeWidth ){
@@ -2262,6 +2322,7 @@ gviz.ThreeVizHelpers = {
                     }
 
                     //updating of x to print the rest of the text
+                    var text_width = context.measureText(token.form).width;
                     x  += text_width;
                 });
                 
@@ -2327,8 +2388,12 @@ node_materials : [
         //'strokeStyle': "gradient:#AAAAAA" ,
         'lineWidth'  : 0.1,
 
+        // text length
+        'textLength' : 20,
+
         // font properties
-        'textAlign'  : 'center', 
+        'textVisible' : true,
+        'textAlign'  : 'center',
         'textVerticalAlign'  : 'center', 
         'fontScale'  :  0.1,
         'font' : 'normal 10px Arial',
@@ -2399,7 +2464,7 @@ Gviz.SimpleViz = function(graph, attrs){
     gviz.on( 'vertex:dblclick', function(vertex, event){
       if (vertex && vertex.id && vertex.has_flag && (vertex.has_flag('disabled') == false)) 
         Backbone.trigger('engine:expand_prox',
-                { nodes : [vertex.id] , weights : [1] }
+                { expand : [vertex.id] , weights : [1] }
             );
     });
     
@@ -3862,16 +3927,14 @@ gviz.GraphRenderer = function ( parameters ) {
            _context.fillRect( _clipBox.min.x, _clipBox.min.y, _clipBox.max.x - _clipBox.min.x, _clipBox.max.y - _clipBox.min.y );
         */
 
-
         for ( var e = 0, el = _elements.length; e < el; e ++ ) {
 
             var element = _elements[ e ];
-
             var material = element.material;
 
             if ( material === undefined || material.visible === false ) continue;
 
-                _elemBox.makeEmpty();
+            _elemBox.makeEmpty();
 
             if ( element instanceof THREE.RenderableSprite ) {
 
@@ -3881,6 +3944,15 @@ gviz.GraphRenderer = function ( parameters ) {
                 element.object.x = _v1.x;
                 element.object.y = _v1.y;
 
+                var vector = new THREE.Vector3();
+                vector.setFromMatrixPosition( element.object.matrixWorld )
+                vector.project( camera );
+                vector.x = ( vector.x * _canvasWidthHalf ) + _canvasWidthHalf;
+                vector.y = - ( vector.y * _canvasHeightHalf ) + _canvasHeightHalf;
+                
+                element.object.screenX = vector.x;
+                element.object.screenY = vector.y;
+                
                 renderSprite( _v1, element, material );
 
             } else if ( element instanceof THREE.RenderableLine ) {
@@ -3952,6 +4024,8 @@ gviz.GraphRenderer = function ( parameters ) {
         */
 
         _context.setTransform( 1, 0, 0, 1, 0, 0 );
+
+        
 
     };
 

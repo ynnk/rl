@@ -1,4 +1,4 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-node-properties-list.html"/><dom-module id="padagraph-vertex-card-m"><style>.ui.items { margin: 0px; cursor: hand; }
+<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-node-properties-list.html"/><dom-module id="padagraph-vertex-card-m"><style>.ui.items { margin: 0px; margin-right: 6px; cursor: hand; }
 .ui.items .item { margin-bottom:2px }
 .ui.items .item .content { padding-left: 0.5em; }
 .ui.items .item .content .header { margin-top: 0.1em; }
@@ -11,6 +11,10 @@
 .ui.comments .comment {  padding: 0em; }
 .ui.comments .comment .author { font-size: 0.9em; font-weight: initial; }
 .ui.comments.vertex-actions { padding-top: 0.3em; }
+.ui.comments.vertex-actions .actions {
+    margin-left: 40px;
+    margin-top: 4px;
+}
 </style><template><div on-mouseover="intersect" on-mouseout="desintersect" class="ui items"><div class="item"><div on-click="select" class="ui mini image"><template is="dom-if" if="{{is_selected}}"><svg width="36px" height="36px"><circle cx="18" cy="18" r="15" fill$="{{rgb_color}}" stroke="white" stroke-width="3"></circle><text x="50%" y="55%" alignment-baseline="middle" text-anchor="middle" fill="black">{{letter}}</text></svg></template><template is="dom-if" if="{{!is_selected}}"><svg width="36px" height="36px"><circle cx="18" cy="18" r="15" fill$="{{rgb_color}}"></circle><text x="50%" y="55%" alignment-baseline="middle" text-anchor="middle" fill="black">{{letter}}</text></svg></template></div><div on-click="select" class="content"><div title="{{model.id}}" class="header">{{model.label}}</div><div class="meta"><div class="date">{{ model.nodetype.label }}</div></div></div><div style="height:12px" data-rating="1" on-click="toggle_star" class="ui star rating"><i class="icon"></i></div></div><!--.ui.accordion.vertex-actions
   .title
     b Node attributes
@@ -25,7 +29,9 @@
             span.metadata
                 .rating {{item.value}}
   
---><template is="dom-if" if="{{actions}}"><div class="ui comments vertex-actions"><div class="comment"><div class="content"><div class="actions"><a on-click="edit"><i class="edit icon"></i> Edit</a><a on-click="add_link"><i class="linkify icon"></i> Link</a><a on-click="expand"><i class="share alternate icon"></i> Expand</a><a on-click="explore"><i class="eye icon"></i> Explore</a><a on-click="remove"><i class="remove icon"></i> Hide</a></div></div></div></div></template></div></template><script>'use strict';
+--><template is="dom-if" if="{{actions}}"><div class="ui comments vertex-actions"><div class="comment"><div class="content"><div class="actions"><!--a(on-click='edit')//| <i class="edit icon"></i> Edit
+--><!--a(on-click='add_link')//| <i class="linkify icon"></i> Link
+  --><a on-click="expand"><i class="share alternate icon"></i> Expand</a><a on-click="explore"><i class="eye icon"></i> Explore</a><a on-click="remove"><i class="remove icon"></i> Hide</a></div></div></div></div></template></div></template><script>'use strict';
 
 require(['backbone', 'jquery', 'pdgconst'], function (Backbone, $, Const) {
   Polymer({
@@ -154,7 +160,8 @@ require(['backbone', 'jquery', 'pdgconst'], function (Backbone, $, Const) {
     },
 
     expand: function expand() {
-      var params = { graph: this.graph, nodes: [this.model.id], weights: [] };
+
+      var params = { graph: this.graph, expand: [this.model.id], weights: [] };
       Backbone.trigger('engine:expand_prox', params);
     },
 
