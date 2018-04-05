@@ -16,7 +16,7 @@ jade:
 	cd ./spiderlex/templates && node ../../node_modules/jade/bin/jade.js -P *.jade
 
 
-build: jade 
+build: jade deploy 
 
 	cd ../padagraph/application/src && make polymer
 
@@ -27,6 +27,7 @@ build: jade
 	mkdir -p ./spiderlex/jslib/padagraph_components/
 	cp ../padagraph/application/src/static/padagraph_webcomponents/*.html ./spiderlex/jslib/padagraph_components/
 
+deploy: 
 	cp -rf spiderlex/css spiderlex/static/
 	cp -rf spiderlex/js/* spiderlex/static/
 	cp -rf spiderlex/jsext/* spiderlex/static/
