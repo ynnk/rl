@@ -39,10 +39,13 @@ app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET
 
 
 CONFIG = { 'fr' :{ 
-           'db' : '../completedb_fr.sqlite'}
+           #'db' : '../completedb_fr.sqlite'
+           'db' : '../completedb_fr1804.sqlite'
+           }
          }
          
 GRAPHS_CONF = { "rlfr" : "../lnfr.picklez" }
+GRAPHS_CONF = { "lnfr" : "../lnfr1804.picklez" }
 
 LANGS = tuple([ lang for lang,v in CONFIG.items()])
 
@@ -180,7 +183,7 @@ def app_graph(lang, query=None, path = ""):
         lang = lang,
         data= "",
 
-        gid = "rl%s" % lang,
+        gid = "ln%s" % lang,
         root_url = url_for("index"),
         complete_url = "/%s/complete" % lang,
         query=query,

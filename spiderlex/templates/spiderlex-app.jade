@@ -99,6 +99,12 @@ dom-module(id='spiderlex-app')
 
           $('#maintabs .item').click( _window_resized );
 
+          // reset query button  
+          $('#btnreset').click( ()=>{
+              this.app.models.userquery.reset();
+              this.app.models.graph.reset({vs:[], es:[]});
+            });
+
           $(window).on('resize', function(){
             _window_resized();
             if ($('#vz_graph .sidebar').hasClass('visible'))
@@ -111,7 +117,6 @@ dom-module(id='spiderlex-app')
 
         ready(){
           // The "app" dependency is passed in as "App"
-          var path = "../static/bower_components/";
           var lang = "{{lang}}"
           var gid = "{{gid}}";
           var urlRoot = "{{urlRoot}}";

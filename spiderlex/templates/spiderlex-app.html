@@ -52,13 +52,15 @@
         is: "spiderlex-app",
     
         properties : {
-            display_card : Boolean,
-            display_list : Boolean,
+            
         },
         
       // UI
       // panel tabs
         setupUI(){
+    
+          var _window_resized = function(){ window_resized(this.app) }
+    
           $('#maintabs .item').tab();
           $('#clusters_menu_item').click(function(){
             $('#clusters_content_item').transition('slide right', '1000ms');
@@ -94,11 +96,14 @@
               $('#vz_graph .sidebar').sidebar('show');
             });
     
-          var _window_resized = function(){  window_resized(this.app) }
+          $('#maintabs .item').click( _window_resized );
     
-          $('#maintabs .item').click(() => window_resized(this.app));
+          // reset query button  
+          $('#btnreset').click( ()=>{
+              this.app.models.userquery.reset();
+              this.app.models.graph.reset({vs:[], es:[]});
+            });
     
-          
           $(window).on('resize', function(){
             _window_resized();
             if ($('#vz_graph .sidebar').hasClass('visible'))
@@ -111,7 +116,6 @@
     
         ready(){
           // The "app" dependency is passed in as "App"
-          var path = "../static/bower_components/";
           var lang = "{{lang}}"
           var gid = "{{gid}}";
           var urlRoot = "{{urlRoot}}";
@@ -166,6 +170,7 @@
           }
     
           var isurl = (e)=> _.isString(e) && e.length;
+          
           var complete = function(){
               console.log("ENGINES COMPLETE")
               graph.fetch({parse: true});

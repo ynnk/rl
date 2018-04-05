@@ -91,7 +91,7 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
                 },
 
                 
-                _format_label : function(){
+                format_label : function(){
             
                     var formatted_label = [];
                     var num = this.properties.get('num');

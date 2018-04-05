@@ -16,7 +16,7 @@ def complete(search, db, limit=20):
 
     c = db.cursor()
 
-    c.execute( "select  uuid, entry, name, lexnum as num , prefix, subscript, superscript from complete where name like ? ORDER BY name asc, lexnum asc limit ?", ( search+'%',limit) )
+    c.execute( "select  uuid, entry, name, lexnum as num , prefix, subscript, superscript from complete where name like ? ORDER BY name, superscript  asc, lexnum asc limit ?", ( search+'%',limit) )
     rows =  c.fetchall()
     return rows
 

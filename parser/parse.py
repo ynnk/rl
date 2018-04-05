@@ -5,7 +5,7 @@ import os, sys
 import datetime
 import argparse
 
-import csv
+import unicodecsv as csv
 import codecs
 import re
 import json
@@ -21,7 +21,10 @@ from rllib import prepare_graph, export_graph, complete
 import sqlite3
 from bs4 import BeautifulSoup
 
- 
+import sys
+# sys.setdefaultencoding() does not exist, here!
+reload(sys)  # Reload does the trick!
+sys.setdefaultencoding('UTF8')
 
 """
  
@@ -50,13 +53,13 @@ class CopolysemyHandler(RLFHandler):
         
     def startElement(self, name, attrs):
         if name == "subtype":
-            id = int(attrs['id'])
+            id = attrs['id']
             attrs = dict(attrs.items())
             attrs.update({ 'id' : id } )
             self._result[self.current]['subtypes'][id] = attrs
             
         if name == "type":
-            id = int(attrs['id'])
+            id = attrs['id']
             attrs = dict(attrs.items())
             attrs.update({ 'id': id, 'subtypes': {} })
             self.current = id
@@ -334,17 +337,23 @@ class Parser(object):
         
         rels = readcsv(path, "06-lsgramcharac-rel.csv", type=list)
         l_inc_form = {}
+
+        print "id, usagenote, usagenotevars, POS, phraseolstruc, embededlex, othercharac, othercharacvars"
         for r in rels:
-            id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
+            print r
+            id, usagenote, usagenotevars, POS, phraseolstruc, embededlex, othercharac, othercharacvars = r
             if POS == "":
                 error( " # 06-lsgramcharac-rel : missing POS %s for id %s  : %s" % (POS, id,r) )
                 continue
                 
             # GC Caractéristiques grammaticales
 
+            split = lambda chaine : ([] if len(chaine) <= 2 else chaine[1:-1].split(',') )
+            #print [] if len(othercharac) <= 2 else othercharac[1:-1].split(',')
+
             node = nodes[id]   
-            othercharac =  [ pos[e]['name']  for e in re.findall("([0-9]+)", othercharac )]
-            usagenote =  [ pos[e]['name']  for e in re.findall("([0-9]+)", usagenote )]
+            othercharac =  [ pos[e]['name']  for e in split(othercharac)  ]
+            usagenote =  [ pos[e]['name']  for e in split(usagenote )]
             
             gc = {}
             gc['usagenote'] = usagenote # fem ..
@@ -388,8 +397,9 @@ class Parser(object):
             node['gc'] = gc
         
         self.todo(  " 06-lsgramcharac-rel.csv : TODO POST LOCUTIONS" )        
+
         for r in rels:
-            id, usagenote, POS, phraseolstruc, embededlex, othercharac = r
+            id, usagenote, usagenotevars, POS, phraseolstruc, embededlex, othercharac, othercharacvars = r
             """
             node = nodes[r['id']]
 
@@ -448,9 +458,10 @@ class Parser(object):
                         'properties': properties
                       }
         
-        for node, uuid in bot.post_nodes( gid, gen(nodes.values()) ):
+        for node, uuid in bot.post_nodes( gid, gen(nodes.values()), key='rlfid' ):
             idx[ node['properties']['rlfid'] ] = uuid
-            r = list( node['properties'][k].decode('utf8') for k in ['rlfid','vocable','num','prefix','subscript','superscript'])
+            r = list( node['properties'][k] for k in ['rlfid','vocable','num','prefix','subscript','superscript'])
+            print uuid,  r
             self.completions.append( [uuid] + r )
 
         self.info( " * POST    Lexie nodes : %s" % (len(idx)) )
@@ -546,10 +557,10 @@ class Parser(object):
         edges = []; count = 0
         for r in rels:
             src, tgt, typ, subtype = r
-            t = copo[int(typ)]
-            s = copo[int(typ)]['subtypes'].get(int(subtype), None) if len(subtype) else None
+            t = copo[typ]
+            s = copo[typ]['subtypes'].get(subtype, None) if len(subtype) else None
             
-            if len(subtype) and (copo[int(typ)]['subtypes'].get(int(subtype), None) is None):
+            if len(subtype) and (copo[typ]['subtypes'].get(subtype, None) is None):
                 self.error ( " # 04-lscopolysemy-rel # no subtype %s in type %s    %s" \
                         % ( int(subtype) , int(typ), r ))
             
@@ -690,7 +701,7 @@ def main():
     parser.add_argument("-o" , action='store', dest="outgml", help="path to store as graphml", default=None)
 
     # backend padagraph
-    parser.add_argument("--key" , action='store', dest="key", help="path to key", default="key.txt")
+    parser.add_argument("--key" , action='store', dest="key", help="path to key", default=None)
     parser.add_argument("--host" , action='store', dest="host", help="padagraph host", default="http://localhost:5000")
 
     args = parser.parse_args()

@@ -1220,6 +1220,8 @@ gviz.ThreeViz = Backbone.View.extend({
         this.wedges = [];
         this.wnidx  = {};
         this.weidx  = {};
+
+        this.request_animation();
     },
 
     /** create visualisation model from Graph
@@ -2291,16 +2293,18 @@ gviz.ThreeVizHelpers = {
                 var paddingRelX = css.paddingRelX | 0;
                 var paddingRelY = css.paddingRelY | 0;
 
-                // position & draw
-                var font = get_font(css.font, viz.user_font_size)
-                var fontsize = parseInt(/([0-9]*)px/.exec(font)[1])
-                context.font = font ;
         
                 var text_height = context.measureText('M').width;
 
                 y = y - ( (text_lines.length - 1) * text_height / 2. ) + ( i * text_height )
                 
                 _.each(text_lines[i], function (token, j){
+                    var css = _this.node_materials[token.css];
+                    // position & draw
+                    var font = get_font(css.font, viz.user_font_size)
+                    var fontsize = parseInt(/([0-9]*)px/.exec(font)[1])
+                    context.font = font ;
+
                     var xi = x + userPaddingX + paddingRelX;
                     var yi = y - userPaddingY;
                     

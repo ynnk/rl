@@ -749,7 +749,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
                     Backbone.trigger('engine:explore', params);
                 }
             } else if (action == 'expand') {
-                var params = { graph: this.model.graph.id, nodes: [this.model.id], weights: [] };
+                var params = { graph: this.model.graph.id, expand: [this.model.id], weights: [] };
                 Backbone.trigger('engine:expand_prox', params);
             }
         }
@@ -1349,7 +1349,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 
     expand: function expand() {
       var graph = this.model.graph;
-      var params = { graph: graph.id, nodes: [this.model.id], weights: [] };
+      var params = { graph: graph.id, expand: [this.model.id], weights: [] };
       Backbone.trigger('engine:expand_prox', params);
     },
 

@@ -84,13 +84,15 @@
         is: "spiderlex-app",
     
         properties : {
-            display_card : Boolean,
-            display_list : Boolean,
+            
         },
         
       // UI
       // panel tabs
         setupUI(){
+    
+          var _window_resized = function(){ window_resized(this.app) }
+    
           $('#maintabs .item').tab();
           $('#clusters_menu_item').click(function(){
             $('#clusters_content_item').transition('slide right', '1000ms');
@@ -126,11 +128,14 @@
               $('#vz_graph .sidebar').sidebar('show');
             });
     
-          var _window_resized = function(){  window_resized(this.app) }
+          $('#maintabs .item').click( _window_resized );
     
-          $('#maintabs .item').click(() => window_resized(this.app));
+          // reset query button  
+          $('#btnreset').click( ()=>{
+              this.app.models.userquery.reset();
+              this.app.models.graph.reset({vs:[], es:[]});
+            });
     
-          
           $(window).on('resize', function(){
             _window_resized();
             if ($('#vz_graph .sidebar').hasClass('visible'))
@@ -143,7 +148,6 @@
     
         ready(){
           // The "app" dependency is passed in as "App"
-          var path = "../static/bower_components/";
           var lang = "{{lang}}"
           var gid = "{{gid}}";
           var urlRoot = "{{urlRoot}}";
@@ -198,6 +202,7 @@
           }
     
           var isurl = (e)=> _.isString(e) && e.length;
+          
           var complete = function(){
               console.log("ENGINES COMPLETE")
               graph.fetch({parse: true});
@@ -349,7 +354,7 @@
                 <div id="query_form" class="ui input icon"></div>
                 <div id="query_complete"></div>
               </div>
-              <div class="item"><a class="ui basic button"><i class="undo button icon"></i></a></div>
+              <div class="item"><a id="btnreset" class="ui basic icon button"><i class="undo icon"></i></a></div>
             </nav>
             <div id="maintabs" class="ui bottom attached teal menu"><a data-tab="tab-graph" class="ui item left active"><i class="cube icon"></i><span class="hidden-xs">Graph</span></a>
               <nav class="ui right menu navbar"><a id="lexlinks_menu_item" data-tab="tab-lexlinks" class="ui item"><i class="list layout icon"></i>Lexical links</a><a id="clusters_menu_item" data-tab="tab-clusters" class="ui item"><i class="block layout icon"></i>Clusters</a><a id="dic_menu_item" data-tab="tab-def" class="ui item active"><i class="book icon"></i>Dictionary</a></nav>
