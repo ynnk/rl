@@ -44,7 +44,7 @@ CONFIG = { 'fr' :{
            }
          }
          
-GRAPHS_CONF = { "rlfr" : "../lnfr.picklez" }
+GRAPHS_CONF = { "lnfr" : "../lnfr.picklez" }
 #GRAPHS_CONF = { "lnfr" : "../lnfr1804.picklez" }
 
 LANGS = tuple([ lang for lang,v in CONFIG.items()])
