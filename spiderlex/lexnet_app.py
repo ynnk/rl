@@ -44,7 +44,7 @@ CONFIG = { 'fr' :{
            }
          }
          
-GRAPHS_CONF = { "lnfr" : "../lnfr.picklez" }
+GRAPHS_CONF = { "rlfr" : "../lnfr.picklez" }
 #GRAPHS_CONF = { "lnfr" : "../lnfr1804.picklez" }
 
 LANGS = tuple([ lang for lang,v in CONFIG.items()])
@@ -184,6 +184,7 @@ def app_graph(lang, query=None, path = ""):
         data= "",
 
         gid = "ln%s" % lang,
+        gid = "rl%s" % lang,
         root_url = url_for("index"),
         complete_url = "/%s/complete" % lang,
         query=query,
