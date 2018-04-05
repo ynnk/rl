@@ -184,7 +184,7 @@ def app_graph(lang, query=None, path = ""):
         data= "",
 
         #gid = "ln%s" % lang,
-        gid = "rl%s" % lang
+        gid = "rl%s" % lang,
         root_url = url_for("index"),
         complete_url = "/%s/complete" % lang,
         query=query,
