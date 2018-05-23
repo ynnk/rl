@@ -15,8 +15,9 @@ import xml.sax
 from pprint import pprint
 
 from botapi import Botagraph, BotaIgraph, BotApiError
+from botapad.utils import prepare_graph, export_graph
 from reliure.types import Text
-from rllib import prepare_graph, export_graph, complete
+from rllib import complete
 
 import sqlite3
 from bs4 import BeautifulSoup
@@ -34,7 +35,7 @@ DEBUG=False
 
 class RLFHandler(xml.sax.handler.ContentHandler):
     def __init__(self):
-        self._result = {}       
+        self._result = {}
 
     def parse(self, f):
         info( "\n\n ** %s **" % (f))
@@ -67,17 +68,35 @@ class CopolysemyHandler(RLFHandler):
 
         
 class LexicalFunctionHandler(RLFHandler):
-        
+
+    def __init__(self):
+        self._result = {}
+        self._current = None      
+        self._cdata = ""      
+        self._order = 0
+
     def startElement(self, name, attrs):
         if name == "lexicalfunction":
-            self._result[attrs['id']] = dict(attrs.items())
+            self._current = attrs['id']
+            self._result[self._current] = dict(attrs.items())
 
+    def characters(self, content):
+        self._cdata += content
+        
+    def endElement(self, name):
+        if name == "lexicalfunction":
+            attrs = self._result[self._current]
+            attrs['cdata'] = self._cdata.strip()
+            self._cdata = ""
+            attrs['order'] = self._order
+            self._order += 1
+            
 class ExempleSourceHandler(RLFHandler):
         
     def startElement(self, name, attrs):
         if name == "source":
             self._result[attrs['id']] = attrs['name']
-
+                
 class GramCharacHandler(RLFHandler):
         
     def startElement(self, name, attrs):
@@ -197,11 +216,13 @@ class Parser(object):
         # noeuds lexicaux du graphe
         nodes = { e['id']: e for e in readcsv(path, "01-lsnodes.csv") }
         entries =  { e['id']: e for e in readcsv( path, "02-lsentries.csv") } 
+
         for e in entries.values() : e.pop('id')
 
 
         def as_token(nid, form, actants ):
             dic = dict(zip(KEYS, [ "" for e in KEYS ]))
+            
             if nid : 
                 node = nodes.get(nid, None)
                 if node:
@@ -256,9 +277,6 @@ class Parser(object):
             for k in to_delete : del node[k]
 
         print len( set( [ n['id'] for n in nodes.values() ]) ), len(nodes)
-
-
-
 
         # DF
 
@@ -340,7 +358,6 @@ class Parser(object):
 
         print "id, usagenote, usagenotevars, POS, phraseolstruc, embededlex, othercharac, othercharacvars"
         for r in rels:
-            print r
             id, usagenote, usagenotevars, POS, phraseolstruc, embededlex, othercharac, othercharacvars = r
             if POS == "":
                 error( " # 06-lsgramcharac-rel : missing POS %s for id %s  : %s" % (POS, id,r) )
@@ -378,21 +395,23 @@ class Parser(object):
                     'name' : pos[POS]['name'],
                     'type' : pos[POS]['type']
                 }
-                print "[t]", id, [t['id'] for t in tokens]
                 for t in tokens:
                     tid = t['id']
                     if tid and len( tid): 
                         l_inc_form[tid] = l_inc_form.get(tid, []) + [id]
                     
             if "$" in embededlex :
-                print "\n\n", node['rlfid']
-                print embededlex
-                print _embededlex
                 actants =  node['df']['actants']
-                print actants
-                print [ as_token(id,form, actants) for id,form in _embededlex ]
                 z= [ e['vocable'] for e in  [ as_token(id,form, actants) for id,form in _embededlex ]]
-                print z
+                
+                if node['rlfid'] in ( "ls:fr:node:45323" , "ls:fr:node:45326"):
+                    print "\n\n", node['rlfid']
+                    print "[t]","$" if "$" in embededlex else "" , id, embededlex, [t['id'] for t in tokens]
+                    print "embededlex", embededlex
+                    print "_embededlex", _embededlex
+                    print "actants", actants
+                    print [ as_token(id,form, actants) for id,form in _embededlex ]
+                    print z
 
             node['gc'] = gc
         
@@ -441,9 +460,6 @@ class Parser(object):
             node['examples'].append( example )
 
 
-        
-
-
         # POST Nodes vertex
         self.info( "\n * POSTING Lexie nodes : %s" % (len(nodes.values())) )
         
@@ -461,7 +477,6 @@ class Parser(object):
         for node, uuid in bot.post_nodes( gid, gen(nodes.values()), key='rlfid' ):
             idx[ node['properties']['rlfid'] ] = uuid
             r = list( node['properties'][k] for k in ['rlfid','vocable','num','prefix','subscript','superscript'])
-            print uuid,  r
             self.completions.append( [uuid] + r )
 
         self.info( " * POST    Lexie nodes : %s" % (len(idx)) )
@@ -516,8 +531,6 @@ class Parser(object):
                             } 
                         }
                 edges.append(payload)
-
-        
 
         for e in bot.post_edges(gid, iter(edges) ) : 
             pass
@@ -613,8 +626,10 @@ class Parser(object):
                         'constraint': Text(),
                         'position': Text()
                         }
-
-            edgetypes[name] = bot.post_edgetype(gid, name, desc, properties)
+            attributes = { "order" : fl['order'],
+                           "cdata" : fl['cdata'], }
+            
+            edgetypes[name] = bot.post_edgetype(gid, name, desc, properties, attributes)
             self.debug( " * POST edgetype : %s %s" % (name, edgetypes[name]['uuid']) )
 
         # POST Edges

@@ -98,9 +98,13 @@
     
           $('#maintabs .item').click( _window_resized );
     
-          // reset query button  
-          $('#btnreset').click( ()=>{
+          // reset query button
+          $('#btnreset').click( () => {
+              $("#lndic .ui.menu rlf-vertex-xs").remove() ; // dict vtx
+                
               this.app.models.userquery.reset();
+              this.app.models.graph.es.set_selected([]);
+              this.app.models.graph.vs.set_selected([]);
               this.app.models.graph.reset({vs:[], es:[]});
             });
     
@@ -135,9 +139,11 @@
           var parse = {data:false, sync:false};
           if (sync){
               app.create_graph_model({
-                  'urlRoot': urlRoot,'url' : sync, 'gid': gid,
-                  vertex_model: Models.Vertex,
-                  edgetype_model: Models.EdgeType,
+                  'url' : sync,
+                  'urlRoot': urlRoot,
+                  'gid': gid,
+                  vertex_model   : Models.Vertex,
+                  edgetype_model : Models.EdgeType,
                   edge_model: Models.Edge,
               });
     
@@ -161,8 +167,8 @@
           // app, models & engines
           var graph = app.models.graph;
           var reset = function(){
-          console.log( "reset", !parse.data)
-          if ( !parse.data) return;
+              console.log( "reset", !parse.data)
+              if ( ! parse.data) return; 
               app.set_auto_compute(false);
               graph.reset(parse.data, {silent:true})
               app.set_auto_compute(true);
@@ -173,7 +179,7 @@
           
           var complete = function(){
               console.log("ENGINES COMPLETE")
-              graph.fetch({parse: true});
+              graph.fetch({data: {edgetypes: true}, parse: true});
               graph.vs.on("add"  , function(e){e.properties.set('lfs', "{}")});
               var engines = [];
               for (var k in app.keb){
@@ -244,7 +250,7 @@
                 //app.fetch_engines(complete);
                 app.fetch_engines();
                 document.addEventListener("app_engines_fetched", function() { setTimeout( complete, 10 ) });
-                  app.listenTo(app.engines.explore, 'play:loading', function() {
+                app.listenTo(app.engines.explore, 'play:loading', function() {
                   app.search_loading();
                 });
                 app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
@@ -261,6 +267,7 @@
                 app.models.graph.on('sync', function(){
                   $("rlf-lexfunc-filter").each(function(i,e) { if (e.graph) e.reset_filters(); });
                 });
+    
                 app.start(graph, app.engines.explore);
                 app.listenTo(Backbone, "explore", function(model){
                     app.navigate_to_label(model.toString());

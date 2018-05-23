@@ -59,6 +59,7 @@ def explore_engine(graphdb):
               (u"Espaces_sémantiques_élargis", True, 4, OUT,50 ),
               (u"Espaces_lexicaux", False, 3, OUT, 30 ),
               (u"Espaces_lexicaux_élargis", False, 4, OUT, 50 )]:
+                  
         search = Optionable("GraphSearch")
         search._func = subgraph
         search.add_option("weighted", Boolean(default=w))
@@ -77,11 +78,23 @@ def explore_engine(graphdb):
     sglobal.name = "Global"
     searchs.append(sglobal)
 
-
     engine.graph.set( *searchs )
+
     return engine
 
 
+def graph2dict(graph, **kwargs):
+
+    g = export_graph(graph, **kwargs )
+    
+    # export types on ly if in es/vs
+    t = set([ v['nodetype'] for v in  g.get('vs',[])])
+    g['nodetypes'] = [ e for e in g['nodetypes'] if e['uuid'] in t ]
+    t = set([ v['edgetype'] for v in  g.get('es',[])])
+    g['edgetypes'] = [ e for e in g['edgetypes'] if e['uuid'] in t ]
+
+    return g
+    
 def explore_api(engines, graphdb):
     #explor_api = explor.explore_api("xplor", graphdb, engines)
     api = ReliureAPI("xplor",expose_route=False)
@@ -90,7 +103,7 @@ def explore_api(engines, graphdb):
     view = EngineView(explore_engine(graphdb))
     view.set_input_type(ComplexQuery())
     view.add_output("request", ComplexQuery())
-    view.add_output("graph", export_graph, id_attribute='uuid')
+    view.add_output("graph", graph2dict, id_attribute='uuid')
 
     api.register_view(view, url_prefix="explore")
 
@@ -104,7 +117,7 @@ def explore_api(engines, graphdb):
     # additive search
     view = EngineView(engines.additive_nodes_engine(graphdb))
     view.set_input_type(AdditiveNodes())
-    view.add_output("graph", export_graph, id_attribute='uuid'  )
+    view.add_output("graph", graph2dict, id_attribute='uuid'  )
 
     api.register_view(view, url_prefix="additive_nodes")
 

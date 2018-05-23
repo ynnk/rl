@@ -5,8 +5,10 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
     var Models = {};
 
     Models.EdgeType = Cello.EdgeType.extend({
+        
+        idAttribute: "uuid",
 
-    parse_label: function(){
+        parse_label: function(){
 
             var label = this.label;
             
@@ -19,6 +21,7 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
             e.subscript = "";
             e.superscript = "";
             e.combination = "";
+            e.cdata = this.get('type_attributes').cdata;
 
             if (splitted_token.length > 1){
                 splitted_token = splitted_token[1].split("^");
@@ -28,10 +31,8 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
 
             //if ( (index + 1) < label_combination.length )
                 //e.combination = "&";  
-
             return e;
         }
-
     });
     
     Models.Edge = App.Models.Edge.extend({
@@ -48,96 +49,103 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
         },
         
     },{ // !! static not in the same brackets !!
-    active_flags : ['intersected', 'faded', 'selected']
-});
+        active_flags : ['intersected', 'faded', 'selected']
+    });
             
-    Models.Vertex = App.Models.Vertex.extend(
-            {
+    Models.Vertex = App.Models.Vertex.extend({
+        
+        idAttribute: "uuid",
+
+        initialize : function(attrs, options){
+            App.Models.Vertex.__super__.initialize.apply(this, attrs, options);
+
+            var vertex = this;
+            this.add_flag('form');
+            this.on('addflag:pzero', function(){
+                this.remove_flag('form');
+            });
+        
+            Cello.get(this, "gc", function(){
+                var gc = vertex.properties ? JSON.parse(vertex.properties.get('gc')) : {}
+                return gc;
+            });
+              
+        },
+
+        fetch_neighbors(success){
+
+            var self = this;
+            var url_root = this.url() ;
+
+            if (this._neighbors) {
+                success(this._neighbors);
+                return;
+            }
+
+            $.ajax({
+              url:`${url_root}/neighbors`,
+              type:"POST",
+              data:JSON.stringify({
+                      start:0
+                  }),
+              contentType:"application/json; charset=utf-8",
+              dataType:"json",
+              success: function(data){
+                self._neighbors = data;
+                success(data);    
+              }
+            })
+
+        },
+
+        
+        format_label : function(){
+    
+            var formatted_label = [];
+            var num = this.properties.get('num');
+            var prefix = this.properties.get('prefix');
+            var vocable = this.properties.get('vocable');
+            var subscript = this.properties.get('subscript');
+            var superscript = this.properties.get('superscript');
             
-                initialize : function(attrs, options){
-                    App.Models.Vertex.__super__.initialize.apply(this, arguments);                    
-
-                    this.add_flag('form');
-                    
-                    this.on('addflag:pzero', function(){
-                        this.remove_flag('form');
-                    });
-                },
-
-                fetch_neighbors(success){
-
-                    var self = this;
-                    var url_root = this.url() ;
-
-                    if (this._neighbors) {
-                        success(this._neighbors);
-                        return;
-                    }
-
-                    $.ajax({
-                      url:`${url_root}/neighbors`,
-                      type:"POST",
-                      data:JSON.stringify({
-                              start:0
-                          }),
-                      contentType:"application/json; charset=utf-8",
-                      dataType:"json",
-                      success: function(data){
-                        self._neighbors = data;
-                        success(data);    
-                      }
-                    })
-
-                },
-
-                
-                format_label : function(){
+            //prefix
+            if( prefix && prefix.length ){
+                formatted_label.push( {form : prefix, css : ".normal-font"});
+            }
+            //name
+            if( vocable && vocable.length ){
+                formatted_label.push( {form : vocable, css : ".normal-font"});
+            }
+            //subscript
+            if( subscript && subscript.length ){
+                formatted_label.push( {form : subscript, css : ".subscript-font"});
+            }
+            //superscript
+            if( superscript && superscript.length ){
+                formatted_label.push( {form : superscript, css : ".superscript-font"});
+            }
+            //number
+            if( num && num.length ){
+                formatted_label.push( {form : num, css : ".num-font"});
+            }
             
-                    var formatted_label = [];
-                    var num = this.properties.get('num');
-                    var prefix = this.properties.get('prefix');
-                    var vocable = this.properties.get('vocable');
-                    var subscript = this.properties.get('subscript');
-                    var superscript = this.properties.get('superscript');
-                    
-                    //prefix
-                    if( prefix && prefix.length ){
-                        formatted_label.push( {form : prefix, css : ".normal-font"});
-                    }
-                    //name
-                    if( vocable && vocable.length ){
-                        formatted_label.push( {form : vocable, css : ".normal-font"});
-                    }
-                    //subscript
-                    if( subscript && subscript.length ){
-                        formatted_label.push( {form : subscript, css : ".subscript-font"});
-                    }
-                    //superscript
-                    if( superscript && superscript.length ){
-                        formatted_label.push( {form : superscript, css : ".superscript-font"});
-                    }
-                    //number
-                    if( num && num.length ){
-                        formatted_label.push( {form : num, css : ".num-font"});
-                    }
-                    
-                    return formatted_label;
-                },
+            return formatted_label;
+        },
 
-                toString: function(){
-                    var str = [];
-                    //TODO: Cello.get !
-                    //TODO loop on graph, lang, pos
-                    str.push(this.properties.get("prefix") || "");
-                    str.push(this.properties.get("vocable"));
-                    str.push(this.properties.get("subscript")  || "");
-                    str.push(this.properties.get("superscript")  || "");
-                    str.push(this.properties.get("num")  || "");
+        toString: function(){
+            var str = [];
+            //TODO: Cello.get !
+            //TODO loop on graph, lang, pos
+            str.push(this.properties.get("prefix") || "");
+            str.push(this.properties.get("vocable"));
+            str.push(this.properties.get("subscript")  || "");
+            str.push(this.properties.get("superscript")  || "");
+            str.push(this.properties.get("num")  || "");
 
-                    return str.join("*");
-                },
-                
-            }) ;
+            return str.join("*");
+        },
+        
+    }) ;
 
     /* Query */
     Models.LexnetQueryUnit = Backbone.Model.extend({
@@ -173,7 +181,7 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
             data.subscript = qsplit[2];
             data.superscript = qsplit[3];
             data.num = qsplit[4];
-            console.log(data)
+            console.log(data);
             this.set(data);
         },
 

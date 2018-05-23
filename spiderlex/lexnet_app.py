@@ -39,13 +39,13 @@ app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET
 
 
 CONFIG = { 'fr' :{ 
-           'db' : '../completedb_fr.sqlite'
-           #'db' : '../completedb_fr1804.sqlite'
+           #'db' : '../completedb_fr.sqlite'
+           'db' : 'completedb_fr1804.sqlite'
            }
          }
          
-GRAPHS_CONF = { "rlfr" : "../lnfr.picklez" }
-#GRAPHS_CONF = { "lnfr" : "../lnfr1804.picklez" }
+#GRAPHS_CONF = { "rlfr" : "../lnfr.picklez" }
+GRAPHS_CONF = { "lnfr" : "lnfr1804.picklez" }
 
 LANGS = tuple([ lang for lang,v in CONFIG.items()])
 
@@ -184,7 +184,7 @@ def app_graph(lang, query=None, path = ""):
         data= "",
 
         #gid = "ln%s" % lang,
-        gid = "rl%s" % lang,
+        gid = "ln%s" % lang,
         root_url = url_for("index"),
         complete_url = "/%s/complete" % lang,
         query=query,
@@ -207,7 +207,7 @@ def app_graph(lang, query=None, path = ""):
             'show_images': 0 if args.get("no_images", None ) else 1, # removes vertex images
 
             'user_font_size' : 5,# range -5,5
-            'user_vtx_size' : 2. , # [1, 25 ]
+            'user_vtx_size' : 1. , # [1, 25 ]
     
             'auto_rotate': 0,
             'adaptive_zoom': 1,
