@@ -40,12 +40,12 @@ app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET
 
 CONFIG = { 'fr' :{ 
            #'db' : '../completedb_fr.sqlite'
-           'db' : 'completedb_fr1804.sqlite'
+           'db' : '../completedb_fr1804.sqlite'
            }
          }
          
 #GRAPHS_CONF = { "rlfr" : "../lnfr.picklez" }
-GRAPHS_CONF = { "lnfr" : "lnfr1804.picklez" }
+GRAPHS_CONF = { "lnfr" : "../lnfr1804.picklez" }
 
 LANGS = tuple([ lang for lang,v in CONFIG.items()])
 
