@@ -5,6 +5,7 @@ install:
 
 	npm install jade --save
  
+build: jade polymer deploy
 
 jade:
 
@@ -15,9 +16,7 @@ jade:
 	#cd ./templates && pypugjs  *.jade
 	cd ./spiderlex/templates && node ../../node_modules/jade/bin/jade.js -P *.jade
 
-
-build: jade 
-
+polymer:
 	cd ../padagraph/application/src && make polymer
 
 	cp ../padagraph/application/src/static/embed.* ./spiderlex/jslib/
@@ -27,6 +26,7 @@ build: jade
 	mkdir -p ./spiderlex/jslib/padagraph_components/
 	cp ../padagraph/application/src/static/padagraph_webcomponents/*.html ./spiderlex/jslib/padagraph_components/
 
+deploy:
 	cp -rf spiderlex/css spiderlex/static/
 	cp -rf spiderlex/js/* spiderlex/static/
 	cp -rf spiderlex/jsext/* spiderlex/static/
