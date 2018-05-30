@@ -581,7 +581,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
       this.edgetype = model.parse_label();
       this.async(function () {
-        if (_this.edgetype.cdata) _this.$.cdata.innerHTML = _this.edgetype.cdata;
+        if (_this.edgetype.cdata && _this.$.cdata) _this.$.cdata.innerHTML = _this.edgetype.cdata;
       });
     }
 
