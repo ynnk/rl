@@ -176,11 +176,27 @@ def app_graph(lang, query=None, path = ""):
 
     args = request.args
 
+    menu = {
+      'fr' :{
+        'graph' : 'Graphe', 
+        'lexlinks' : 'Liens lexicaux', 
+        'clusters' : 'Clusters', 
+        'def' : 'Dictionnaire', 
+      },
+      'en' :{
+        'graph' : 'Graph', 
+        'lexlinks' : 'Lexical links', 
+        'clusters' : 'Clusters', 
+        'def' : 'Dictionary', 
+      }
+    }[lang]
+    
     return render_template(
         'spiderlex.html',
         polymer_path = "%s/static/padagraph_components" % path,
         debug=  app.debug,
         lang = lang,
+        menu = menu,
         data= "",
 
         #gid = "ln%s" % lang,

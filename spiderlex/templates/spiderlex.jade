@@ -65,27 +65,27 @@ html
                 #query_form.ui.input.icon
                 #query_complete
 
-              .itemt(style='padding-left:0px')
+              .item(style='padding-left:0px;')
                 a.ui.basic.icon.button#btnreset
                     i.undo.icon
                 
             #maintabs.ui.bottom.attached.teal.menu
               a.ui.item.left.active(data-tab='tab-graph')
                 i.cube.icon
-                span.hidden-xs Graph
+                span.hidden-xs {{menu.graph}}
 
               nav.ui.right.menu.navbar
                 a#lexlinks_menu_item.ui.item(data-tab='tab-lexlinks')
                   i.list.layout.icon
-                  | Lexical links
+                  | {{menu.lexlinks}}
 
                 a#clusters_menu_item.ui.item(data-tab='tab-clusters')
                   i.block.layout.icon
-                  | Clusters
+                  | {{menu.clusters}}
 
                 a#dic_menu_item.ui.item.active(data-tab='tab-def')
                   i.book.icon
-                  | Dictionary
+                  | {{menu.def}}
 
             #vz_graph.ui.tab.itemview.active(data-tab='tab-graph')
               .ui.right.sidebar

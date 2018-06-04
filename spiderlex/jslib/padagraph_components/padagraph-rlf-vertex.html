@@ -1299,6 +1299,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+
   Polymer({
     is: "rlf-vertex-loc",
     properties: {
@@ -1306,15 +1307,18 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       model: {
         type: Object
       },
+      lang: String,
       locutions: Array
+
     },
 
     observers: ['observe(graph, model)'],
 
-    observe: function observe(graph, model) {
+    observe: function observe(graph, model, lang) {
       var _this = this;
 
       if (model == null) return;
+      if (lang == null) this.lang = 'fr';
 
       var vs = graph.vs;
       var es = graph.es;
@@ -1368,9 +1372,32 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 .rlf a {
     cursor:pointer;
 }
-</style><template><template is="dom-if" if="{{model}}">           <div class="rlf"><div class="ui message"><h2>   <rlf-vertex-xs graph="{{graph}}" model="{{model}}" css="" on-click="explore"></rlf-vertex-xs><div class="sub header"><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ short(model.id) }}</a></div></h2></div><h4>[GC]</h4><rlf-vertex-gc graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-gc><div class="ui divider"> </div><h4>[DF]</h4><rlf-vertex-df graph="{{graph}}" model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><h4>[LF]</h4><rlf-vertex-lf graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-lf><div class="ui divider"> </div><h4>[EX]</h4><rlf-vertex-ex graph="{{graph}}" model="{{model}}"></rlf-vertex-ex><div class="ui divider"></div><h4>[PH]</h4><rlf-vertex-loc graph="{{graph}}" model="{{model}}"></rlf-vertex-loc><div class="ui divider"></div></div></template></template><script>   'use strict';
+</style><template><template is="dom-if" if="{{model}}">           <div class="rlf"><div class="ui message"><h2>   <rlf-vertex-xs graph="{{graph}}" model="{{model}}" css="" on-click="explore"></rlf-vertex-xs><div class="sub header"><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ short(model.id) }}</a></div></h2></div><h4>[{{i18n('GC')}}]</h4><rlf-vertex-gc graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-gc><div class="ui divider"> </div><h4>[{{i18n('DF')}}]</h4><rlf-vertex-df graph="{{graph}}" model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><h4>[{{i18n('LF')}}]</h4><rlf-vertex-lf graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-lf><div class="ui divider"> </div><h4>[{{i18n('EX')}}]</h4><rlf-vertex-ex graph="{{graph}}" model="{{model}}"></rlf-vertex-ex><div class="ui divider"></div><h4>[{{i18n('PH')}}]</h4><rlf-vertex-loc graph="{{graph}}" model="{{model}}"></rlf-vertex-loc><div class="ui divider"></div></div></template></template><script>   'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
+  var I18N = {
+    'fr': {
+
+      // dictonnary
+      'GC': 'CG',
+      'DF': 'DF',
+      'LF': 'FL',
+      'EX': 'EX',
+      'PH': 'PH'
+    },
+    'en': {
+
+      // dictonnary
+      'GC': 'GC',
+      'DF': 'DF',
+      'LF': 'LF',
+      'EX': 'EX',
+      'PH': 'PH'
+
+    }
+
+  };
+
   Polymer({
     is: "rlf-vertex-card",
     properties: {
@@ -1381,7 +1408,11 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
         type: Object
       }
     },
+
     //observer: 'observeModel'
+    i18n: function i18n(key) {
+      return I18N[this.lang][key];
+    },
     geturl: function geturl() {
       return this.model ? this.model.url() : "";
     },
