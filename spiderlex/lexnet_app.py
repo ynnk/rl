@@ -31,6 +31,7 @@ from flask_login import LoginManager, current_user, login_user, login_required
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+from flask_script import Manager
 from flask_cors import CORS
 CORS(app)
 
@@ -38,16 +39,19 @@ CORS(app)
 app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET"])
 
 
-CONFIG = { 'fr' :{ 
-           #'db' : '../completedb_fr.sqlite'
-           'db' : '../completedb_fr1804.sqlite'
-           }
-         }
          
-#GRAPHS_CONF = { "rlfr" : "../lnfr.picklez" }
-GRAPHS_CONF = { "lnfr" : "../lnfr1804.picklez" }
+CONFIG = {
+    "langs" : ['fr', 'en'],
 
-LANGS = tuple([ lang for lang,v in CONFIG.items()])
+    "lnfr" : "../lnfr1806.picklez",
+    "complete_fr" : "../completedb_fr1806.sqlite",
+    
+    "lnen" : "../lnen1806.picklez",
+    "complete_en" : "../completedb_en1806.sqlite",
+}
+        
+
+LANGS = tuple([ lang for lang in CONFIG["langs"]])
 
 
 CLIENT_CONF =  {
@@ -56,21 +60,14 @@ CLIENT_CONF =  {
     'urlRoot': "/graphs/g/",
 }
 
-#if PRODUCTION:
-    #CLIENT_CONF =  {
-        #'routes': "http://padagraph.io/engines", 
-        #'sync': "http://padagraph.io/graphs/g/rlfr",
-        #'urlRoot': "http://padagraph.io/graphs/g/",
-    #}
-    
 
 def get_db(lang):
-    if lang not in CONFIG:
+    if lang not in LANGS:
         abort(url_for('index'))
     
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(CONFIG[lang]['db'])
+        db = g._database = sqlite3.connect(CONFIG["complete_%s" % lang])
         db.row_factory = rllib.dict_factory
     return db
 
@@ -172,6 +169,8 @@ def app_graph_query(lang, query=None):
 def app_graph(lang, query=None, path = ""):
 
     if lang not in (LANGS) :
+        print lang, LANGS
+        
         abort(404)
 
     args = request.args
@@ -241,7 +240,7 @@ print sys.path
 
 # igraph graphdb
 from pdglib.graphdb_ig import IGraphDB, engines
-graphdb = IGraphDB(graphs={}, conf=GRAPHS_CONF)
+graphdb = IGraphDB(graphs={}, conf=CONFIG)
 graphdb.open_database()
 #for k in GRAPHS_CONF : graphdb.get_graph(k)
 
@@ -275,7 +274,7 @@ def _engines():
 
 def main():
     
-    from flask.ext.runner import Runner
+    from flask_runner import Runner
     runner = Runner(app)
     runner.run()
 
