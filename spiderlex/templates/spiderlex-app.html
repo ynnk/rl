@@ -55,8 +55,8 @@
             
         },
         
-      // UI
-      // panel tabs
+        // UI
+        // panel tabs
         setupUI(){
     
           var _window_resized = function(){ window_resized(this.app) }
@@ -117,8 +117,10 @@
           _window_resized();
     
         },
-    
-        ready(){
+        attached() {
+          this.async( this.startapp );
+        },
+        startapp() {
           // The "app" dependency is passed in as "App"
           var lang = "{{lang}}"
           var gid = "{{gid}}";
