@@ -875,6 +875,12 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
         observers: ["create_once(app, graph, options)"],
 
+        attached: function attached() {
+            var event = new Event("gviz_ready", { "bubbles": true, "cancelable": false });
+            console.log("gviz_ready", event);
+            document.dispatchEvent(event);
+        },
+
         init: function init(app, graph, options) {
             this.create_once(app, graph, options);
         },
@@ -962,7 +968,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
             this.gviz = gviz;
 
-            var event = new Event("gviz_ready", { "bubbles": true, "cancelable": false });
+            var event = new Event("gviz_attached", { "bubbles": true, "cancelable": false });
             document.dispatchEvent(event);
         }
 

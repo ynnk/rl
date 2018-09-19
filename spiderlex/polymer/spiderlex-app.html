@@ -1,77 +1,40 @@
-script.
-  // resize window event
-  var min_height = 250;
- 
-  var window_resized = function(app){
-      var win = $(this); //this = window
-      size =  $(window).height()-$("nav").height() - $("#footer").height() - 50;
-      size =  $(window).height()-$("nav").height() -64 ;
-      size = size < min_height ? min_height : size;
-
-      $(".itemview").height(size);
-      $("#vz_graph .bottom.segment").height(size -2);
-      $("#vz-tab-content").height($('#lexlinks').height());
-      if ( app && app.gviz ) app.gviz.resize_rendering();
-  };
-  
-  var _canvas_resized = function(sb_visible){
-    var segment_size = $("#vz_graph").width();
-    if (sb_visible){
-      sidebar_size = $('#vz_graph .sidebar').width();
-      segment_size = segment_size - sidebar_size;
-    }
-    $("#vz_graph .bottom.segment").width(segment_size);
-  };
-
-  var _canvas_resized_moins = function(){
-      var segment_size = $("#vz_graph .bottom.segment").width();
-      var sidebar_size = $('#vz_graph .sidebar').width();
-      $("#vz_graph .bottom.segment").width(segment_size+sidebar_size);
-  };
-
-  document.addEventListener("gviz_ready", function(){
-      console.log("gviz_is now ready ");
-      var app = $("spiderlex-app")[0]; 
-      app.startapp()
-  });
+<link rel="import" href="/static/bower_components/polymer/polymer.html"/>
 
 
-dom-module(id='spiderlex-app')
-  template
-   padagraph-gviz(options='{{options}}')
-      #pdgmenu.ui.icon.vertical.borderless.menu
-        a#keb_settings.ui.item
-          i.settings.icon
-
-        padagraph-engine-control(engine='explore', asitem='asitem')
-        padagraph-engine-control(engine='layout', asitem='asitem')
-        padagraph-engine-control(engine='clustering', asitem='asitem')
-      rlf-mouse-popup#gvizpopup
-
-      
-  script.
+<dom-module id="spiderlex-app">
+  <template>
+    <padagraph-gviz options="{{params.vizoptions}}">
+      <div id="pdgmenu" class="ui icon vertical borderless menu"><a id="keb_settings" class="ui item"><i class="settings icon"></i></a>
+        <padagraph-engine-control engine="explore" asitem="asitem"></padagraph-engine-control>
+        <padagraph-engine-control engine="layout" asitem="asitem"></padagraph-engine-control>
+        <padagraph-engine-control engine="clustering" asitem="asitem"></padagraph-engine-control>
+      </div>
+      <rlf-mouse-popup id="gvizpopup"></rlf-mouse-popup>
+    </padagraph-gviz>
+  </template>
+  <script>
     require(["jquery", "underscore", "backbone", 
         "app_graph", "cello", "embed",  "gviz", "models", "semantic"
         ],  function( $, _, Backbone, App, Cello, Embed, Gviz, Models, SEMUI){
-
+    
       Polymer({
         is: "spiderlex-app",
-
+    
         properties : {
-            
+            params: Object
         },
-        
+        observers: ["startapp(params)"],
         // UI
         // panel tabs
         setupUI(){
-
+    
           var _window_resized = function(){ window_resized(this.app) }
-
+    
           $('#maintabs .item').tab();
           $('#clusters_menu_item').click(function(){
             $('#clusters_content_item').transition('slide right', '1000ms');
           });
-
+    
           $('#vz_tabs .item').tab({ context: $('.vz-tab-content')});
           $('#vz_graph .sidebar')
               .sidebar({ context: $('#vz_graph') })
@@ -97,13 +60,13 @@ dom-module(id='spiderlex-app')
               
           $('#vz_graph .sidebar')
             .sidebar('hide');
-
+    
           $('#maintabs>nav .item').click(function(){
               $('#vz_graph .sidebar').sidebar('show');
             });
-
+    
           $('#maintabs .item').click( _window_resized );
-
+    
           // reset query button
           $('#btnreset').click( () => {
               $("#lndic .ui.menu rlf-vertex-xs").remove() ; // dict vtx
@@ -113,43 +76,38 @@ dom-module(id='spiderlex-app')
               this.app.models.graph.vs.set_selected([]);
               this.app.models.graph.reset({vs:[], es:[]});
             });
-
+    
           $(window).on('resize', function(){
             _window_resized();
             if ($('#vz_graph .sidebar').hasClass('visible'))
             _canvas_resized(true);
           });
-
+    
           _window_resized();
-
+    
         },
         attached() {
            console.log('spiderlex-app attached')
-           var app = $("spiderlex-app")[0]; 
-           app.startapp()
         },
         
-        startapp() {
+        startapp(app_params) {
+			
           if (this.started) return;
-
           this.started = true;  
-          // The "app" dependency is passed in as "App"
-          var lang = "{{lang}}"
-          var gid = "{{gid}}";
-          var urlRoot = "{{urlRoot}}";
-          var sync = "{{sync}}";
-          var routes = "{{routes}}";
-          var data = "{{data}}";
-          var complete_url = "{{ complete_url }}";
-          var app_params = {
-              debug: {{ 'true' if debug else 'false' }},
-              complete_url : complete_url,
-              $el : $(this),
-            };
-            
+		  
+          var lang = app_params.lang;
+          var gid = app_params.gid;
+          var urlRoot = app_params.urlRoot;
+          var sync = app_params.sync;
+          var routes = app_params.routes;
+          var data = app_params.data;
+          var complete_url = app_params.complete_url;
+          var data = app_params.data;
+          
+          app_params['$el'] = $(this);            
           var app = new App(app_params);
           this.app = app;
-          app.lang = lang;
+          app.lang = app_params.lang;
           var parse = {data:false, sync:false};
           if (sync){
               app.create_graph_model({
@@ -160,12 +118,12 @@ dom-module(id='spiderlex-app')
                   edgetype_model : Models.EdgeType,
                   edge_model: Models.Edge,
               });
-
+    
               app.models.graph.on('sync', function(){
                   reset();
                   parse.sync = true;
               });
-
+    
               app.create_query_model();
               app.models.query.graph = app.models.graph.id;
           }
@@ -174,7 +132,7 @@ dom-module(id='spiderlex-app')
               app.models.graph.attributes['gid'] = "g" + this.id;
               parse.sync = true;
           }
-
+    
           // tagsinput
           app.models.userquery = new Models.LexnetQueryUnits( [] , { } )
           app.models.userquery.url = complete_url ;
@@ -188,7 +146,7 @@ dom-module(id='spiderlex-app')
               app.set_auto_compute(true);
               app.auto_compute();
           }
-
+    
           var isurl = (e)=> _.isString(e) && e.length;
           
           var complete = function(){
@@ -201,7 +159,7 @@ dom-module(id='spiderlex-app')
                   engine.name = k;
                   engines.push(engine);
               }
-
+    
               var keb = document.createElement("padagraph-keb")
               keb.engines = engines;
               $("#keb")
@@ -211,28 +169,28 @@ dom-module(id='spiderlex-app')
               $("#keb .close").click( ()=>{ $("#keb").sidebar('hide') } )
               $("#keb_settings").click( ()=>{ $("#keb").sidebar('show') } )
               
-
+    
               var viz = $("padagraph-gviz")[0];
               viz.graph = graph;
               viz.app = app;
               viz.options = Gviz.DEFAULTS;
-
+    
               var popup = $("rlf-mouse-popup");
               if (popup.length){
                   popup = popup[0]
                   popup.graph = graph;
               }
-
+    
               var gviz = viz.gviz;
               app.gviz = viz.gviz;
-
+    
               var comp = $("rlf-lexfunc-filter", "#lexlinks")[0];
               comp.app = app;
               comp.graph = graph;
-
+    
               var comp = $("rlf-vertex-card")[0];
               comp.graph = graph;
-
+    
               var map_position = {
               "Co-polysemy" : 1,
               "DefinitionalInclusion" : 2,
@@ -243,7 +201,7 @@ dom-module(id='spiderlex-app')
                 var position = function(e){ return map_position[e.label]; }
                 return position(a) - position(b);
               };
-
+    
               if( isurl(data) ){
                 $.ajax({
                   url: data ,
@@ -261,7 +219,7 @@ dom-module(id='spiderlex-app')
               url: routes ,
               success: function(routes){
                 app.routes = routes.routes;
-
+    
                 document.addEventListener("app_engines_fetched", function() { setTimeout( complete, 10 ) });
                 app.listenTo(app.engines.explore, 'play:loading', function() {
                   app.search_loading();
@@ -271,7 +229,7 @@ dom-module(id='spiderlex-app')
                 
                 app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
                     app.engine_play_completed(response, args, state)
-
+    
                     $("rlf-lexfunc-filter").each( function(i,e) {
                       if ( e.graph && e.reset_filters ) e.reset_filters();
                     });
@@ -279,11 +237,11 @@ dom-module(id='spiderlex-app')
                 app.listenTo(app.engines.additive_nodes, 'play:success', function(response, args, state) {
                     $("rlf-lexfunc-filter").each( function(i,e) { if (e.graph) e.reset_filters(); });
                 });
-
+    
                 app.models.graph.on('sync', function(){
                   $("rlf-lexfunc-filter").each(function(i,e) { if (e.graph) e.reset_filters(); });
                 });
-
+    
                 app.start(graph, app.engines.explore);
                 app.listenTo(Backbone, "explore", function(model){
                     app.navigate_to_label(model.toString());
@@ -295,7 +253,7 @@ dom-module(id='spiderlex-app')
                     Backbone.trigger('engine:explore', params);
                   }
                 });
-
+    
                 app.on('engine:explore', function(name){
                   console.log('engine:explore', name);
                   var blocks = app.engines.explore.blocks
@@ -314,7 +272,7 @@ dom-module(id='spiderlex-app')
                 app.listenTo(app.models.graph.vs, 'rmflag:selected', function(model) {
                     $('rlf-vertex-card')[0].model = null
                 });
-
+    
                 document.addEventListener("gviz_attached", function(){
                   app.set_routes();
                   console.log("gviz_is now attached ")
@@ -329,3 +287,7 @@ dom-module(id='spiderlex-app')
         },
       })
     });
+  </script>
+</dom-module>
+
+

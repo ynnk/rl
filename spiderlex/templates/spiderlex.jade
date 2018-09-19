@@ -26,6 +26,8 @@ html
 
     link( rel="import" href="/static/bower_components/polymer/polymer.html")
 
+    link( rel="import" href="{{url_for('static', filename='spiderlex-app.html')}}")
+
     link( rel="import" href="{{polymer_path}}/padagraph-collection.html")
     link( rel="import" href="{{polymer_path}}/padagraph-vertex-card-xs.html")
     link( rel="import" href="{{polymer_path}}/padagraph-controls.html")
@@ -43,7 +45,40 @@ html
 
  body.pushable
 
-  include spiderlex-app.html  
+  //- include spiderlex-app.html  
+  
+  script.
+
+    // resize window event
+    var min_height = 250;
+
+    var window_resized = function(app){
+      var win = $(this); //this = window
+      size =  $(window).height()-$("nav").height() - $("#footer").height() - 50;
+      size =  $(window).height()-$("nav").height() -64 ;
+      size = size < min_height ? min_height : size;
+
+      $(".itemview").height(size);
+      $("#vz_graph .bottom.segment").height(size -2);
+      $("#vz-tab-content").height($('#lexlinks').height());
+      if ( app && app.gviz ) app.gviz.resize_rendering();
+    };
+
+    var _canvas_resized = function(sb_visible){
+    var segment_size = $("#vz_graph").width();
+    if (sb_visible){
+      sidebar_size = $('#vz_graph .sidebar').width();
+      segment_size = segment_size - sidebar_size;
+    }
+    $("#vz_graph .bottom.segment").width(segment_size);
+    };
+
+    var _canvas_resized_moins = function(){
+      var segment_size = $("#vz_graph .bottom.segment").width();
+      var sidebar_size = $('#vz_graph .sidebar').width();
+      $("#vz_graph .bottom.segment").width(segment_size+sidebar_size);
+    };
+
 
 
   #keb.ui.left.vertical.sidebar(style='background:#FAFAFA')
@@ -56,7 +91,7 @@ html
       #main.ui.grid
         .row(style='padding-bottom:2px;padding-top:2px')
           .column.center.aligned
-            nav.ui.menu.navbar
+            nav.ui.menu.navbar(style="max-width: 100%;overflow-x: scroll;")
               .item.left.title
                 a(href='/') RL/spiderlex&nbsp;
                 | : {{gid}}
@@ -110,7 +145,7 @@ html
                   i.angle.double.right.icon(style='display:none')
                   i.angle.double.left.icon(style='')
 
-                spiderlex-app
+                spiderlex-app(params="{{app_params}}")
             
                
 

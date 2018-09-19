@@ -174,6 +174,8 @@ def app_graph(lang, query=None, path = ""):
         abort(404)
 
     args = request.args
+    
+    gid = "ln%s" % lang
 
     menu = {
       'fr' :{
@@ -189,46 +191,57 @@ def app_graph(lang, query=None, path = ""):
         'def' : 'Dictionary', 
       }
     }[lang]
-    
+
+    vizoptions = {
+        #
+        'wait' : 4,
+        #template
+        'zoom'  : args.get("zoom", 1200 ),
+        'buttons': 0, # removes play/vote buttons
+        'labels' : 0,  # removes graph name/attributes 
+        # gviz
+        #'el': "#viz",
+        'background_color' : "#eeeeee",
+        'initial_size' : 1 ,
+        'vtx_size' : args.get("vertex_size", 1 ),
+        'show_text'  : 0 if args.get("no_text"  , None ) else 1,     # removes vertex text 
+        'show_nodes' : 0 if args.get("no_nodes" , None ) else 1,   # removes vertex only 
+        'show_edges' : 0 if args.get("no_edges" , None ) else 1,   # removes edges 
+        'show_images': 0 if args.get("no_images", None ) else 1, # removes vertex images
+
+        'user_font_size' : 5,# range -5,5
+        'user_vtx_size' : 1. , # [1, 25 ]
+
+        'auto_rotate': 0,
+        'adaptive_zoom': 1,
+        'use_material_transitions': True,
+        'raycaster_precision' : 3
+    }
+
+    print(json.dumps(vizoptions))
+
+    app_params =  {
+        'debug'   : app.debug,
+        'lang'    : lang,
+        'gid'     : gid,
+        'urlRoot' : url_for("index"),
+        'data'    : "",
+        'complete_url' : "/%s/complete" % lang,     
+        'vizoptions' : vizoptions
+    }
+    app_params.update(CLIENT_CONF)    
+
+
     return render_template(
         'spiderlex.html',
         polymer_path = "%s/static/padagraph_components" % path,
         debug=  app.debug,
         lang = lang,
         menu = menu,
-        data= "",
-
-        #gid = "ln%s" % lang,
-        gid = "ln%s" % lang,
-        root_url = url_for("index"),
-        complete_url = "/%s/complete" % lang,
+        gid = gid,
         query=query,
-
-        options = json.dumps({
-            #
-            'wait' : 4,
-            #template
-            'zoom'  : args.get("zoom", 1200 ),
-            'buttons': 0, # removes play/vote buttons
-            'labels' : 0,  # removes graph name/attributes 
-            # gviz
-            #'el': "#viz",
-            'background_color' : "#eeeeee",
-            'initial_size' : 1 ,
-            'vtx_size' : args.get("vertex_size", 1 ),
-            'show_text'  : 0 if args.get("no_text"  , None ) else 1,     # removes vertex text 
-            'show_nodes' : 0 if args.get("no_nodes" , None ) else 1,   # removes vertex only 
-            'show_edges' : 0 if args.get("no_edges" , None ) else 1,   # removes edges 
-            'show_images': 0 if args.get("no_images", None ) else 1, # removes vertex images
-
-            'user_font_size' : 5,# range -5,5
-            'user_vtx_size' : 1. , # [1, 25 ]
-    
-            'auto_rotate': 0,
-            'adaptive_zoom': 1,
-            'use_material_transitions': True,
-            'raycaster_precision' : 3
-        }),
+        app_params = json.dumps(app_params),
+       
         
         ** CLIENT_CONF
         
@@ -271,13 +284,4 @@ def _engines():
     host = ""
     return jsonify({'routes': get_engines_routes(app, host)})
 
-
-def main():
-    
-    from flask_runner import Runner
-    runner = Runner(app)
-    runner.run()
-
-if __name__ == '__main__':
-    sys.exit(main())
 

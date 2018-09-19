@@ -30,6 +30,12 @@
       $("#vz_graph .bottom.segment").width(segment_size+sidebar_size);
   };
   
+  document.addEventListener("gviz_ready", function(){
+      console.log("gviz_is now ready ");
+      var app = $("spiderlex-app")[0]; 
+      app.startapp()
+  });
+  
   
 </script>
 <dom-module id="spiderlex-app">
@@ -118,9 +124,15 @@
     
         },
         attached() {
-          this.async( this.startapp );
+           console.log('spiderlex-app attached')
+           var app = $("spiderlex-app")[0]; 
+           app.startapp()
         },
+        
         startapp() {
+          if (this.started) return;
+    
+          this.started = true;  
           // The "app" dependency is passed in as "App"
           var lang = "{{lang}}"
           var gid = "{{gid}}";
@@ -198,6 +210,7 @@
               $("#keb").append(keb)
               $("#keb .close").click( ()=>{ $("#keb").sidebar('hide') } )
               $("#keb_settings").click( ()=>{ $("#keb").sidebar('show') } )
+              
     
               var viz = $("padagraph-gviz")[0];
               viz.graph = graph;
@@ -248,13 +261,14 @@
               url: routes ,
               success: function(routes){
                 app.routes = routes.routes;
-                app.create_engines();
-                //app.fetch_engines(complete);
-                app.fetch_engines();
+    
                 document.addEventListener("app_engines_fetched", function() { setTimeout( complete, 10 ) });
                 app.listenTo(app.engines.explore, 'play:loading', function() {
                   app.search_loading();
                 });
+                app.create_engines();
+                app.fetch_engines();
+                
                 app.listenTo(app.engines.explore, 'play:success', function(response, args, state) {
                     app.engine_play_completed(response, args, state)
     
@@ -301,9 +315,9 @@
                     $('rlf-vertex-card')[0].model = null
                 });
     
-                document.addEventListener("gviz_ready", function(){
+                document.addEventListener("gviz_attached", function(){
                   app.set_routes();
-                  console.log("gviz_is now ready ")
+                  console.log("gviz_is now attached ")
                 });
               }
             });

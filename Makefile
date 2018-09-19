@@ -1,9 +1,23 @@
 .phony : install build 
 
+install: npm bower
 
-install:
-
+npm:
 	npm install jade --save
+	npm install bower --save
+
+bower: 
+	@echo "\n --------------------------"
+	@echo " * Installing js requirements with bower"
+	@echo " --------------------------- \n"
+
+	if [ ! -d "./spiderlex/static" ]; then mkdir ./spiderlex/static; fi
+	rm -rf spiderlex/static/bower_components
+	./node_modules/bower/bin/bower install
+
+	# wget threejs directly from github 
+	cd spiderlex/jsext/;  wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O three.min.js
+
  
 build: jade polymer deploy
 
@@ -31,6 +45,7 @@ deploy:
 	cp -rf spiderlex/js/* spiderlex/static/
 	cp -rf spiderlex/jsext/* spiderlex/static/
 	cp -rf spiderlex/jslib/* spiderlex/static/
+	cp -rf spiderlex/polymer/* spiderlex/static/
 
 help:
 	@echo " --------------------------"
