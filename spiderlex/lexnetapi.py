@@ -20,7 +20,6 @@ from botapad.utils import export_graph
 from pdgapi.explor import ComplexQuery, AdditiveNodes, NodeExpandQuery, layout_api, clustering_api
 
 
-
 def explore_engine(graphdb):
     """ Prox engine """
     # setup

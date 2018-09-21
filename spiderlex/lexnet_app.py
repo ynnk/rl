@@ -38,27 +38,7 @@ CORS(app)
 # app routes
 app.add_url_rule('/_routes', 'routes', lambda : app_routes(app) ,  methods=["GET"])
 
-
-         
-CONFIG = {
-    "langs" : ['fr', 'en'],
-
-    "lnfr" : "../lnfr1806.picklez",
-    "complete_fr" : "../completedb_fr1806.sqlite",
-    
-    "lnen" : "../lnen1806.picklez",
-    "complete_en" : "../completedb_en1806.sqlite",
-}
-        
-
-LANGS = tuple([ lang for lang in CONFIG["langs"]])
-
-
-CLIENT_CONF =  {
-    'sync': "/static/rlfr.json",
-    'routes' : "/engines",
-    'urlRoot': "/graphs/g/",
-}
+from conf import * 
 
 
 def get_db(lang):
@@ -177,20 +157,7 @@ def app_graph(lang, query=None, path = ""):
     
     gid = "ln%s" % lang
 
-    menu = {
-      'fr' :{
-        'graph' : 'Graphe', 
-        'lexlinks' : 'Liens lexicaux', 
-        'clusters' : 'Clusters', 
-        'def' : 'Dictionnaire', 
-      },
-      'en' :{
-        'graph' : 'Graph', 
-        'lexlinks' : 'Lexical links', 
-        'clusters' : 'Clusters', 
-        'def' : 'Dictionary', 
-      }
-    }[lang]
+    menu = MENU[lang]
 
     vizoptions = {
         #
