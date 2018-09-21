@@ -74,9 +74,9 @@
       <div id="main" class="ui grid">
         <div style="padding-bottom:2px;padding-top:2px" class="row">
           <div class="column center aligned">
-            <nav style="max-width: 100%;overflow-x: scroll;" class="ui menu navbar">
+            <nav style="" class="ui menu navbar">
               <div class="item left title"><a href="/">RL/spiderlex&nbsp;</a>: {{gid}}</div>
-              <div style="margin-top:0px" class="item right">
+              <div style="margin-top:0px;display:table" class="item right">
                 <div id="query_form" class="ui input icon"></div>
                 <div id="query_complete"></div>
               </div>
@@ -100,9 +100,9 @@
                   </div>
                   <div data-tab="tab-def" class="ui tab subitem active">
                     <div id="lndic">
-                      <nav class="ui menu teal navbar"></nav>
+                      <nav style=";overflow-x: auto;" class="ui menu teal navbar"></nav>
                       <div class="dic-content">
-                        <rlf-vertex-card lang="{{lang}}" complete="{{complete_url}}"></rlf-vertex-card>
+                        <rlf-vertex-card lang="{{lang}}" complete="{{complete_url}}" debug="{{debug}}"></rlf-vertex-card>
                       </div>
                     </div>
                   </div>

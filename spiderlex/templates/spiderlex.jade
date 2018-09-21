@@ -91,12 +91,12 @@ html
       #main.ui.grid
         .row(style='padding-bottom:2px;padding-top:2px')
           .column.center.aligned
-            nav.ui.menu.navbar(style="max-width: 100%;overflow-x: scroll;")
+            nav.ui.menu.navbar(style="")
               .item.left.title
                 a(href='/') RL/spiderlex&nbsp;
                 | : {{gid}}
 
-              .item.right(style='margin-top:0px')
+              .item.right(style='margin-top:0px;display:table')
                 #query_form.ui.input.icon
                 #query_complete
 
@@ -135,10 +135,10 @@ html
 
                   .ui.tab.subitem.active(data-tab='tab-def')
                     #lndic
-                      nav.ui.menu.teal.navbar
+                      nav.ui.menu.teal.navbar(style=";overflow-x: auto;")
 
                       .dic-content
-                        rlf-vertex-card(lang='{{lang}}', complete='{{complete_url}}')
+                        rlf-vertex-card(lang='{{lang}}', complete='{{complete_url}}', debug='{{debug}}')
 
               .ui.bottom.attached.segment
                 #vz_button0.ui.left.aligned.attached.fixed.button
