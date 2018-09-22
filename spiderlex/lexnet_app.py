@@ -75,10 +75,12 @@ def complete(lang, text=None):
     completions = []
     db = get_db(lang)
     name = request.form.get('name', text)
+    
     # uuid, entry, name, lexnum as num , prefix, subscript, superscript
 
     if name.startswith('#'):
-        array = rllib.complete_id(name[1:], db )
+        _id = "ls:%s:node:%s" % (lang, name[1:])
+        array = rllib.complete_id(_id, db )
     else :
         array = rllib.complete(name, db)
 
@@ -107,10 +109,11 @@ def complete(lang, text=None):
 @app.route("/<string:lang>/complete/id/<string:text>")
 def complete_id(lang, text=None):
     db = get_db(lang)
+    _id = "ls:%s:node:%s" % (lang, text)
     return jsonify(
         { 'results': {
             'response' : {
-                'complete' : rllib.complete_id(text, db)
+                'complete' : rllib.complete_id(_id, db)
         }}})
         
 @app.route('/<string:lang>/complete/uuids/<string:text>', methods=['GET','POST'])

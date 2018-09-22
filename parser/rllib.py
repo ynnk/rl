@@ -24,8 +24,10 @@ def complete(search, db, limit=20):
 def complete_id(search, db):
 
     c = db.cursor()
+    
     c.execute( "select  uuid, entry, name, lexnum as num , prefix, subscript, superscript from complete where entry=? ORDER BY name asc, lexnum asc", ( search, ) )
     rows =  c.fetchall()
+    print(search, len(rows))
     return rows
 
     
