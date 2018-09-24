@@ -109,7 +109,7 @@ def complete(lang, text=None):
 @app.route("/<string:lang>/complete/id/<string:text>")
 def complete_id(lang, text=None):
     db = get_db(lang)
-    _id = "ls:%s:node:%s" % (lang, text)
+    _id = "ls:%s:node:%s" % (lang, text.split(':')[-1])
     return jsonify(
         { 'results': {
             'response' : {
@@ -245,7 +245,7 @@ from pdglib.graphdb_ig import engines
 api = explore_api(engines, graphdb)
 
 app.register_blueprint(api)
-
+print("DEBUG" ,app.debug)
 
 from pdgapi import get_engines_routes
     

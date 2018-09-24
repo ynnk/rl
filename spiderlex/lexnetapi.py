@@ -75,7 +75,7 @@ def explore_engine(graphdb):
 
     sglobal = Composable(get_graph) | ProxSubgraph()
     sglobal.name = "Global"
-    searchs.append(sglobal)
+    #searchs.append(sglobal)
 
     engine.graph.set( *searchs )
 

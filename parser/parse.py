@@ -132,7 +132,6 @@ def readcsv(path, name, type=dict):
             rows = []
             _rows = [ row for row in reader  ]
             for row in _rows :
-                #print row 
                 r = {k:v for k,v in row.items()}
                 rows.append(r)
             
@@ -365,11 +364,25 @@ class Parser(object):
                 
             # GC Caractéristiques grammaticales
 
-            split = lambda chaine : ([] if len(chaine) <= 2 else chaine[1:-1].split(',') )
-            #print [] if len(othercharac) <= 2 else othercharac[1:-1].split(',')
 
+            # variable gc
+            split = lambda chaine : ([] if len(chaine) <= 2 else chaine[1:-1].split(',') )
+            
+            def splitvars(chaine):
+                for e in '()':
+                    chaine = chaine.replace(e, "")
+                return [ e for e in chaine.split(',') if len(e)]
+            
             node = nodes[id]   
+            
             othercharac =  [ pos[e]['name']  for e in split(othercharac)  ]
+            othercharacvars = splitvars(othercharacvars)
+            for i,e in enumerate(othercharac):
+                for j,v in enumerate(othercharacvars):
+                    e = e.replace('%%%s'% (j+1), v )
+                othercharac[i] = e
+                
+            
             usagenote =  [ pos[e]['name']  for e in split(usagenote )]
             
             gc = {}
@@ -403,16 +416,7 @@ class Parser(object):
             if "$" in embededlex :
                 actants =  node['df']['actants']
                 z= [ e['vocable'] for e in  [ as_token(id,form, actants) for id,form in _embededlex ]]
-                
-                if node['rlfid'] in ( "ls:fr:node:45323" , "ls:fr:node:45326"):
-                    print "\n\n", node['rlfid']
-                    print "[t]","$" if "$" in embededlex else "" , id, embededlex, [t['id'] for t in tokens]
-                    print "embededlex", embededlex
-                    print "_embededlex", _embededlex
-                    print "actants", actants
-                    print [ as_token(id,form, actants) for id,form in _embededlex ]
-                    print z
-
+                                
             node['gc'] = gc
         
         self.todo(  " 06-lsgramcharac-rel.csv : TODO POST LOCUTIONS" )        
