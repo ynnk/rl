@@ -19,8 +19,8 @@ app = Flask(__name__)
 app.debug = os.environ.get('APP_DEBUG', None) == "true"
 PRODUCTION = os.environ.get('PRODUCTION', None)
 
-print "PRODUCTION", PRODUCTION
-print "debug ", app.debug, os.environ.get('APP_DEBUG', None)
+print( "PRODUCTION", PRODUCTION )
+print( "debug ", app.debug, os.environ.get('APP_DEBUG', None)
 
 logger = get_basic_logger(logging.DEBUG)
 
@@ -95,7 +95,6 @@ def complete(lang, text=None):
                     "name": c['name'],
                     "num": "", "prefix":"", "subscript":"", "superscript" : "" }
                 completions.append(lex)
-                print lex
             
         buff = c['name']
         completions.append(c)
@@ -151,9 +150,7 @@ def app_graph_query(lang, query=None):
         
 def app_graph(lang, query=None, path = ""):
 
-    if lang not in (LANGS) :
-        print lang, LANGS
-        
+    if lang not in (LANGS) :        
         abort(404)
 
     args = request.args
@@ -219,7 +216,6 @@ def app_graph(lang, query=None, path = ""):
 
     
 import sys
-print sys.path
 
 # igraph graphdb
 from pdglib.graphdb_ig import IGraphDB, engines
