@@ -20,7 +20,7 @@ app.debug = os.environ.get('APP_DEBUG', None) == "true"
 PRODUCTION = os.environ.get('PRODUCTION', None)
 
 print( "PRODUCTION", PRODUCTION )
-print( "debug ", app.debug, os.environ.get('APP_DEBUG', None)
+print( "debug ", app.debug, os.environ.get('APP_DEBUG', None))
 
 logger = get_basic_logger(logging.DEBUG)
 
