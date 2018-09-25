@@ -5,7 +5,8 @@ import os, sys
 import datetime
 import argparse
 
-import unicodecsv as csv
+#import unicodecsv as csv
+import csv
 import codecs
 import re
 import json
@@ -24,8 +25,8 @@ from bs4 import BeautifulSoup
 
 import sys
 # sys.setdefaultencoding() does not exist, here!
-reload(sys)  # Reload does the trick!
-sys.setdefaultencoding('UTF8')
+# reload(sys)  # Reload does the trick!
+# sys.setdefaultencoding('UTF8')
 
 """
  
@@ -302,7 +303,7 @@ class Parser(object):
 
             actants = actantslist if actantslist else "()";
             actants = [ e for e in actants[1:-1].split(',') if len(e)];
-            actants = map(lambda e: e.split('=') , actants)
+            actants = list(map(lambda e: e.split('=') , actants))
             
             df['actants']     = actants
             df['actantslist'] = actantslist
@@ -500,7 +501,7 @@ class Parser(object):
 
         edges = []
         skipped_weight = 0
-        for target, sources in l_inc_def.iteritems():
+        for target, sources in l_inc_def.items():
 
             weight = WEIGHT_INC_DEF
             for source in sources:
@@ -522,7 +523,7 @@ class Parser(object):
         properties = { "weight": Text() }
         edgetypes[name] = bot.post_edgetype(gid, name, name, properties)
 
-        for target, sources in l_inc_form.iteritems():
+        for target, sources in l_inc_form.items():
             weight = WEIGHT_INC_FORM
             
             for source in sources:
