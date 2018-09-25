@@ -111,10 +111,10 @@ class SemLabelHandler(RLFHandler):
 
 
 def info( message ):
-    print message
+    print( message )
 
 def error( message ):
-    print message
+    print( message )
 
 def debug( *args):
     if DEBUG:
@@ -275,7 +275,7 @@ class Parser(object):
             to_delete = ('%', 'entry', 'lexnum', 'addtoname')
             for k in to_delete : del node[k]
 
-        print len( set( [ n['id'] for n in nodes.values() ]) ), len(nodes)
+
 
         # DF
 
@@ -355,7 +355,7 @@ class Parser(object):
         rels = readcsv(path, "06-lsgramcharac-rel.csv", type=list)
         l_inc_form = {}
 
-        print "id, usagenote, usagenotevars, POS, phraseolstruc, embededlex, othercharac, othercharacvars"
+        print( "id, usagenote, usagenotevars, POS, phraseolstruc, embededlex, othercharac, othercharacvars" )
         for r in rels:
             id, usagenote, usagenotevars, POS, phraseolstruc, embededlex, othercharac, othercharacvars = r
             if POS == "":
@@ -677,8 +677,8 @@ class Parser(object):
             
         self.info(" * POST    Lexical Function edges : %s " % (count) ) 
 
-        print "\n\n == DEBUG == \n\n"
-        print len(nodes)
+        print( "\n\n == DEBUG == \n\n")
+        print( len(nodes) )
 
 
 def make_complete_db(db, completions):
@@ -729,7 +729,7 @@ def main():
 
     
     key = open(args.key).read().strip() if args.key else None
-    print args.host, args.key 
+    print( args.host, args.key )
 
     parse( gid, path, sqldb, backend, args.host, key, outgml )
     

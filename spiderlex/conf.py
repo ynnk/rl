@@ -2,10 +2,10 @@ CONFIG = {
     "langs" : ['fr', 'en'],
 
     "lnfr" : "../lnfr09.picklez",
-    "complete_fr" : "../completedb_fr1806.sqlite",
+    "complete_fr" : "../completedb_fr09.sqlite",
     
     "lnen" : "../lnen09.picklez",
-    "complete_en" : "../completedb_en1806.sqlite",
+    "complete_en" : "../completedb_enO9.sqlite",
 }
         
 
