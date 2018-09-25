@@ -19,7 +19,7 @@ bower:
 	cd spiderlex/jsext/;  wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O three.min.js
 
  
-build: jade polymer deploy
+build: jade deploy
 
 jade:
 
