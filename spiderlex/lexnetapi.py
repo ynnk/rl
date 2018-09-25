@@ -46,7 +46,7 @@ def explore_engine(graphdb):
         vs = []
         for u in pz:
             s = extract(graph, pzeros=[u], weighted=weighted,mode=mode, cut=cut, length=length)
-            vs = vs + s.keys()
+            vs = vs + list(s.keys())
 
         return graph.subgraph(vs)
 
