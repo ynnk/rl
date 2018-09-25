@@ -11,14 +11,9 @@ Flask-Markdown
 Flask-WTF
 wtforms
 
-# !! ubuntu : requires package libffi-dev
-flask-bcrypt
-
+unicodecsv
 requests
-itsdangerous
 beautifulsoup4
-uuid
-py2neo<3
 
 python-igraph
 numpy
@@ -28,5 +23,6 @@ scikit-learn
 reliure
 https://github.com/ynnk/cello/archive/master.zip
 https://github.com/padagraph/botapi/archive/master.zip
+https://github.com/padagraph/botapadd/archive/master.zip
 https://github.com/padagraph/pdglib/archive/master.zip
 https://github.com/padagraph/pdgapi/archive/master.zip
