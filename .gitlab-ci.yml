@@ -1,0 +1,37 @@
+variables:
+  SNAPSHOT_TAG: registry2.atilf.fr/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
+  RELEASE_TAG: registry2.atilf.fr/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_TAG
+  LATEST_TAG: registry2.atilf.fr/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest
+  BUILD_VERSION: $CI_BUILD_REF_NAME build $CI_PIPELINE_ID
+
+before_script:
+  - docker info
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry2.atilf.fr
+
+stages:
+  - build
+  - deploy
+
+build_snapshot:
+  stage: build
+  tags:
+    - atilf-shell
+  only:
+    - pushes
+  except:
+    - tags
+  script:
+    - docker build -t $SNAPSHOT_TAG .
+    - docker push $SNAPSHOT_TAG
+    - docker build -t $LATEST_TAG .
+    - docker push $LATEST_TAG
+
+build_release:
+  stage: deploy
+  tags:
+    - atilf-shell
+  only:
+    - tags
+  script:
+    - docker build -t $RELEASE_TAG .
+    - docker push $RELEASE_TAG
