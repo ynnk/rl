@@ -8,4 +8,5 @@ COPY . /usr/local/rl/
 RUN make install && make build && mv bower_components spiderlex/static
 WORKDIR /usr/local/rl/spiderlex
 ENV PYTHONPATH /usr/local/rl/parser
+RUN ls -al
 CMD gunicorn --bind 0.0.0.0:80 lexnet_app:app
