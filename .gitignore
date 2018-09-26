@@ -1,0 +1,9 @@
+
+venv/
+venv3/
+exports/
+node_modules/
+
+*.pyc
+*.sqlite
+*.picklez
