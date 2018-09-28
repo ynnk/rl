@@ -11,14 +11,11 @@ bower:
 	@echo " * Installing js requirements with bower"
 	@echo " --------------------------- \n"
 
-	if [ ! -d "./spiderlex/static" ]; then mkdir -p ./spiderlex/static; fi
+	mkdir -p spiderlex/static
 	rm -rf spiderlex/static/bower_components
 	./node_modules/bower/bin/bower --allow-root install
+	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O spiderlex/jsext/three.min.js
 
-	# wget threejs directly from github 
-	cd spiderlex/jsext/;  wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O three.min.js
-
- 
 build: jade deploy
 
 jade:
