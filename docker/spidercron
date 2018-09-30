@@ -1,4 +1,4 @@
 #!/bin/sh
 
-sh /usr/local/download.sh
+bash /usr/local/download.sh
 supervisorctl restart spiderlex
