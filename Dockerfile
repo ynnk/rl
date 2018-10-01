@@ -17,9 +17,9 @@ COPY --from=build /usr/local/bin/gunicorn* /usr/local/bin/
 COPY --from=build /usr/local/rl/parser /usr/local/rl/parser/
 COPY --from=build /usr/local/rl/spiderlex /usr/local/rl/spiderlex/
 COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ./docker/spidercron /etc/cron.daily/
+COPY ./docker/spidercron /etc/cron.hourly/
 COPY ./docker/download.sh /usr/local
-RUN chmod +x /etc/cron.daily/spidercron && bash /usr/local/download.sh
+RUN chmod +x /etc/cron.hourly/spidercron && bash /usr/local/download.sh
 
 EXPOSE 80
 CMD /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
