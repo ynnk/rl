@@ -7,6 +7,7 @@ cd /tmp
 for name in "${names[@]}"
 do
     if [ -e $name ]
+    then
         rm -f $name
     fi
 done
