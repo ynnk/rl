@@ -19,7 +19,8 @@ COPY --from=build /usr/local/rl/spiderlex /usr/local/rl/spiderlex/
 COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker/spidercron /etc/cron.daily/
 COPY ./docker/download.sh /usr/local
+COPY ./docker/docker-entrypoint.sh /
 RUN chmod +x /etc/cron.daily/spidercron && bash /usr/local/download.sh
 
 EXPOSE 80
-CMD /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+ENTRYPOINT ["/docker-entrypoint.sh"]
