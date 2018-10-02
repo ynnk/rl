@@ -1,4 +1,8 @@
 #!/bin/bash
+set -e
 
-source /usr/local/download.sh
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+if [ "$1" = 'supervisord' ]; then
+    source /usr/local/download.sh
+fi
+
+exec "$@"

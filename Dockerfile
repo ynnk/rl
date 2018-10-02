@@ -20,7 +20,9 @@ COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker/spidercron /etc/cron.daily/
 COPY ./docker/download.sh /usr/local
 COPY ./docker/docker-entrypoint.sh /usr/local
-RUN chmod +x /etc/cron.daily/spidercron
+RUN chmod +x /etc/cron.daily/spidercron && chmod +x /usr/local/docker-entrypoint.sh
 
 EXPOSE 80
 ENTRYPOINT ["/usr/local/docker-entrypoint.sh"]
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+

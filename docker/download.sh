@@ -1,23 +1,14 @@
 #!/bin/sh
 
-names=( "lnfr.picklez" "lnen.picklez" "completedb_fr.sqlite" "completedb_en.sqlite" )
+SOURCE="spiderlexdb.tgz"
 
 cd /tmp
 
-for name in "${names[@]}"
-do
-    if [ -e $name ]
-    then
-        rm -f $name
-    fi
-done
+if [ -e $SOURCE ]
+then
+    rm -f $SOURCE
+fi
 
-wget -q http://lexsys.atilf.fr/export/spiderlexdb.tgz
-tar zxf spiderlexdb.tgz
-
+wget -q http://lexsys.atilf.fr/export/$SOURCE
 cd /usr/local/rl
-
-for name in "${names[@]}"
-do
-    mv -f /tmp/$name .
-done
+tar zxf /tmp/$SOURCE
