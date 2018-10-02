@@ -7,8 +7,10 @@ cd /tmp
 for name in "${names[@]}"
 do
     rm -f $name
-    wget -q http://lexsys.atilf.fr/export/$name
 done
+
+wget -q http://lexsys.atilf.fr/export/spiderlexdb.tgz
+tar zxf spiderlexdb.tgz
 
 cd /usr/local/rl
 
