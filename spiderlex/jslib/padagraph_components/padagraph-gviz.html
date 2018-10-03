@@ -726,6 +726,9 @@ require(['backbone', 'jquery', 'semantic', 'cello', 'gviz', 'materials', 'pdgcon
       routes: Object,
       data: { type: Object, value: null },
       sync: { type: String, value: null }, // url
+      app: { type: Object, value: function value() {
+          return null;
+        } },
 
       on_complete: Object,
 
@@ -801,6 +804,7 @@ require(['backbone', 'jquery', 'semantic', 'cello', 'gviz', 'materials', 'pdgcon
 
       app = new App.Iframe(app_params);
       app.create_clustering_model();
+      this.app = app;
 
       if (sync) {
         var gid = sync.substring(sync.lastIndexOf('/') + 1);

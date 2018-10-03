@@ -427,7 +427,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
 .meta {
    margin: 2 2 8 8px;
  }
-.edges a { cursor:pointer }
+.edges a { cursor:pointer; padding:4px }
 .intersected.ui.popup {
    max-width: 520px;
    position: relative;
@@ -436,7 +436,7 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
 .intersected h4 {
    margin: 2 2 8 8px;
 }
-   </style><template><div id="pdg-mouse-popup" hidden$="{{!is_visible}}"><div class="intersected ui message visible"><template is="dom-if" if="{{ edges }}"><div class="edges"><template is="dom-repeat" items="{{ edges }}" as="edge"><rlf-vertex-xs id="source" graph="{{graph}}" model="[[edge.source]]" over="intersect" clicked="select"></rlf-vertex-xs><a on-click="select" class="edge"><i class="ellipsis horizontal icon"></i></a><rlf-vertex-xs id="target" graph="{{graph}}" model="[[edge.target]]" over="intersect" clicked="select"> </rlf-vertex-xs><div class="meta"><rlf-edge-type model="{{edge.edgetype}}" family="true"></rlf-edge-type></div><div hidden$="[[computeSpanHidden(index)]]" class="ui divider"></div></template></div></template></div></div></template><script>'use strict';
+   </style><template><div id="pdg-mouse-popup" hidden$="{{!is_visible}}"><div class="intersected ui message visible"><template is="dom-if" if="{{ edges }}"><div class="edges"><template is="dom-repeat" items="{{ edges }}" as="edge"><rlf-vertex-xs id="source" graph="{{graph}}" model="[[edge.source]]" over="intersect" clicked="select"></rlf-vertex-xs><a on-click="select" class="edge"><i class="small long right arrow horizontal icon"></i></a><rlf-vertex-xs id="target" graph="{{graph}}" model="[[edge.target]]" over="intersect" clicked="select"> </rlf-vertex-xs><div class="meta"><rlf-edge-type model="{{edge.edgetype}}" family="true"></rlf-edge-type></div><div hidden$="[[computeSpanHidden(index)]]" class="ui divider"></div></template></div></template></div></div></template><script>'use strict';
 
 require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
   Polymer({
@@ -598,9 +598,6 @@ a.link:hover {text-decoration: underline}
     font-weight: bold;
     margin-right: 2px;
     color: black;
-}
-.num-font, .subscript-font {
-    font-weight:bold;
 }
 
 </style><template><template is="dom-if" if="{{form.length}}"><a on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout" class="link">{{form}}</a></template><template is="dom-if" if="{{ labelOrItem(vertex, form) }}"><a class$="{{css}}" on-click="mouseclicked" on-mouseover="mouseover" on-mouseout="mouseout"><template is="dom-if" if="{{vertex.icon}}"><i style$="{{vertex.fontcolor}}" class="ui circle icon"></i></template><template is="dom-if" if="{{!vertex.icon}}"><i class="ui small black circle thin icon"></i></template><template is="dom-if" if="{{vertex.usagenote}}"><span class="usagenote">{{vertex.usagenote}}</span></template><template is="dom-if" if="{{vertex.prefix.length}}"><span class="normal-font">{{vertex.prefix}} </span></template><template is="dom-if" if="{{vertex.vocable}}"><span class="normal-font">{{vertex.vocable}}</span></template><template is="dom-if" if="{{vertex.subscript}}"><span class="subscript-font">{{vertex.subscript}}</span></template><template is="dom-if" if="{{vertex.superscript}}"><span class="superscript-font">{{vertex.superscript}}</span></template><template is="dom-if" if="{{vertex.num}}"><span class="num-font">{{vertex.num}}</span></template><!--| {{ model.label}}--></a></template><template is="dom-if" if="{{!vertex.id.length}}"><span class="normal-font">{{vertex.vocable}}</span></template></template><script>'use strict';
@@ -1015,9 +1012,6 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 .neighbor, .neighbors {
   display: inline;
 }
-.neighbors .target_synt_frame {
-    padding-left:4px;
-}
 .stdslf:after {
     //content: ': ';
 }
@@ -1225,12 +1219,9 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
     text-align: left;
     color: black;
 }
-.definiendum .label {
+.label {
+    font-size:17px;
     font-family:courier;
-    font-size: 17px;
-}
-#defhtml {
-    //margin-left: 20pt;
 }
 p {
     margin : 0px;
@@ -1382,7 +1373,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 .rlf a {
     cursor:pointer;
 }
-</style><template><template is="dom-if" if="{{model}}">           <div class="rlf"><div class="ui message"><h2>   <rlf-vertex-xs graph="{{graph}}" model="{{model}}" css="" on-click="explore"></rlf-vertex-xs><div class="sub header"><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ short(model.id) }}</a></div></h2></div><h4>[{{i18n('GC')}}]</h4><rlf-vertex-gc graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-gc><div class="ui divider"> </div><h4>[{{i18n('DF')}}]</h4><rlf-vertex-df graph="{{graph}}" model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><h4>[{{i18n('LF')}}]</h4><rlf-vertex-lf graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-lf><div class="ui divider"> </div><h4>[{{i18n('EX')}}]</h4><rlf-vertex-ex graph="{{graph}}" model="{{model}}"></rlf-vertex-ex><div class="ui divider"></div><h4>[{{i18n('PH')}}]</h4><rlf-vertex-loc graph="{{graph}}" model="{{model}}"></rlf-vertex-loc><div class="ui divider"></div></div></template></template><script>   'use strict';
+</style><template><template is="dom-if" if="{{model}}">           <div class="rlf"><div class="ui message"><h2>   <rlf-vertex-xs graph="{{graph}}" model="{{model}}" css="" on-click="explore"></rlf-vertex-xs><div class="sub header"><template is="dom-if" if="{{debug}}"><span>debug</span><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ short(model.id) }}</a></template></div></h2></div><h4>[{{i18n('GC')}}]</h4><rlf-vertex-gc graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-gc><div class="ui divider"> </div><h4>[{{i18n('DF')}}]</h4><rlf-vertex-df graph="{{graph}}" model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><h4>[{{i18n('LF')}}]</h4><rlf-vertex-lf graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-lf><div class="ui divider"> </div><h4>[{{i18n('EX')}}]</h4><rlf-vertex-ex graph="{{graph}}" model="{{model}}"></rlf-vertex-ex><div class="ui divider"></div><h4>[{{i18n('PH')}}]</h4><rlf-vertex-loc graph="{{graph}}" model="{{model}}"></rlf-vertex-loc><div class="ui divider"></div></div></template></template><script>   'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   var I18N = {
@@ -1414,12 +1405,12 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
       graph: Object,
       lang: String,
       complete: String,
+      debug: Boolean,
       model: {
         type: Object
       }
     },
 
-    //observer: 'observeModel'
     i18n: function i18n(key) {
       return I18N[this.lang][key];
     },

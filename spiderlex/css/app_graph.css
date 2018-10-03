@@ -64,12 +64,16 @@ h1 {
 
 .bootstrap-tagsinput {
     margin-bottom:2px;
-    line-height: 28px;
+    line-height: 16px;
 }
 
 ul.autocomplete {
     display:none;
     position:absolute;
+    right:50px;
+    max-height: 720px;
+    overflow-y: auto;
+    overflow-x: hidden;
     margin-top:10px;
     margin-left:-2px;
     z-index:200;
@@ -588,7 +592,6 @@ div.pf .vocable{
 
 div.pf{
     font-style: italic;
-    margin-left: 20pt;
 }
 
 div.definiens .label{
