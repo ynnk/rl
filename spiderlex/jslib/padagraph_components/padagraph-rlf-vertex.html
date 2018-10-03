@@ -806,7 +806,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 }
 
 span:after { content: " "; }
-</style><template><template is="dom-if" if="[[tokens]]"><span>{{gc.locution.name}}</span><span>[</span><template is="dom-repeat" items="[[tokens]]" as="tk"><template is="dom-if" if="{{tk.model}}"><rlf-vertex-xs graph="{{graph}}" model="{{tk.model}}"></rlf-vertex-xs></template><template is="dom-if" if="{{!tk.model}}"><rlf-vertex-xs graph="{{graph}}" model="{{tk}}"></rlf-vertex-xs></template><template is="dom-if" if="{{ hasmore_token(tokens, index) }}"><span class="plus">&nbsp;+ </span></template></template><span>&nbsp]</span></template></template><script>'use strict';
+</style><template><template is="dom-if" if="[[tokens]]"><span>{{gc.locution.name}}</span><template is="dom-if" if="[[locution]]"><span>[</span><template is="dom-repeat" items="[[tokens]]" as="tk"><template is="dom-if" if="{{tk.model}}"><rlf-vertex-xs graph="{{graph}}" model="{{tk.model}}"></rlf-vertex-xs></template><template is="dom-if" if="{{!tk.model}}"><rlf-vertex-xs graph="{{graph}}" model="{{tk}}"></rlf-vertex-xs></template><template is="dom-if" if="{{ hasmore_token(tokens, index) }}"><span class="plus">&nbsp;+ </span></template></template><span>&nbsp]</span></template></template></template><script>'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
     Polymer({
@@ -822,6 +822,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
         observe: function observe(graph, model) {
             var self = this;
             this.tokens = null;
+            this.locution = false;
 
             if (!graph || !model) return;
             // vertex as graph model
@@ -1295,7 +1296,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
         }
 
     });
-});</script></dom-module><dom-module id="rlf-vertex-loc"><style></style><template><template is="dom-if" if="{{ locutions.length }}"><template is="dom-repeat" items="[[locutions]]"><rlf-vertex-xs graph="{{graph}}" model="{{item}}" css="ui label"></rlf-vertex-xs><span>&nbsp;:&nbsp;</span><rlf-vertex-gc-locution graph="{{graph}}" model="{{item}}"></rlf-vertex-gc-locution><br/></template></template></template><script>'use strict';
+});</script></dom-module><dom-module id="rlf-vertex-loc"><style></style><template><template is="dom-if" if="{{ locutions.length }}"><template is="dom-repeat" items="[[locutions]]"><rlf-vertex-xs graph="{{graph}}" model="{{item}}" css="ui label"></rlf-vertex-xs><span> </span><rlf-vertex-gc-locution graph="{{graph}}" model="{{item}}"></rlf-vertex-gc-locution><br/></template></template></template><script>'use strict';
 
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
@@ -1373,7 +1374,7 @@ require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _,
 .rlf a {
     cursor:pointer;
 }
-</style><template><template is="dom-if" if="{{model}}">           <div class="rlf"><div class="ui message"><h2>   <rlf-vertex-xs graph="{{graph}}" model="{{model}}" css="" on-click="explore"></rlf-vertex-xs><div class="sub header"><template is="dom-if" if="{{debug}}"><span>debug</span><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ short(model.id) }}</a></template></div></h2></div><h4>[{{i18n('GC')}}]</h4><rlf-vertex-gc graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-gc><div class="ui divider"> </div><h4>[{{i18n('DF')}}]</h4><rlf-vertex-df graph="{{graph}}" model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><h4>[{{i18n('LF')}}]</h4><rlf-vertex-lf graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-lf><div class="ui divider"> </div><h4>[{{i18n('EX')}}]</h4><rlf-vertex-ex graph="{{graph}}" model="{{model}}"></rlf-vertex-ex><div class="ui divider"></div><h4>[{{i18n('PH')}}]</h4><rlf-vertex-loc graph="{{graph}}" model="{{model}}"></rlf-vertex-loc><div class="ui divider"></div></div></template></template><script>   'use strict';
+</style><template><template is="dom-if" if="{{model}}">           <div class="rlf"><div class="ui message"><h2>   <rlf-vertex-xs graph="{{graph}}" model="{{model}}" css="" on-click="explore"></rlf-vertex-xs><div class="sub header"><template is="dom-if" if="{{debug}}"><span>debug</span><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="/{{lang}}/id/{{ model.properties.attributes.rlfid }}" target="_blank" class="ui label">{{ model.properties.attributes.rlfid }} </a><a href="{{ geturl(model) }}" target="_blank" class="ui label">{{ short(model.id) }}</a></template></div></h2></div><h4>[{{i18n('GC')}}]</h4><rlf-vertex-gc graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-gc><div class="ui divider"></div><h4>[{{i18n('DF')}}]</h4><rlf-vertex-df graph="{{graph}}" model="{{model}}"></rlf-vertex-df><div class="ui divider"> </div><h4>[{{i18n('LF')}}]</h4><rlf-vertex-lf graph="{{graph}}" model="{{model}}" complete="{{complete}}"></rlf-vertex-lf><div class="ui divider"> </div><h4>[{{i18n('EX')}}]</h4><rlf-vertex-ex graph="{{graph}}" model="{{model}}"></rlf-vertex-ex><div class="ui divider"></div><h4>[{{i18n('PH')}}]</h4><rlf-vertex-loc graph="{{graph}}" model="{{model}}"></rlf-vertex-loc><div class="ui divider"></div></div></template></template><script>   'use strict';
 
 require(['backbone', 'underscore', 'jquery', 'pdgconst'], function (Backbone, _, $, Const) {
   var I18N = {
