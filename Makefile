@@ -47,6 +47,19 @@ deploy:
 	cp -rf spiderlex/jslib/* spiderlex/static/
 	cp -rf spiderlex/polymer/* spiderlex/static/
 
+graphs: lnfr lnen
+
+lnfr: 
+	. venv3/bin/activate; cd parser; \
+	python3 parse.py lnfr ../exports/ls-fr-spiderlex/ --complete ../completedb_fr.sqlite -s igraph -o ../lnfr.picklez
+
+lnen: 
+	. venv3/bin/activate; cd parser; \
+	python3 parse.py lnen ../exports/ls-en-spiderlex/ --complete ../completedb_en.sqlite -s igraph -o ../lnen.picklez
+
+rundev: 
+	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ; cd spiderlex ; flask run 
+
 help:
 	@echo " --------------------------"
 	
