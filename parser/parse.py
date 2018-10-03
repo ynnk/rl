@@ -24,9 +24,6 @@ import sqlite3
 from bs4 import BeautifulSoup
 
 import sys
-# sys.setdefaultencoding() does not exist, here!
-# reload(sys)  # Reload does the trick!
-# sys.setdefaultencoding('UTF8')
 
 """
  
@@ -501,10 +498,14 @@ class Parser(object):
 
         edges = []
         skipped_weight = 0
-        for target, sources in l_inc_def.items():
+        
+        
+        _nodes = { e['rlfid'] : e for e in nodes.values() }
+        
+        for source, targets in l_inc_def.items():
 
             weight = WEIGHT_INC_DEF
-            for source in sources:
+            for target in targets:
                 payload = {
                             'edgetype': edgetypes[name]['uuid'],
                             'source': idx[source],
@@ -513,6 +514,8 @@ class Parser(object):
                                     'weight' : weight,
                             } 
                         }
+                print ( 'source', idx[source] , _nodes[source]['vocable'] ,'target', idx[target], _nodes[target]['vocable'] )
+                
                 edges.append(payload)
 
 
@@ -523,21 +526,21 @@ class Parser(object):
         properties = { "weight": Text() }
         edgetypes[name] = bot.post_edgetype(gid, name, name, properties)
 
-        for target, sources in l_inc_form.items():
+        for source, targets in l_inc_form.items():
             weight = WEIGHT_INC_FORM
             
-            for source in sources:
+            for target in targets:
                 payload = {
                             'edgetype': edgetypes[name]['uuid'],
-                            'source': idx[target],
-                            'target': idx[source],
+                            'source': idx[source],
+                            'target': idx[target],
                             'properties': {
                                     'weight' : weight,
                             } 
                         }
                 edges.append(payload)
 
-        for e in bot.post_edges(gid, iter(edges) ) : 
+        for e in bot.post_edges(gid, iter(edges), lambda e: e['edgetype'] ) : 
             pass
         
 
@@ -587,7 +590,9 @@ class Parser(object):
                         'edgetype': edgetypes[_name(t,s) ]['uuid'],
                         'source': idx[src],
                         'target': idx[tgt],
-                        'properties': { 'weight' : WEIGHT_COPO, 'i': count } 
+                        'properties': { 'weight' : WEIGHT_COPO,
+                                        'i': count
+                                      } 
                     }
             edges.append(payload)
 
@@ -672,7 +677,7 @@ class Parser(object):
             self.debug( "    edges : %s %s" % (len( [ e for e in edges if e['edgetype'] == edgetypes[name]['uuid']  ] ), name, ) )
         count = 0; uuids = []
 
-        for e, uuid in bot.post_edges(gid, iter(edges) ) : 
+        for e, uuid in bot.post_edges(gid, iter(edges) , extra=lambda e : e['edgetype']) : 
             count +=1
             uuids.append(uuid)
             
