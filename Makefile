@@ -1,5 +1,7 @@
 .phony : install build 
 
+
+
 install: npm bower
 
 npm:
@@ -15,6 +17,11 @@ bower:
 	rm -rf spiderlex/static/bower_components
 	./node_modules/bower/bin/bower --allow-root install
 	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O spiderlex/jsext/three.min.js
+
+
+
+
+
 
 build: jade deploy
 
@@ -44,6 +51,10 @@ deploy:
 	cp -rf spiderlex/jslib/* spiderlex/static/
 	cp -rf spiderlex/polymer/* spiderlex/static/
 
+
+
+
+
 graphs: lnfr lnen
 
 lnfr: 
@@ -54,8 +65,13 @@ lnen:
 	. venv3/bin/activate; cd parser; \
 	python3 parse.py lnen ../exports/ls-en-spiderlex/ --complete ../completedb_en.sqlite -s igraph -o ../lnen.picklez
 
+
+
+
 rundev: 
 	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ; cd spiderlex ; flask run 
+
+
 
 help:
 	@echo " --------------------------"
