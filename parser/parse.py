@@ -194,6 +194,7 @@ class Parser(object):
         lexie_props = {
         
             'rlfid'   : Text(),
+            'entry_id'   : Text(),
             'id'      : Text(),
             'label'   : Text(),
             'num'     : Text(),
@@ -214,7 +215,9 @@ class Parser(object):
         nodes = { e['id']: e for e in readcsv(path, "01-lsnodes.csv") }
         entries =  { e['id']: e for e in readcsv( path, "02-lsentries.csv") } 
 
-        for e in entries.values() : e.pop('id')
+        for k,v in entries.items() : 
+            i = v.pop('id')
+            entries[k]['entry_id'] = i 
 
 
         def as_token(nid, form, actants ):
@@ -230,7 +233,7 @@ class Parser(object):
                 # conversion des variables d actants
                 _form = form
                 if len(actants):
-                    for k,v in actants :
+                    for k,v,i in actants :
                         _form = _form.replace(k,v)
                     
                 dic['vocable'] = _form
@@ -299,7 +302,8 @@ class Parser(object):
             df['percent'] = percent
 
             actants = actantslist if actantslist else "()";
-            actants = [ e for e in actants[1:-1].split(',') if len(e)];
+            # [ "$1", "X" , 1 ]
+            actants = [ "%s=%s"%(e,i+1) for i,e in enumerate(actants[1:-1].split(',')) if len(e)];
             actants = list(map(lambda e: e.split('=') , actants))
             
             df['actants']     = actants
@@ -478,7 +482,7 @@ class Parser(object):
         
         for node, uuid in bot.post_nodes( gid, gen(nodes.values()), key='rlfid' ):
             idx[ node['properties']['rlfid'] ] = uuid
-            r = list( node['properties'][k] for k in ['rlfid','vocable','num','prefix','subscript','superscript'])
+            r = list( node['properties'][k] for k in ['entry_id', 'rlfid', 'vocable','num','prefix','subscript','superscript'])
             self.completions.append( [uuid] + r )
 
         self.info( " * POST    Lexie nodes : %s" % (len(idx)) )
@@ -695,14 +699,14 @@ def make_complete_db(db, completions):
     c.execute('''DROP TABLE  IF EXISTS complete''')
     
     c.execute('''CREATE TABLE complete
-                 (uuid text, entry text, name text, lexnum text, prefix text, subscript text, superscript text)''')
+                 (uuid text, entry_id text, entry text, name text, lexnum text, prefix text, subscript text, superscript text)''')
     c.execute('''CREATE UNIQUE INDEX index_uuid on complete (uuid);''')
     c.execute('''CREATE UNIQUE INDEX index_entry on complete (entry);''')
     c.execute('''CREATE INDEX index_name on complete (name);''')
 
     rows = []
     
-    c.executemany('INSERT INTO complete ( uuid, entry, name , lexnum, prefix, subscript, superscript ) VALUES (?,?,?,?,?,?,?)', completions)
+    c.executemany('INSERT INTO complete ( uuid, entry_id, entry, name , lexnum, prefix, subscript, superscript ) VALUES (?,?,?,?,?,?,?,?)', completions)
 
     db.commit()
     db.close()
