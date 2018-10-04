@@ -16,6 +16,7 @@ bower:
 	mkdir -p spiderlex/static
 	rm -rf spiderlex/static/bower_components
 	./node_modules/bower/bin/bower --allow-root install
+	mv bower_components/ spiderlex/static/
 	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O spiderlex/jsext/three.min.js
 
 
