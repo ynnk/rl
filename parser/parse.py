@@ -514,8 +514,6 @@ class Parser(object):
                                     'weight' : weight,
                             } 
                         }
-                print ( 'source', idx[source] , _nodes[source]['vocable'] ,'target', idx[target], _nodes[target]['vocable'] )
-                
                 edges.append(payload)
 
 
