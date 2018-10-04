@@ -259,11 +259,14 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
         },
 
         validate: function(){
-            uuids = this.models.filter(function(unit){ return unit.get('uuid')  });
-            var res = this.length > 0 && this.length == uuids.length;
-            if (!res)
+            uuids = this.models.filter(function(unit){ return unit.get('group')? unit.get('group') : unit.get('uuid') }).flat();
+            
+            if (this.length > uuids.length) {
                 this.request_uuids();
-            return res;
+                return false
+            }
+            
+            return true;
         },
 
         request_uuids: function(){

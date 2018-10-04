@@ -96,7 +96,7 @@ define([
                 render: function () {
                     var data = this.model.toJSON();
                     this.$el.html( this.template(data) );
-                    if ( ! data.subscript && ! data.superscript && ! data.num){
+                    if ( data.group){
                         this.$el.addClass('completion_form');
                     }else{
                         console.log( data.subscript + " " + data.superscript + " " + data.num) 

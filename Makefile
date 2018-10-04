@@ -69,12 +69,17 @@ lnen:
 
 
 rundev: 
-	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ; cd spiderlex ; flask run 
+	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ;export FLASK_DEBUG=1; cd spiderlex ; flask run 
 
 
 
 help:
 	@echo " --------------------------"
+	
+	@echo "\n   * INSTALL:"
+	@echo "\n   $$ make install "
+
+	@echo "\n --------------------------"
 	
 	@echo "\n   * Build:"
 	@echo "\n   $$ make build "
@@ -82,11 +87,15 @@ help:
 	@echo "\n --------------------------"
 
 	@echo "\n   * Parse export to graph:"
-	@echo "\n   $$ cd parser; python parse.py lnfr ../exports/fr-ls-spiderlex/ --complete ../completedb_fr1804.sqlite -s igraph -o ../lnfr1804.picklez"
+	@echo "\n   $$ make graphs "
+	@echo "\n   $$ #or manual cmd "
+	@echo "\n   $$ cd parser; python parse.py lnfr ../exports/ls-fr-spiderlex/ --complete ../completedb_fr.sqlite -s igraph -o ../lnfr.picklez"
 	
 	@echo "\n --------------------------"
 
-	@echo "\n   * Flask server:"
+	@echo "\n   * Flask server FOR DEVELOPPEMENT ONLY :"
+	@echo "\n   $$ make rundev"
+	@echo "\n   $$ #or manual cmd "
 	@echo "\n   $$ cd spiderlex; export PYTHONPATH=$PYTHONPATH:../parser/ ; port APP_DEBUG=true;  python lexnet_app.py  --port 5002"
 
 	@echo "\n --------------------------\n"

@@ -249,7 +249,8 @@
                 app.listenTo(app.views.userquery, "submited", function(){
                   console.log(" === submited", arguments);
                   if(app.models.userquery.validate()){
-                    var params = app.models.userquery.map( function(e) { return { 'query':  e.get('uuid')} });
+                    var uuids = app.models.userquery.map( function(d) { return d.get('group')? d.get('group') : d.get('uuid') }).flat();
+                    var params = uuids.map( function(e) { return { 'query':  e } });
                     Backbone.trigger('engine:explore', params);
                   }
                 });

@@ -499,7 +499,7 @@ span.superscript-font{
     
 }
     
-span.subscript-font{
+.sub, span.subscript-font{
     margin-left : 1px;
     font-size: 0.75em;
     vertical-align: sub;

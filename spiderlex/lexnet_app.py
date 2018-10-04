@@ -86,17 +86,21 @@ def complete(lang, text=None):
 
     buff = ""
     for c in array:
-        filters = [ c.get(k, None) not in ('', None) for k in ("num", "subscript", "superscript") ]
-        if any( filters ):
-            if buff != c['name'] :
-                lex = {
-                    "uuid": "",
-                    "entry": "",
-                    "name": c['name'],
-                    "num": "", "prefix":"", "subscript":"", "superscript" : "" }
-                completions.append(lex)
+        if buff != c['entry_id']:
+            lex = {
+                "uuid": "",
+                "entry_id": c['entry_id'],
+                "group": [e['uuid'] for e in array if e['entry_id'] == c['entry_id'] ],
+                "entry": "",
+                "prefix":c['prefix'],                
+                "name": c['name'],
+                "num": "", 
+                "subscript":c['subscript'],
+                "superscript" : "" 
+            }
+            completions.append(lex)
+            buff = c['entry_id']
             
-        buff = c['name']
         completions.append(c)
         
     return jsonify(
