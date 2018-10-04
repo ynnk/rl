@@ -34,17 +34,17 @@ def complete_uuids(item, db, limit=20):
     db.row_factory = dict_factory
     c = db.cursor()
     
-    # ~ args = [ item.get(e) for e in ['prefix', 'name', 'subscript', 'superscript', 'num'] ]
     args = [ item.get(e) for e in ['prefix', 'name', 'subscript', 'superscript', 'num'] ]
     args += [limit]
-    # ~ c.execute( "select  uuid, entry_id, entry, name , lexnum as num , prefix, subscript, superscript from complete where prefix = ? and name = ? and subscript = ?  ORDER BY name asc, lexnum asc limit ?", tuple(args) )
     c.execute( "select  uuid, entry_id, entry, name , lexnum as num , prefix, subscript, superscript from complete where prefix = ? and name = ? and subscript = ? and superscript = ? and num = ? ORDER BY name asc, lexnum asc limit ?", tuple(args) )
     rows = c.fetchall()
 
-    print(args, rows)
 
     if len(rows) == 0 :
-        c.execute( "select  uuid,  entry_id, entry, name , lexnum as num , prefix, subscript, superscript from complete where name = ? ORDER BY name asc, lexnum asc limit ?", ( item.get('name'), limit) )
+        if len(args[2]):
+            c.execute( "select  uuid,  entry_id, entry, name , lexnum as num , prefix, subscript, superscript from complete where name = ? and subscript = ? ORDER BY name asc, lexnum asc limit ?", ( item.get('name'),item.get('subscript'), limit) )
+        else:
+            c.execute( "select  uuid,  entry_id, entry, name , lexnum as num , prefix, subscript, superscript from complete where name = ? ORDER BY name asc, lexnum asc limit ?", ( item.get('name'), limit) )
         rows = c.fetchall() 
         
     return rows
