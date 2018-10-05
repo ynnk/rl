@@ -565,9 +565,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
     margin-right: 1em;
 
 }
-.sup, .superscript {
-    margin-left: -13px !important; 
-}
+
 </style><template><template is="dom-if" if="{{ family }}">         <div class="edgetypelabel"><span class="family normal-font">{{edgetype.family}} :</span><template is="dom-if" if="{{ !edgetype.cdata }}"><span id="cdata" class="family normal-font"></span><span class="family normal-font">{{edgetype.name}}</span><span class="subscript-font">{{edgetype.subscript}}</span><span class="superscript-font">{{edgetype.superscript}}</span><span class="combination-font">{{edgetype.combination}}</span></template><span class="cdata family normal-font"></span></div></template><template is="dom-if" if="{{ !family }}"><div class="inline"><template is="dom-if" if="{{ !edgetype.cdata }}"><span class="family normal-font">{{edgetype.name}}</span><span class="subscript-font">{{edgetype.subscript}}</span><span class="superscript-font">{{edgetype.superscript}}</span><span class="combination-font">{{edgetype.combination}}</span></template><span class="cdata family normal-font"></span></div></template></template><script>'use strict';
 
 require(['backbone', 'pdgconst'], function (Backbone, Const) {
@@ -589,8 +587,8 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
 
       this.edgetype = model.parse_label();
       this.async(function () {
+        //- set html content
         if (_this.edgetype.cdata) $(".cdata", _this)[0].innerHTML = _this.edgetype.cdata;
-        //this.$.cdata.innerHTML = this.edgetype.cdata
       });
     }
 
