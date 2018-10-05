@@ -500,13 +500,17 @@ span.normal-font{
 }
     
 .sub, span.subscript-font{
-    margin-left : px;
+    margin-left : 0px;
     font-size: 0.75em;
     vertical-align: sub;
 }
 
 rlf-edge-type .sup {
-    margin-left: -13px !important; 
+    margin-left: -10px !important; 
+}
+
+rlf-edge-type .sub {
+    margin-left: -2px !important; 
 }
     
 span.num-font{
