@@ -3,7 +3,7 @@ gunicorn
 
 flask
 flask-cli
-
+flask-script
 flask-login
 flask-cors
 Flask-Markdown
