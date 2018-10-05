@@ -5,7 +5,6 @@ import os, sys
 import datetime
 import argparse
 
-#import unicodecsv as csv
 import csv
 import codecs
 import re

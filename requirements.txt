@@ -9,7 +9,6 @@ Flask-Markdown
 Flask-WTF
 wtforms
 
-unicodecsv
 requests
 beautifulsoup4
 
