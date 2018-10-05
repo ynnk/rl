@@ -668,7 +668,7 @@ span.target_usage:after
 span.target_synt_frame
 {
 	font-size: 0.75em;
-    padding-left: 2px;
+    padding-left: 4px;
 }
 
 /*#tooltip>div.gcs>span.gc:after{
