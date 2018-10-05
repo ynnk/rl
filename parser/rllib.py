@@ -9,14 +9,15 @@ def dict_factory(cursor, row):
     return d
 
     
-def complete(search, db, limit=20):
+def complete(search, db, prefix=False, limit=20):
 
     SELECT = "select  uuid, entry_id, entry, name, lexnum as num , prefix, subscript, superscript from complete where"
     ORDER = " ORDER BY name, entry_id, prefix, lexnum";
-
+    WHERE = " prefix != '' and " if prefix else ""
+    
     c = db.cursor()
 
-    c.execute( "%s name like ?  %s limit ?" % (SELECT, ORDER), ( search+'%',limit) )
+    c.execute( "%s name like ?  %s limit ?" % (SELECT + WHERE, ORDER), ( search+'%',limit) )
     rows =  c.fetchall()
     return rows
 

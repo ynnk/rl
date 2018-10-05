@@ -82,8 +82,8 @@ def complete(lang, text=None):
         _id = "ls:%s:node:%s" % (lang, name[1:])
         array = rllib.complete_id(_id, db )
     else :
-        if lang == 'fr' and name[0:3] == 'se ':
-            array = rllib.complete(name[3:], db)
+        if lang == 'fr' and name[0:3].lower() == 'se ':
+            array = rllib.complete(name[3:], db, prefix=True)
         else :
             array = rllib.complete(name, db)
 
