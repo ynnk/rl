@@ -16,13 +16,11 @@ import sqlite3
 
 # Build the app & 
 app = Flask(__name__)
-app.debug = os.environ.get('APP_DEBUG', None) == "true"
-PRODUCTION = os.environ.get('PRODUCTION', None)
+app.debug = os.environ.get('FLASK_DEBUG', None) == "1"
+logger = get_basic_logger(logging.DEBUG if app.debug  else logging.INFO)
 
-print( "PRODUCTION", PRODUCTION )
-print( "debug ", app.debug, os.environ.get('APP_DEBUG', None))
+print( "//  DEBUG ::  ", app.debug )
 
-logger = get_basic_logger(logging.DEBUG)
 
 
 # Flask-Login
@@ -31,7 +29,6 @@ from flask_login import LoginManager, current_user, login_user, login_required
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-from flask_script import Manager
 from flask_cors import CORS
 CORS(app)
 
