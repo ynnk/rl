@@ -16,7 +16,7 @@ import sqlite3
 
 # Build the app & 
 app = Flask(__name__)
-app.debug = os.environ.get('FLASK_DEBUG', None) == "1"
+app.debug = os.environ.get('APP_DEBUG', None) == "1"
 logger = get_basic_logger(logging.DEBUG if app.debug  else logging.INFO)
 
 print( "//  DEBUG ::  ", app.debug )
