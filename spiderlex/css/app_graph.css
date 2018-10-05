@@ -488,12 +488,12 @@ span.normal-font{
 
 }
 
-span.superscript-font{
+.sup, span.superscript-font{
 /*    font-size : 60%;
     margin-left : 2px;
     vertical-align : +30%;
 */
-    margin-left : 2px;
+    margin-left : -11px;
     font-size: 0.75em;
     vertical-align: super;
     
