@@ -4,6 +4,12 @@
 
 install: npm bower
 
+yarn:
+	curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+	echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+	sudo apt-get update && sudo apt-get install yarn
+
+
 npm:
 	npm install jade --save
 	npm install bower --save
@@ -75,28 +81,4 @@ rundev:
 
 
 help:
-	@echo " --------------------------"
-	
-	@echo "\n   * INSTALL:"
-	@echo "\n   $$ make install "
-
-	@echo "\n --------------------------"
-	
-	@echo "\n   * Build:"
-	@echo "\n   $$ make build "
-
-	@echo "\n --------------------------"
-
-	@echo "\n   * Parse export to graph:"
-	@echo "\n   $$ make graphs "
-	@echo "\n   $$ #or manual cmd "
-	@echo "\n   $$ cd parser; python parse.py lnfr ../exports/ls-fr-spiderlex/ --complete ../completedb_fr.sqlite -s igraph -o ../lnfr.picklez"
-	
-	@echo "\n --------------------------"
-
-	@echo "\n   * Flask server FOR DEVELOPPEMENT ONLY :"
-	@echo "\n   $$ make rundev"
-	@echo "\n   $$ #or manual cmd "
-	@echo "\n   $$ cd spiderlex; export PYTHONPATH=$PYTHONPATH:../parser/ ; port APP_DEBUG=true;  python lexnet_app.py  --port 5002"
-
-	@echo "\n --------------------------\n"
+	@cat README
