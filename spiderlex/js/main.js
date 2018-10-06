@@ -1,36 +1,33 @@
 // Filename: main.js
 
-var path = "../static/bower_components/"
+var path = "../static/node_modules/"
 
 require.config({
       waitSeconds: 0,
       paths: {
 
-        //underscore : path + 'underscore/underscore-min',
-        //backbone   : path + 'backbone/backbone-min',
-        //jquery     : path + 'jquery/dist/jquery.min',
-        
+        semantic : path + 'semantic-ui-css/semantic.min',
+        requirejs : path + 'requirejs/require',
+        underscore : path + 'underscore/underscore-min',
+        backbone   : path + 'backbone/backbone-min',
+        jquery     : path + 'jquery/dist/jquery.min',
+        threejs   :  path + 'three/three.min',
+        tween     :  path + 'tweenjs/lib/tweenjs.min',
+        mousetrap :  path + 'mousetrap/mousetrap.min',
+        moment    :  path + 'moment/min/moment.min',
+
         app_graph     : 'app_graph',
         cello     : 'cello',
         gviz      : 'gviz',
-        embed     : 'embed',
-        
-        //cello     : 'cello',
+        embed     : 'embed',        
         cello_core     : 'cello',
         celloui     : 'cello-ui',
+        //pdgconst  : 'pdgconst',
         //gviz      : 'gviz',
         //embed     : 'embed',     
-        
-        threejs   : 'three',
-        numeric   : 'numeric-1.2.6',
-        //tween     : 'tween',
         //materials : 'materials',
-        //pdgconst  : 'pdgconst',
-
-        //mousetrap : 'mousetrap',
-        moment    : 'moment',
-        json2html    : 'json2html',
-
+        numeric   :  'numeric-1.2.6',
+        json2html : 'json2html',
         autocomplete : 'backbone.autocomplete',
         bootbox : 'bootbox.min',
         tagsinput: 'semui-tagsinput',

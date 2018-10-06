@@ -2,7 +2,7 @@
 
 
 
-install: npm bower
+install: npm 
 
 yarn:
 	curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -12,18 +12,7 @@ yarn:
 
 npm:
 	npm install jade --save
-	npm install bower --save
-
-bower: 
-	@echo "\n --------------------------"
-	@echo " * Installing js requirements with bower"
-	@echo " --------------------------- \n"
-
-	mkdir -p spiderlex/static
-	rm -rf spiderlex/static/bower_components
-	./node_modules/bower/bin/bower --allow-root install
-	mv bower_components/ spiderlex/static/
-	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O spiderlex/jsext/three.min.js
+	npm install 
 
 
 
@@ -52,6 +41,9 @@ polymer:
 	cp ../padagraph/application/src/static/padagraph_webcomponents/*.html ./spiderlex/jslib/padagraph_components/
 
 deploy:
+	
+	cp -r node_modules  spiderlex/static/
+
 	cp -rf spiderlex/css spiderlex/static/
 	cp -rf spiderlex/js/* spiderlex/static/
 	cp -rf spiderlex/jsext/* spiderlex/static/

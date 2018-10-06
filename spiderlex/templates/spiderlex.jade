@@ -10,21 +10,20 @@ html
     title RL/Spiderlex 
 
     <!--  SemUI CSS    -->
-    link(rel='stylesheet' href="{{url_for('static',  filename='bower_components/semantic-ui/dist/semantic.min.css')}}")
+    link(rel='stylesheet' href="{{url_for('static',  filename='node_modules/semantic-ui-css/semantic.min.css')}}")
 
     <!--  our CSS    -->
     link( rel="stylesheet" href="{{url_for('static', filename='css/app_graph.css')}}" type="text/css" )
     link( rel="stylesheet" href="{{url_for('static', filename='css/engine.css')}}" type="text/css" )
 
     <!--  require JS    -->
-    script( data-main="{{url_for('static', filename='main')}}" src="{{url_for('static', filename='require.js')}}")
+    script( data-main="{{url_for('static', filename='main')}}" src="{{url_for('static', filename='node_modules/requirejs/require.js')}}")
 
 
     <!-- web components-->
     
-    script( src="/static/webcomponents-lite.min.js" )
-
-    link( rel="import" href="/static/bower_components/polymer/polymer.html")
+    script( src="/static/node_modules/webcomponents-lite/webcomponents-lite.js" )
+    link( rel="import" href="/static/node_modules/Polymer/polymer.html")
 
     link( rel="import" href="{{url_for('static', filename='spiderlex-app.html')}}")
 

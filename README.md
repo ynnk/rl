@@ -5,6 +5,7 @@
 
 ## INSTALL:
 
+   $ sudo make yarn
    $ make install 
 
 -------------------------
