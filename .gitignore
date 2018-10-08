@@ -8,3 +8,6 @@ node_modules/
 *.pyc
 *.sqlite
 *.picklez
+
+yarn-error.log
+yarn.lock

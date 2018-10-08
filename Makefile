@@ -1,21 +1,21 @@
-.phony : install build 
+.phony : yarn install build 
 
 
 
-install: npm 
-
-yarn:
+yarn: 
 	curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 	echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 	sudo apt-get update && sudo apt-get install yarn
 
+venv3:
+	virtualenv -p python3 venv3
+	. venv3/bin/activate; pip install -r requirements.txt
 
-npm:
-	npm install jade --save
-	npm install 
+install : npm
 
-
-
+npm: 
+	yarn
+	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O node_modules/three/three.min.js
 
 
 
@@ -41,7 +41,8 @@ polymer:
 	cp ../padagraph/application/src/static/padagraph_webcomponents/*.html ./spiderlex/jslib/padagraph_components/
 
 deploy:
-	
+
+	mkdir -p spiderlex/static/
 	cp -r node_modules  spiderlex/static/
 
 	cp -rf spiderlex/css spiderlex/static/
@@ -49,9 +50,6 @@ deploy:
 	cp -rf spiderlex/jsext/* spiderlex/static/
 	cp -rf spiderlex/jslib/* spiderlex/static/
 	cp -rf spiderlex/polymer/* spiderlex/static/
-
-
-
 
 
 graphs: lnfr lnen
@@ -71,6 +69,11 @@ rundev:
 	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ;export FLASK_DEBUG=1; cd spiderlex ; flask run 
 
 
+clean:
+	rm -rf node_modules
+	rm -rf venv3
+	rm -rf spiderlex/static
+	
 
 help:
 	@cat README

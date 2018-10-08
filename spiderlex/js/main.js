@@ -1,6 +1,6 @@
 // Filename: main.js
 
-var path = "../static/node_modules/"
+var path = "/static/node_modules/"
 
 require.config({
       waitSeconds: 0,
@@ -12,7 +12,7 @@ require.config({
         backbone   : path + 'backbone/backbone-min',
         jquery     : path + 'jquery/dist/jquery.min',
         threejs   :  path + 'three/three.min',
-        tween     :  path + 'tweenjs/lib/tweenjs.min',
+        tween     :  path + '@tweenjs/tween.js/src/Tween',
         mousetrap :  path + 'mousetrap/mousetrap.min',
         moment    :  path + 'moment/min/moment.min',
 

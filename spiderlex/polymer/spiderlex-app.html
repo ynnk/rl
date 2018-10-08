@@ -1,4 +1,3 @@
-<link rel="import" href="/static/bower_components/polymer/polymer.html"/>
 
 
 <dom-module id="spiderlex-app">
@@ -14,8 +13,8 @@
   </template>
   <script>
     require(["jquery", "underscore", "backbone", 
-        "app_graph", "cello", "embed",  "gviz", "models", "semantic"
-        ],  function( $, _, Backbone, App, Cello, Embed, Gviz, Models, SEMUI){
+        "app_graph", "cello", "embed",  "gviz", "models", "semantic", "tween"
+        ],  function( $, _, Backbone, App, Cello, Embed, Gviz, Models, SEMUI, TWEEN){
     
       Polymer({
         is: "spiderlex-app",

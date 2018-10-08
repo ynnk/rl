@@ -1,4 +1,4 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><link rel="import" href="./padagraph-type-constraint-form.html"/><dom-module id="padagraph-type-property"><template><style>.inline.field label {
+<link rel="import" href="./padagraph-type-constraint-form.html"/><dom-module id="padagraph-type-property"><template><style>.inline.field label {
     display: block !important;
 }
 </style><div class="two fields"><div class="inline field"> <label>name</label><input type="text" readonly$="{{readonly}}" value="{{model.attributes.name::input}}"/></div><div id="field_type" class="inline field"><label>type</label><select id="xtype" name="xtype" class="ui dropdown"><option value="Text">Text</option><option value="Numeric">Numeric</option><option value="Date">Date</option><option value="Location">Place or Location</option><option value="Markdown">Markdown</option><option value="LinkUrl">Url</option><option value="ImageUrl">Image url </option><option value="VideoUrl">Video url </option><option value="PadUrl">Collaborative Pad url </option></select></div><!--  .inline.field

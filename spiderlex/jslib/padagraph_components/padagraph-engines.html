@@ -1,4 +1,4 @@
-<link rel="import" href="../../static/bower_components/polymer/polymer.html"/><dom-module id="padagraph-keb-sample"><style></style><template><template is="dom-if" if="{{ locutions.length }}"><template is="dom-repeat" items="[[locutions]]">{{item}}</template></template></template><script>'use strict';
+<dom-module id="padagraph-keb-sample"><style></style><template><template is="dom-if" if="{{ locutions.length }}"><template is="dom-repeat" items="[[locutions]]">{{item}}</template></template></template><script>'use strict';
 
 require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
   Polymer({

@@ -1,12 +1,13 @@
 FROM ubuntu:latest as build
 
-RUN apt-get update && apt-get -y install npm g++-7 make libxml2-dev python3 python3-pip npm git wget
+RUN apt-get update && apt-get -y install g++-7 make libxml2-dev python3 python3-pip npm git wget
 WORKDIR /usr/local/rl
 COPY requirements.txt ./
 RUN pip3 install -r requirements.txt
-COPY bower.json Makefile ./
+COPY package.json Makefile ./
 COPY . ./
-RUN make install && make build
+RUN make yarn
+RUN make install build
 
 FROM ubuntu:latest
 RUN apt-get update && apt-get -y --no-install-recommends install python3 libxml2 cron supervisor wget

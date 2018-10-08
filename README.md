@@ -5,8 +5,12 @@
 
 ## INSTALL:
 
-   $ sudo make yarn
-   $ make install 
+   yarn is used in the buid process to install Polymer correctly.  
+   also install from `packages.json`
+
+    $ sudo make yarn
+   
+    $ make install 
 
 -------------------------
 
