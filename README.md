@@ -3,7 +3,15 @@
 
 --------------------------
 
+
 ## INSTALL:
+
+* **developpement**: install virtualenv
+    $ make venv3
+
+### Install flask web application for python 3
+
+> Python 2.7 is not supported
 
    $ make install 
 
@@ -34,6 +42,6 @@
    $ make rundev
 
    $ #or manual cmd 
-   $ cd spiderlex; export PYTHONPATH=YTHONPATH:../parser/ ; port APP_DEBUG=true;  python lexnet_app.py  --port 5002
+   $ cd spiderlex; export PYTHONPATH=PYTHONPATH:../parser/ ; port APP_DEBUG=true;  python lexnet_app.py  --port 5002
 
 --------------------------

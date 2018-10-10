@@ -1,24 +1,25 @@
 .phony : install build 
 
-
+venv3 :
+	@echo "\n ---------------------------\n"
+	@echo "\n# **setting up virtualenv with python 3 **\n"
+	
+	virtualenv -p python3 venv3;
+	. venv3/bin/activate; pip install -r requirements.txt
 
 install: npm bower
 
-yarn:
-	curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-	echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-	sudo apt-get update && sudo apt-get install yarn
-
-
 npm:
+	@echo "\n ---------------------------\n"
+	@echo "\n# ** Installing node modules **"
+
 	npm install jade --save
 	npm install bower --save
 
 bower: 
-	@echo "\n --------------------------"
-	@echo " * Installing js requirements with bower"
-	@echo " --------------------------- \n"
-
+	@echo "\n ---------------------------\n"
+	@echo "\n# ** Installing bower requirements **\n"
+	
 	mkdir -p spiderlex/static
 	rm -rf spiderlex/static/bower_components
 	./node_modules/bower/bin/bower --allow-root install
@@ -34,9 +35,8 @@ build: jade deploy
 
 jade:
 
-	@echo "\n ---------------------------"
-	@echo " * Building flask templates"
-	@echo " ---------------------------\n"
+	@echo "\n ---------------------------\n"
+	@echo "\n# ** Building flask templates **\n"
 
 	#cd ./templates && pypugjs  *.jade
 	cd ./spiderlex/templates && node ../../node_modules/jade/bin/jade.js -P *.jade
@@ -52,6 +52,8 @@ polymer:
 	cp ../padagraph/application/src/static/padagraph_webcomponents/*.html ./spiderlex/jslib/padagraph_components/
 
 deploy:
+	@echo "\n ---------------------------\n"
+	@echo "\n# ** copying static files **\n"
 	cp -rf spiderlex/css spiderlex/static/
 	cp -rf spiderlex/js/* spiderlex/static/
 	cp -rf spiderlex/jsext/* spiderlex/static/
@@ -62,15 +64,26 @@ deploy:
 
 
 
-graphs: lnfr lnen
+graphs:
+	@echo "\n ---------------------------\n"
+	
+	@echo "\n# ** Downloading csv data [HOST trick]**\n"
+	wget -q http://lexsys.atilf.fr/export/spiderlex.tgz
+
+	@echo "\n# ** unpacking **\n"
+	tar xzf spiderlex.tgz
+	
+	@echo "\n# ** Parsing csv export **\n"
+
+	make lnfr lnen
 
 lnfr: 
 	. venv3/bin/activate; cd parser; \
-	python3 parse.py lnfr ../exports/ls-fr-spiderlex/ --complete ../completedb_fr.sqlite -s igraph -o ../lnfr.picklez
+	python3 parse.py lnfr ../ls-fr-spiderlex/ --complete ../completedb_fr.sqlite -s igraph -o ../lnfr.picklez
 
 lnen: 
 	. venv3/bin/activate; cd parser; \
-	python3 parse.py lnen ../exports/ls-en-spiderlex/ --complete ../completedb_en.sqlite -s igraph -o ../lnen.picklez
+	python3 parse.py lnen ../ls-en-spiderlex/ --complete ../completedb_en.sqlite -s igraph -o ../lnen.picklez
 
 
 
@@ -79,10 +92,26 @@ rundev:
 	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ;export FLASK_DEBUG=1; cd spiderlex ; flask run 
 
 clean :
-	@echo "removing js libs"
+	@echo "\n# **Cleaning install directories**"
+	make clean_graphs clean_js clean_py
+
+clean_js:
+	@echo "\n* removing node modules\n"
+	rm -rf ./node_modules
+	rm -f package-lock.json
+	@echo "\n* removing js libs\n"
 	rm -rf spiderlex/static
-	@echo "removing python virtualenv"
+
+clean_py:
+	@echo "\n* removing python virtualenv\n"
 	rm -rf venv3
+
+clean_graphs:
+	@echo "\n* deleting generated data\n"
+	rm -f completedb_fr.sqlite
+	rm -f completedb_en.sqlite
+	rm -f lnen.picklez
+	rm -f lnfr.picklez
 
 help:
 	@cat README
