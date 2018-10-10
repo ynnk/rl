@@ -84,13 +84,16 @@ def complete(lang, text=None):
         else :
             array = rllib.complete(name, db)
 
-    buff = ""
+    buff, group   = ("",[])
     for c in array:
+        # group lexie by vocable, but one.
         if buff != c['entry_id']:
+            group = [e['uuid'] for e in array if e['entry_id'] == c['entry_id'] ]
+        
             lex = {
                 "uuid": "",
                 "entry_id": c['entry_id'],
-                "group": [e['uuid'] for e in array if e['entry_id'] == c['entry_id'] ],
+                "group": group,
                 "entry": "",
                 "prefix":c['prefix'],                
                 "name": c['name'],
@@ -98,10 +101,10 @@ def complete(lang, text=None):
                 "subscript":c['subscript'],
                 "superscript" : "" 
             }
-            completions.append(lex)
+            completions.append(lex)            
             buff = c['entry_id']
-            
-        completions.append(c)
+        if len(group) > 1:        
+            completions.append(c)
         
     return jsonify(
         { 'results': {
