@@ -22,7 +22,7 @@ bower:
 	mkdir -p spiderlex/static
 	rm -rf spiderlex/static/bower_components
 	./node_modules/bower/bin/bower --allow-root install
-	mv bower_components/ spiderlex/static/
+	# mv bower_components/ spiderlex/static/
 	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O spiderlex/jsext/three.min.js
 
 
@@ -78,7 +78,11 @@ lnen:
 rundev: 
 	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ;export FLASK_DEBUG=1; cd spiderlex ; flask run 
 
-
+clean :
+	@echo "removing js libs"
+	rm -rf spiderlex/static
+	@echo "removing python virtualenv"
+	rm -rf venv3
 
 help:
 	@cat README
