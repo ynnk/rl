@@ -2,12 +2,24 @@
 
 venv/
 venv3/
+export/
 exports/
 node_modules/
+./spiderlex/static
 
-*.pyc
+./completedb*
+
+ls-en-spiderlex/
+ls-fr-spiderlex/
+
+spiderlex.tgz
+spiderlexdb.tgz
+
 *.sqlite
 *.picklez
 
+*.pyc
 yarn-error.log
 yarn.lock
+package-lock.json
+.bowerrc

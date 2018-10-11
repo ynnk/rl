@@ -3,14 +3,25 @@
 
 --------------------------
 
+
 ## INSTALL:
 
-   yarn is used in the buid process to install Polymer correctly.  
-   also install from `packages.json`
+### Developpement 
+* install virtualenv
+    $ make venv3
+
+### yarn
+
+yarn is used in the buid process to install Polymer correctly.  
+also install from `packages.json`
 
     $ sudo make yarn
    
-    $ make install 
+### Install flask web application for python3 
+
+> Python 2.7 is not supported
+
+   $ make install 
 
 -------------------------
 
@@ -39,6 +50,6 @@
    $ make rundev
 
    $ #or manual cmd 
-   $ cd spiderlex; export PYTHONPATH=YTHONPATH:../parser/ ; port APP_DEBUG=true;  python lexnet_app.py  --port 5002
+   $ cd spiderlex; export PYTHONPATH=PYTHONPATH:../parser/ ; port APP_DEBUG=true;  python lexnet_app.py  --port 5002
 
 --------------------------
