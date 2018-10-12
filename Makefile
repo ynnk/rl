@@ -1,4 +1,9 @@
-.phony : install build 
+.phony : install build
+
+make dev:
+	make clean_
+	printf %s\\n {venv3, install} | xargs -n 1 -P 8 make
+	printf %s\\n {build,lnen,lnfr} | xargs -n 1 -P 8 make
 
 venv3 :
 	@echo "\n ---------------------------\n"
@@ -112,6 +117,12 @@ clean_graphs:
 	rm -f completedb_en.sqlite
 	rm -f lnen.picklez
 	rm -f lnfr.picklez
+	
+clean_data:
+		rm -rf ls-fr-spiderlex
+		rm -rf ls-en-spiderlex
+		rm -f spiderlex*.tgz*
+
 
 help:
 	@cat README
