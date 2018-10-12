@@ -2,12 +2,16 @@ FROM ubuntu:latest as build
 
 RUN apt-get update && apt-get -y install g++-7 make libxml2-dev python3 python3-pip npm git wget curl
 WORKDIR /usr/local/rl
+
 COPY requirements.txt ./
 RUN pip3 install -r requirements.txt
-COPY package.json Makefile ./
-COPY . ./
+COPY Makefile ./
 RUN make yarn
-RUN make install build
+COPY package.json  ./
+RUN make install 
+COPY . ./
+RUN make build
+
 
 FROM ubuntu:latest
 RUN apt-get update && apt-get -y --no-install-recommends install python3 libxml2 cron supervisor wget
@@ -26,4 +30,3 @@ RUN chmod +x /etc/cron.daily/spidercron && chmod +x /usr/local/docker-entrypoint
 EXPOSE 80
 ENTRYPOINT ["/usr/local/docker-entrypoint.sh"]
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
-
