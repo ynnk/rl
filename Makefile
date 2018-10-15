@@ -35,7 +35,7 @@ bower:
 
 
 
-build: jade deploy
+build: jade deploy version
 
 jade:
 
@@ -65,7 +65,11 @@ deploy:
 	cp -rf spiderlex/jslib/* spiderlex/static/
 	cp -rf spiderlex/polymer/* spiderlex/static/
 
-
+version:
+	@echo "\n ---------------------------\n"
+	@echo "\n# ** release git version **\n"
+	
+	git log -n1 > spiderlex/static/version.txt
 
 
 
