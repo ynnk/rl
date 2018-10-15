@@ -102,6 +102,7 @@ clean :
 
 clean_js:
 	@echo "\n* removing node modules\n"
+	rm -rf ./bower_components
 	rm -rf ./node_modules
 	rm -f package-lock.json
 	@echo "\n* removing js libs\n"
@@ -119,9 +120,9 @@ clean_graphs:
 	rm -f lnfr.picklez
 	
 clean_data:
-		rm -rf ls-fr-spiderlex
-		rm -rf ls-en-spiderlex
-		rm -f spiderlex*.tgz*
+	rm -rf ls-fr-spiderlex
+	rm -rf ls-en-spiderlex
+	rm -f spiderlex*.tgz*
 
 
 help:

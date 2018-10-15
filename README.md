@@ -1,7 +1,8 @@
 
 # Spiderlex
-
 --------------------------
+
+http://spiderlex.atilf.fr
 
 
 ## INSTALL:
@@ -45,3 +46,10 @@
    $ cd spiderlex; export PYTHONPATH=PYTHONPATH:../parser/ ; port APP_DEBUG=true;  python lexnet_app.py  --port 5002
 
 --------------------------
+
+
+## Releases
+
+0.7.2 
+0.7.1
+0.7
