@@ -34,23 +34,23 @@ also install from `packages.json`
 
 ## Parse export to graph:
 
-   $ make lnen 
-   $ make lnfr 
+   $ make lnen  
+   $ make lnfr  
 
-   $ # or both 
-   $ make graphs 
+   $ # or both  
+   $ make graphs  
 
-   $ # manual cmd 
+   $ # manual cmd  
 
-   $ cd parser; python parse.py lnfr ../exports/ls-fr-spiderlex/ --complete ../completedb_fr.sqlite -s igraph -o ../lnfr.picklez
+   $ cd parser; python parse.py lnfr ../exports/ls-fr-spiderlex/ --complete ../completedb_fr.sqlite -s igraph -o ../lnfr.picklez  
 
 --------------------------
 
 ## Run Flask server FOR DEVELOPPEMENT ONLY :
 
-   $ make rundev
+   $ make rundev  
 
-   $ #or manual cmd 
+   $ #or manual cmd  
    $ cd spiderlex; export PYTHONPATH=PYTHONPATH:../parser/ ; port APP_DEBUG=true;  python lexnet_app.py  --port 5002
 
 --------------------------
@@ -58,6 +58,6 @@ also install from `packages.json`
 
 ## Releases
 
-0.7.3 Database update ! need to rebuild graphs
-0.7.1
-0.7
+0.8.1 Database update ! need to rebuild graphs  
+0.7.1  
+0.7  
