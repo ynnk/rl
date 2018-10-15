@@ -50,6 +50,6 @@ http://spiderlex.atilf.fr
 
 ## Releases
 
-0.7.2 
+0.7.3 Database update ! need to rebuild graphs
 0.7.1
 0.7
