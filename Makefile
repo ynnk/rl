@@ -1,5 +1,10 @@
 .phony : yarn install build 
 
+dev:
+	make clean_
+	printf %s\\n {venv3, install} | xargs -n 1 -P 8 make
+	printf %s\\n {build,lnen,lnfr} | xargs -n 1 -P 8 make
+
 venv3 :
 	@echo "\n ---------------------------\n"
 	@echo "\n# **setting up virtualenv with python 3 **\n"
@@ -19,15 +24,12 @@ install: npm
 npm:
 	@echo "\n ---------------------------\n"
 	@echo "\n# ** Installing node modules **"
-
 	yarn
 	
 	@echo "\n# ** downloading threejs R76 **"
 	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O node_modules/three/three.min.js
 
-
-
-build: jade deploy
+build: jade deploy version
 
 jade:
 
@@ -48,18 +50,23 @@ polymer:
 	cp ../padagraph/application/src/static/padagraph_webcomponents/*.html ./spiderlex/jslib/padagraph_components/
 
 deploy:
+	@echo "\n ---------------------------\n"
+	@echo "\n# ** copying static files **\n"
+	
 	mkdir -p spiderlex/static/
 	cp -r node_modules  spiderlex/static/
 
-	@echo "\n ---------------------------\n"
-	@echo "\n# ** copying static files **\n"
 	cp -rf spiderlex/css spiderlex/static/
 	cp -rf spiderlex/js/* spiderlex/static/
 	cp -rf spiderlex/jsext/* spiderlex/static/
 	cp -rf spiderlex/jslib/* spiderlex/static/
 	cp -rf spiderlex/polymer/* spiderlex/static/
 
-
+version:
+	@echo "\n ---------------------------\n"
+	@echo "\n# ** release git version **\n"
+	git log -n1 > spiderlex/static/version.txt
+	cat spiderlex/static/version.txt
 
 rundev: 
 	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ;export FLASK_DEBUG=1; cd spiderlex ; flask run 
@@ -96,6 +103,7 @@ clean :
 
 clean_js:
 	@echo "\n* removing node modules\n"
+	rm -rf ./bower_components
 	rm -rf ./node_modules
 	rm -f package-lock.json
 	@echo "\n* removing js libs\n"
@@ -111,6 +119,12 @@ clean_graphs:
 	rm -f completedb_en.sqlite
 	rm -f lnen.picklez
 	rm -f lnfr.picklez
+	
+clean_data:
+	rm -rf ls-fr-spiderlex
+	rm -rf ls-en-spiderlex
+	rm -f spiderlex*.tgz*
+
 
 clean_data:
 	rm -rf ls-fr-spiderlex

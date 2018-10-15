@@ -228,7 +228,14 @@ import sys
 from pdglib.graphdb_ig import IGraphDB, engines
 graphdb = IGraphDB(graphs={}, conf=CONFIG)
 graphdb.open_database()
-#for k in GRAPHS_CONF : graphdb.get_graph(k)
+
+
+# load graph at startup
+for k in CONFIG.get('langs',[]) :
+    gid = "ln%s" % k
+    logger.info( "Opening graph %s at %s" % (gid, CONFIG.get(gid, None))  )
+    graphdb.get_graph(gid)
+
 
 ## Neo4j graphdb
 #from  graphdb_neo4j import GraphDB

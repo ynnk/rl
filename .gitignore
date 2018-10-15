@@ -5,7 +5,8 @@ venv3/
 export/
 exports/
 node_modules/
-./spiderlex/static
+bower_components/
+spiderlex/static/
 
 ./completedb*
 
