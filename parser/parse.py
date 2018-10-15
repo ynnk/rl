@@ -687,6 +687,11 @@ class Parser(object):
         print( "\n\n == DEBUG == \n\n")
         print( len(nodes) )
 
+import unicodedata
+
+def remove_accents(input_str):
+    nkfd_form = unicodedata.normalize('NFKD', input_str)
+    return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
 def make_complete_db(db, completions):
     db = sqlite3.connect(db)
@@ -696,14 +701,21 @@ def make_complete_db(db, completions):
     c.execute('''DROP TABLE  IF EXISTS complete''')
     
     c.execute('''CREATE TABLE complete
-                 (uuid text, entry_id text, entry text, name text, lexnum text, prefix text, subscript text, superscript text)''')
+                 ( uuid text, entry_id text, entry text, name text, name_ascii text,
+                   lexnum text, prefix text, subscript text, superscript text ) ''')
     c.execute('''CREATE UNIQUE INDEX index_uuid on complete (uuid);''')
     c.execute('''CREATE UNIQUE INDEX index_entry on complete (entry);''')
     c.execute('''CREATE INDEX index_name on complete (name);''')
+    c.execute('''CREATE INDEX index_name_ascii on complete (name_ascii);''')
 
     rows = []
-    
-    c.executemany('INSERT INTO complete ( uuid, entry_id, entry, name , lexnum, prefix, subscript, superscript ) VALUES (?,?,?,?,?,?,?,?)', completions)
+
+    for i,e in enumerate(completions):
+        uuid, entry_id, entry, name , lexnum, prefix, subscript, superscript = e
+        name_ascii = remove_accents(name)
+        completions[i] = (uuid, entry_id, entry, name , name_ascii, lexnum, prefix, subscript, superscript)
+        
+    c.executemany('INSERT INTO complete ( uuid, entry_id, entry, name , name_ascii, lexnum, prefix, subscript, superscript ) VALUES (?,?,?,?,?,?,?,?,?)', completions)
 
     db.commit()
     db.close()

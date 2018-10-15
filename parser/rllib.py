@@ -1,4 +1,5 @@
 import sqlite3
+import json
    
 def dict_factory(cursor, row):
     d = {}
@@ -9,15 +10,28 @@ def dict_factory(cursor, row):
     return d
 
     
-def complete(search, db, prefix=False, limit=20):
-
-    SELECT = "select  uuid, entry_id, entry, name, lexnum as num , prefix, subscript, superscript from complete where"
-    ORDER = " ORDER BY name, entry_id, prefix, lexnum";
-    WHERE = " prefix != '' and " if prefix else ""
-    
+def complete(search, db, prefix=False, limit=20, accents=True):
+    db.row_factory = dict_factory
     c = db.cursor()
 
-    c.execute( "%s name like ?  %s limit ?" % (SELECT + WHERE, ORDER), ( search+'%',limit) )
+    query = ["SELECT  name, name_ascii, entry_id FROM complete ",
+             "WHERE name like ? " + (" and prefix != '' " if prefix else "") ,
+             "GROUP BY entry_id ORDER BY lower(name_ascii)  LIMIT ? "
+            ]
+    query = " ".join(query)
+    c.execute( query , ( search+'%',limit) )
+
+    rows = c.fetchall()
+    entries =  [ d['entry_id'] for d in  rows ]
+    if len(entries) == 1 :
+        entries = ['oooooooo'] + entries
+
+    SELECT = "SELECT  uuid, entry_id, entry, name, name_ascii, lexnum as num , prefix, subscript, superscript from complete"
+    WHERE =  " WHERE entry_id IN  {}".format(str(tuple(entries)))
+    ORDER =  " ORDER BY lower(name_ascii), length(name), prefix, subscript, lexnum";
+    
+    print( "%s %s %s " % (SELECT , WHERE, ORDER) )
+    c.execute( "%s %s %s " % (SELECT , WHERE, ORDER) )
     rows =  c.fetchall()
     return rows
 
@@ -30,7 +44,7 @@ def complete_id(search, db):
     return rows
 
     
-def complete_uuids(item, db, limit=20):
+def complete_uuids(item, db, limit=50):
 
     db.row_factory = dict_factory
     c = db.cursor()
