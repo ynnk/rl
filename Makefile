@@ -102,15 +102,14 @@ clean :
 	
 
 clean_js:
-	@echo "\n* removing node modules\n"
-	rm -rf ./bower_components
+	@echo "\n ** removing node modules\n"
 	rm -rf ./node_modules
 	rm -f package-lock.json
-	@echo "\n* removing js libs\n"
+	@echo "\n ** removing statics \n"
 	rm -rf spiderlex/static
 
 clean_py:
-	@echo "\n* removing python virtualenv\n"
+	@echo "\n ** removing python virtualenv\n"
 	rm -rf venv3
 
 clean_graphs:
