@@ -557,6 +557,10 @@ class Parser(object):
         copo = handler.parse("%s/03-lscopolysemy-model.xml" % path)
         copo = { e['id']: e for e in copo }
         _name =  lambda t,s : "Co-polysemy/%s%s%s" % (t['name'], "/" if s else "", s['name']if s else "" )
+
+        def weight_copo(typ):
+            print( typ,int(copo[typ]['semantics']))
+            return int(copo[typ]['semantics'])
         
         # edgetypes
         self.info( " * POSTING Co-polysemy edgetypes : %s" % (len(copo.values())) )
@@ -591,7 +595,7 @@ class Parser(object):
                         'edgetype': edgetypes[_name(t,s) ]['uuid'],
                         'source': idx[src],
                         'target': idx[tgt],
-                        'properties': { 'weight' : WEIGHT_COPO,
+                        'properties': { 'weight' : weight_copo(typ),
                                         'i': count
                                       } 
                     }

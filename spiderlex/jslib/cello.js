@@ -1949,7 +1949,7 @@ var Edge = Backbone.Model.extend({
                 return edge.graph ? edge.graph.vs.get(edge.get("target")) : null;
             } );
         Cello.get(this, "weight", function(){
-                return edge.graph ? edge.graph.vs.get(edge.get("weight")) : null;
+                return edge.graph ? edge.properties.get("weight") : 1;
             } );
 
         Cello.get(this, "sym", this.sym);
