@@ -20,7 +20,6 @@
     "semantic-ui-css": "^2.4.0",
     "three.js": "^0.77.1",
     "underscore": "^1.9.1",
-    "@webcomponents/webcomponentsjs": "^2.0.3",
-    "@webcomponents/custom-elements": "^1.0.0"
+    "webcomponents-lite": "^0.6.0"
   }
 }

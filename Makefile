@@ -1,9 +1,9 @@
 .phony : yarn install build 
 
 dev:
-	make clean_
-	printf %s\\n {venv3, install} | xargs -n 1 -P 8 make
-	printf %s\\n {build,lnen,lnfr} | xargs -n 1 -P 8 make
+	make clean
+	printf %s\\n venv3 install | xargs -n 1 -P 8 make
+	printf %s\\n build lnen lnfr | xargs -n 1 -P 8 make
 
 venv3 :
 	@echo "\n ---------------------------\n"
