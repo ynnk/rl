@@ -9,32 +9,22 @@ html
 
     title RL/Spiderlex 
 
-    <!--  SemUI CSS    -->
-    link(rel='stylesheet' href="{{url_for('static',  filename='bower_components/semantic-ui/dist/semantic.min.css')}}")
-
-    <!--  our CSS    -->
+    <!--  CSS    -->
+    link(rel='stylesheet' href="{{url_for('static',  filename='node_modules/semantic-ui-css/semantic.min.css')}}")
     link( rel="stylesheet" href="{{url_for('static', filename='css/app_graph.css')}}" type="text/css" )
     link( rel="stylesheet" href="{{url_for('static', filename='css/engine.css')}}" type="text/css" )
 
     <!--  require JS    -->
-    script( data-main="{{url_for('static', filename='main')}}" src="{{url_for('static', filename='require.js')}}")
-
-
+    script( data-main="{{url_for('static', filename='main')}}" src="{{url_for('static', filename='node_modules/requirejs/require.js')}}")
+       
     <!-- web components-->
-    
-    script( src="/static/webcomponents-lite.min.js" )
-
-    link( rel="import" href="/static/bower_components/polymer/polymer.html")
+    <!-- load webcomponents bundle, which includes all the necessary polyfills -->
+    script( src="/static/node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js" )
+    //- script( src="/static/node_modules/webcomponents-lite/webcomponents-lite.js" )
 
     link( rel="import" href="{{url_for('static', filename='spiderlex-app.html')}}")
-
-    link( rel="import" href="{{polymer_path}}/padagraph-collection.html")
-    link( rel="import" href="{{polymer_path}}/padagraph-vertex-card-xs.html")
-    link( rel="import" href="{{polymer_path}}/padagraph-controls.html")
-    link( rel="import" href="{{polymer_path}}/padagraph-gviz.html")
-    link( rel="import" href="{{polymer_path}}/padagraph-rlf-vertex.html")
-    link( rel="import" href="{{polymer_path}}/padagraph-engines.html")
-
+    
+  
     script( id="ClusterLabel" type="text/template").
       <a href='#' class='clabel'><%= label %></a>
        

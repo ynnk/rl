@@ -108,7 +108,11 @@ define([
 
                 select: function () {
                     console.log("completion select ", this.model.attributes)
-                    _this.model.add(new Models.LexnetQueryUnit(this.model.attributes));
+                    if (this.model.attributes.group) {
+                        _this.model.add(new Models.LexnetQueryUnit(this.model.attributes));                        
+                    } else {
+                        _this.model.add(new Models.LexnetQueryUnit(this.model.attributes));
+                    }
                     console.log("query added: ", this.model)
                     this.parent.hide();
                     return this;

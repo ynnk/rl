@@ -1,6 +1,6 @@
-.phony : install build
+.phony : yarn install build 
 
-make dev:
+dev:
 	make clean_
 	printf %s\\n {venv3, install} | xargs -n 1 -P 8 make
 	printf %s\\n {build,lnen,lnfr} | xargs -n 1 -P 8 make
@@ -12,28 +12,22 @@ venv3 :
 	virtualenv -p python3 venv3;
 	. venv3/bin/activate; pip install -r requirements.txt
 
-install: npm bower
+yarn: 
+	curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+	echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+	apt-get update && apt-get install yarn
+
+
+
+install: npm
 
 npm:
 	@echo "\n ---------------------------\n"
 	@echo "\n# ** Installing node modules **"
-
-	npm install jade --save
-	npm install bower --save
-
-bower: 
-	@echo "\n ---------------------------\n"
-	@echo "\n# ** Installing bower requirements **\n"
+	yarn
 	
-	mkdir -p spiderlex/static
-	rm -rf spiderlex/static/bower_components
-	./node_modules/bower/bin/bower --allow-root install
-	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O spiderlex/jsext/three.min.js
-
-
-
-
-
+	@echo "\n# ** downloading threejs R76 **"
+	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O node_modules/three/three.min.js
 
 build: jade deploy version
 
@@ -58,7 +52,10 @@ polymer:
 deploy:
 	@echo "\n ---------------------------\n"
 	@echo "\n# ** copying static files **\n"
-	cp -rf bower_components/ spiderlex/static/
+	
+	mkdir -p spiderlex/static/
+	cp -r node_modules  spiderlex/static/
+
 	cp -rf spiderlex/css spiderlex/static/
 	cp -rf spiderlex/js/* spiderlex/static/
 	cp -rf spiderlex/jsext/* spiderlex/static/
@@ -68,8 +65,11 @@ deploy:
 version:
 	@echo "\n ---------------------------\n"
 	@echo "\n# ** release git version **\n"
-	
 	git log -n1 > spiderlex/static/version.txt
+	cat spiderlex/static/version.txt
+
+rundev: 
+	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ;export FLASK_DEBUG=1; cd spiderlex ; flask run 
 
 
 
@@ -96,24 +96,20 @@ lnen:
 
 
 
-
-rundev: 
-	. venv3/bin/activate; export PYTHONPATH=$$PYTHONPATH:../parser; export APP_DEBUG=true; export FLASK_APP=lexnet_app.py ;export FLASK_DEBUG=1; cd spiderlex ; flask run 
-
 clean :
 	@echo "\n# **Cleaning install directories**"
 	make clean_graphs clean_js clean_py
+	
 
 clean_js:
-	@echo "\n* removing node modules\n"
-	rm -rf ./bower_components
+	@echo "\n ** removing node modules\n"
 	rm -rf ./node_modules
 	rm -f package-lock.json
-	@echo "\n* removing js libs\n"
+	@echo "\n ** removing statics \n"
 	rm -rf spiderlex/static
 
 clean_py:
-	@echo "\n* removing python virtualenv\n"
+	@echo "\n ** removing python virtualenv\n"
 	rm -rf venv3
 
 clean_graphs:
@@ -127,6 +123,13 @@ clean_data:
 	rm -rf ls-fr-spiderlex
 	rm -rf ls-en-spiderlex
 	rm -f spiderlex*.tgz*
+
+
+clean_data:
+	rm -rf ls-fr-spiderlex
+	rm -rf ls-en-spiderlex
+	rm -f spiderlex*.tgz*
+	
 
 
 help:

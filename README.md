@@ -7,10 +7,18 @@ http://spiderlex.atilf.fr
 
 ## INSTALL:
 
-* **developpement**: install virtualenv
+### Developpement 
+* install virtualenv
     $ make venv3
 
-### Install flask web application for python 3
+### yarn
+
+yarn is used in the buid process to install Polymer correctly.  
+also install from `packages.json`
+
+    $ sudo make yarn
+   
+### Install flask web application for python3 
 
 > Python 2.7 is not supported
 
