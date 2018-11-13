@@ -26,9 +26,9 @@ def complete(search, db, prefix=False, limit=20, accents=True):
     if len(entries) == 1 :
         entries = ['oooooooo'] + entries
 
-    SELECT = "SELECT  uuid, entry_id, entry, name, name_ascii, lexnum as num , prefix, subscript, superscript from complete"
+    SELECT = "SELECT  uuid, entry_id, entry, name, name_ascii, cast(lexnum as integer) as num , prefix, subscript, superscript from complete"
     WHERE =  " WHERE entry_id IN  {}".format(str(tuple(entries)))
-    ORDER =  " ORDER BY lower(name_ascii), length(name), prefix, subscript, lexnum";
+    ORDER =  " ORDER BY lower(name_ascii), length(name), prefix, subscript, num";
     
     print( "%s %s %s " % (SELECT , WHERE, ORDER) )
     c.execute( "%s %s %s " % (SELECT , WHERE, ORDER) )
