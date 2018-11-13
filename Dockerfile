@@ -1,6 +1,6 @@
 FROM ubuntu:latest as build
 
-RUN apt-get update && apt-get -y install g++-7 make libxml2-dev python3 python3-pip npm git wget curl
+RUN apt-get update && apt-get -y install g++-7 make libxml2-dev python3 python3-pip npm git wget curl unzip
 WORKDIR /usr/local/rl
 
 COPY requirements.txt ./
