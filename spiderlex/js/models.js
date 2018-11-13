@@ -259,7 +259,7 @@ define(['underscore','backbone', 'cello', 'embed'],    function(_,Backbone, Cell
         },
 
         validate: function(){
-            uuids = this.models.filter(function(unit){ return unit.get('group')? unit.get('group') : unit.get('uuid') }).flat();
+            uuids = _.flatten(this.models.filter(function(unit){ return unit.get('group')? unit.get('group') : unit.get('uuid') }));
             
             if (this.length > uuids.length) {
                 this.request_uuids();

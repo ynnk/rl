@@ -1,4 +1,3 @@
-<link rel="import" href="/static/node_modules/Polymer/dist/bundled/polymer.html">
 <link rel="import" href="/static/padagraph_components/padagraph-collection.html">
 <link rel="import" href="/static/padagraph_components/padagraph-vertex-card-xs.html">
 <link rel="import" href="/static/padagraph_components/padagraph-controls.html">
@@ -254,7 +253,7 @@
                 app.listenTo(app.views.userquery, "submited", function(){
                   console.log(" === submited", arguments);
                   if(app.models.userquery.validate()){
-                    var uuids = app.models.userquery.map( function(d) { return d.get('group')? d.get('group') : d.get('uuid') }).flat();
+                    var uuids = _.flatten(app.models.userquery.map( function(d) { return d.get('group')? d.get('group') : d.get('uuid') }));
                     var params = uuids.map( function(e) { return { 'query':  e } });
                     Backbone.trigger('engine:explore', params);
                   }
