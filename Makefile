@@ -25,10 +25,14 @@ npm:
 	@echo "\n ---------------------------\n"
 	@echo "\n# ** Installing node modules **"
 	yarn
+
+	@echo "\n# ** fetching polymer **"
+	cd node_modules; wget https://github.com/Polymer/polymer/archive/v1.11.3.zip; unzip v1.11.3.zip
+
 	
 	@echo "\n# ** downloading threejs R76 **"
 	wget https://raw.githubusercontent.com/mrdoob/three.js/r76/build/three.min.js -O node_modules/three/three.min.js
-
+		
 build: jade deploy version
 
 jade:
