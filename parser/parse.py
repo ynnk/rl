@@ -23,6 +23,10 @@ import sqlite3
 from bs4 import BeautifulSoup
 
 import sys
+try:
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+except : pass
 
 """
  
@@ -170,9 +174,8 @@ class Parser(object):
 
         KEYS =  [ "id","num", "prefix", "subscript", "superscript", "vocable"]
         
-        WEIGHT_COPO = 1
         WEIGHT_LOC = 1
-        WEIGHT_INC_DEF = 2
+        WEIGHT_INC_DEF = 0
         WEIGHT_INC_FORM = 0
 
         idx = {} 
@@ -316,8 +319,12 @@ class Parser(object):
             if id in nodes:
                 df = nodes[id]['df']
                 df['xml'] = def_XML
+
+                soup = BeautifulSoup(def_XML, 'html.parser')
+                rlfids = [ (st.attrs['sense'],st.attrs.get('sem',WEIGHT_INC_DEF)) for st in soup("st") if st.attrs.get('sense') ]
+                
                 soup = BeautifulSoup(def_HTML, 'html.parser')
-                rlfids = [a.attrs['href'].split('/')[1] for a in  soup("a")]
+                # ~ rlfids = [a.attrs['href'].split('/')[1] for a in  soup("a")]
                 l_inc_def[id] = rlfids
                 df['html'] = soup.body.prettify()
 
@@ -489,6 +496,12 @@ class Parser(object):
         
         
         # Relations / edges
+        
+        """
+        ## Liens d inclusion définitionnelle 
+        
+        17-lsdef.csv 
+        """
 
         
         self.info( "17-lsdef.csv [POST] Liens d inclusion définitionnelle " )
@@ -506,9 +519,9 @@ class Parser(object):
         _nodes = { e['rlfid'] : e for e in nodes.values() }
         
         for source, targets in l_inc_def.items():
+            print (source, targets)
 
-            weight = WEIGHT_INC_DEF
-            for target in targets:
+            for target, weight in targets:
                 payload = {
                             'edgetype': edgetypes[name]['uuid'],
                             'source': idx[source],
@@ -559,7 +572,6 @@ class Parser(object):
         _name =  lambda t,s : "Co-polysemy/%s%s%s" % (t['name'], "/" if s else "", s['name']if s else "" )
 
         def weight_copo(typ):
-            print( typ,int(copo[typ]['semantics']))
             return int(copo[typ]['semantics'])
         
         # edgetypes
