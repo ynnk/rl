@@ -176,14 +176,14 @@ def app_graph(lang, query=None, path = ""):
         # gviz
         #'el': "#viz",
         'background_color' : "#eeeeee",
-        'initial_size' : 1 ,
+        'initial_size' : 0.1 ,
         'vtx_size' : args.get("vertex_size", 1 ),
         'show_text'  : 0 if args.get("no_text"  , None ) else 1,     # removes vertex text 
         'show_nodes' : 0 if args.get("no_nodes" , None ) else 1,   # removes vertex only 
         'show_edges' : 0 if args.get("no_edges" , None ) else 1,   # removes edges 
         'show_images': 0 if args.get("no_images", None ) else 1, # removes vertex images
 
-        'user_font_size' : 5,# range -5,5
+        'user_font_size' : 12,# range -5,5
         'user_vtx_size' : 1. , # [1, 25 ]
 
         'auto_rotate': 0,
