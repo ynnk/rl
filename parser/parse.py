@@ -593,14 +593,14 @@ class Parser(object):
         rels = readcsv(path, "04-lscopolysemy-rel.csv", type=list)
 
         edges = []; count = 0
-        for r in rels:
+        for i, r in enumerate(rels):
             src, tgt, typ, subtype = r
             t = copo[typ]
             s = copo[typ]['subtypes'].get(subtype, None) if len(subtype) else None
             
             if len(subtype) and (copo[typ]['subtypes'].get(subtype, None) is None):
-                self.error ( " # 04-lscopolysemy-rel # no subtype %s in type %s    %s" \
-                        % ( int(subtype) , int(typ), r ))
+                self.error ( " # 04-lscopolysemy-rel # no subtype %s in type %s (line %s ) %s" \
+                        % ( subtype , typ, i+2, r ))
             
             count +=1
             payload = {
