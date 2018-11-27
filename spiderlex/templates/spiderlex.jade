@@ -10,19 +10,21 @@ html
     title RL/Spiderlex 
 
     <!--  CSS    -->
-    link(rel='stylesheet' href="{{url_for('static',  filename='node_modules/semantic-ui-css/semantic.min.css')}}")
+    link( rel='stylesheet' href="{{url_for('static',  filename='node_modules/semantic-ui-css/semantic.min.css')}}")
     link( rel="stylesheet" href="{{url_for('static', filename='css/app_graph.css')}}" type="text/css" )
     link( rel="stylesheet" href="{{url_for('static', filename='css/engine.css')}}" type="text/css" )
+    
 
     <!--  require JS    -->
     script( data-main="{{url_for('static', filename='main')}}" src="{{url_for('static', filename='node_modules/requirejs/require.js')}}")
-       
-    <!-- web components-->
-    <!-- load webcomponents bundle, which includes all the necessary polyfills -->
-    script( src="/static/node_modules/webcomponents-lite/webcomponents-lite.js" )
-    link( rel="import" href="/static/node_modules/polymer-1.11.3/polymer.html")
-    //link( rel="import" href="/static/polymer.html")
-    link( rel="import" href="{{url_for('static', filename='spiderlex-app.html')}}")
+    
+    link( rel="import" href="{{url_for('static', filename='spiderlex-app.html')}}" )
+
+    //-
+        polyfill web components 
+        script( src="/static/node_modules/webcomponents-lite/webcomponents-lite.js" )
+
+    script( src="/static/node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js" ) 
     
   
     script( id="ClusterLabel" type="text/template").
