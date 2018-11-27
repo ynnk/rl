@@ -170,7 +170,7 @@ def app_graph(lang, query=None, path = ""):
         #
         'wait' : 4,
         #template
-        'zoom'  : args.get("zoom", 1200 ),
+        'zoom'  : args.get("zoom", 1500 ),
         'buttons': 0, # removes play/vote buttons
         'labels' : 0,  # removes graph name/attributes 
         # gviz

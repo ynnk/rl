@@ -17,14 +17,26 @@ html
 
     <!--  require JS    -->
     script( data-main="{{url_for('static', filename='main')}}" src="{{url_for('static', filename='node_modules/requirejs/require.js')}}")
-    
-    link( rel="import" href="{{url_for('static', filename='spiderlex-app.html')}}" )
 
+
+    <!-- web components-->
     //-
-        polyfill web components 
+        script( src="/static/node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js" ) 
         script( src="/static/node_modules/webcomponents-lite/webcomponents-lite.js" )
+    script( src="/static/webcomponents-lite.min.js" )
 
-    script( src="/static/node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js" ) 
+    link( rel="import" href="/static/polymer/polymer.html")
+
+    link( rel="import" href="{{url_for('static', filename='spiderlex-app.html')}}")
+
+    link( rel="import" href="{{polymer_path}}/padagraph-collection.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-vertex-card-xs.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-controls.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-gviz.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-rlf-vertex.html")
+    link( rel="import" href="{{polymer_path}}/padagraph-engines.html")
+
+
     
   
     script( id="ClusterLabel" type="text/template").
