@@ -14,6 +14,7 @@ RUN make build
 
 
 FROM ubuntu:latest
+ENV LANG en_US.UTF-8
 RUN apt-get update && apt-get -y --no-install-recommends install python3 libxml2 cron supervisor wget
 COPY --from=build /usr/lib/python3.6 /usr/lib/python3.6
 COPY --from=build /usr/lib/python3/dist-packages /usr/lib/python3/dist-packages/
