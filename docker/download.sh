@@ -18,6 +18,8 @@ echo "unpacking files..."
 tar zxf $SOURCE
 
 echo "converting graphs"
+locale
+
 python3 $PARSER/parse.py lnfr ./ls-fr-spiderlex/ --complete $TARGET/completedb_fr.sqlite -s igraph -o $TARGET/lnfr.picklez
 python3 $PARSER/parse.py lnen ./ls-en-spiderlex/ --complete $TARGET/completedb_en.sqlite -s igraph -o $TARGET/lnen.picklez
 
