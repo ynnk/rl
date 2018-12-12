@@ -77,8 +77,9 @@ rundev:
 
 
 
-graphs:
+graphs: clean_data
 	@echo "\n ---------------------------\n"
+
 	
 	@echo "\n# ** Downloading csv data [HOST trick]**\n"
 	wget -q http://lexsys.atilf.fr/export/spiderlex.tgz

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
 import os, sys
@@ -21,16 +20,6 @@ from rllib import complete
 
 import sqlite3
 from bs4 import BeautifulSoup
-
-import sys
-try:
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
-except : pass
-
-"""
- 
-"""
 
 DEBUG=False
 
@@ -123,7 +112,7 @@ def debug( *args):
 
 def readcsv(path, name, type=dict):
     f = "%s/%s" % (path, name)
-    with codecs.open(f, 'r') as csvfile:
+    with codecs.open(f, 'r', encoding="utf8") as csvfile:
         info( "\n\n ** %s **" % (f))
         if type == list:
             reader = csv.reader(csvfile, delimiter='\t', quotechar='"')
