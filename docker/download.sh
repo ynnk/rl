@@ -1,5 +1,7 @@
 #!/bin/sh
 
+ENV LANG en_US.UTF-8
+
 SOURCE="spiderlex.tgz"
 PARSER=/usr/local/rl/parser
 TARGET=/usr/local/rl
